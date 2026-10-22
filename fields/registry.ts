@@ -12,6 +12,9 @@ import * as selectField from "@/fields/core/select";
 import * as stringField from "@/fields/core/string";
 import * as textField from "@/fields/core/text";
 import * as uuidField from "@/fields/core/uuid";
+// Vlastní pole agentury webs (SEO titulek a popis s počítadlem a náhledem v Googlu).
+import * as seoTitleField from "@/fields/custom/seo-title";
+import * as seoDescriptionField from "@/fields/custom/seo-description";
 
 type FieldModule = {
   label?: string;
@@ -56,5 +59,7 @@ registerField("select", selectField);
 registerField("string", stringField);
 registerField("text", textField);
 registerField("uuid", uuidField);
+registerField("seo-title", seoTitleField);
+registerField("seo-description", seoDescriptionField);
 
 export { labels, schemas, readFns, writeFns, defaultValues, editComponents, viewComponents, fieldTypes };

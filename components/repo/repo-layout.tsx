@@ -14,6 +14,7 @@ import {
   RepoHeaderProvider,
   useRepoHeaderState,
 } from "@/components/repo/repo-header-context";
+import { BotChat } from "@/components/webs/bot-chat";
 
 function RepoHeader() {
   const { header } = useRepoHeaderState();
@@ -50,6 +51,7 @@ export function RepoLayout({ children }: { children: React.ReactNode }) {
         <SidebarInset className="min-h-screen">
           <RepoHeader />
           <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
+          <BotChat />
         </SidebarInset>
       </RepoHeaderProvider>
     </SidebarProvider>
