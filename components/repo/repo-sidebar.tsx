@@ -323,6 +323,7 @@ export function RepoSidebar() {
     const canManageRepo = hasGithubIdentity(user);
 
     const items: NavItem[] = [];
+    if (config.repo.startsWith("webs-obsah-")) items.push({key:"submissions",label:"Formuláře a poptávky",href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/submissions`,icon:<Database className="size-4"/>});
 
     const configObject = (config.object as any) ?? {};
 
