@@ -66,6 +66,7 @@ import {
   FileStack,
   FileText,
   FolderOpen,
+  LayoutDashboard,
   ListVideo,
   LogOut,
   Moon,
@@ -323,6 +324,7 @@ export function RepoSidebar() {
     const canManageRepo = hasGithubIdentity(user);
 
     const items: NavItem[] = [];
+    if (config.repo.startsWith("webs-obsah-")) items.push({key:"prehled",label:"Přehled webu",href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`,icon:<LayoutDashboard className="size-4"/>});
     if (config.repo.startsWith("webs-obsah-")) items.push({key:"submissions",label:"Formuláře a poptávky",href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/submissions`,icon:<Database className="size-4"/>});
 
     const configObject = (config.object as any) ?? {};

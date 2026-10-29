@@ -188,10 +188,13 @@ export default async function Page({
           Go home
         </Link>
 
-        <header>
+        <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-semibold tracking-tight text-lg md:text-2xl">
             Admin
           </h1>
+          <Link className={buttonVariants({ variant: "default", size: "sm" })} href="/admin/weby">
+            Přehled webů
+          </Link>
         </header>
 
         <div className="space-y-6">
