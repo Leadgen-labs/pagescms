@@ -92,7 +92,7 @@ export default async function Page() {
                     {s.leads.last7} / {s.leads.last30}
                   </TableCell>
                   <TableCell className={cn("text-right", s.leads.failed30 && "font-semibold text-red-600")}>{s.leads.failed30}</TableCell>
-                  <TableCell className="text-right whitespace-nowrap">{s.aiSpendMonthUsd.toFixed(2)} USD</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{s.aiSpendMonthUsd != null ? `${s.aiSpendMonthUsd.toFixed(2)} USD` : "-"}</TableCell>
                   <TableCell className="min-w-64">
                     {todo(s) ? <SiteChecklist compact checks={s.checks.filter((c) => c.state === "todo")} /> : <span className="text-xs text-emerald-700">vše hotovo</span>}
                   </TableCell>

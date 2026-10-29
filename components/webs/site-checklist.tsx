@@ -16,7 +16,8 @@ export type SiteOverviewData = {
   lastDeployAt: string | null;
   openRequest: { state: string; previewUrl: string | null } | null;
   leads: { last7: number; last30: number; failed30: number };
-  aiSpendMonthUsd: number;
+  /** Jen v přehledu pro správce. */
+  aiSpendMonthUsd?: number;
   checks: SiteCheck[];
 };
 

@@ -105,15 +105,16 @@ export function SiteOverview() {
         <div>
           <h3 className="font-medium">Texty, fotky a články upravíte sami</h3>
           <p>
-            V levém menu jsou stránky webu, články a nastavení (titulky pro Google). Po uložení se změna na webu
-            objeví během pár minut.
+            V levém menu jsou stránky webu, články a nastavení (titulky pro Google). Článek je po uložení na webu
+            zhruba do minuty, změna textů a fotek stránek za 3 až 5 minut. Novou stránku nebo změnu vzhledu
+            zadejte botovi.
           </p>
         </div>
         <div>
           <h3 className="font-medium">Větší úpravy zadáte botovi</h3>
           <p>
-            Napište, co chcete změnit, třeba „přidejte stránku s ceníkem“ nebo „změňte telefon“. Stačí chat s botem
-            tady v administraci, WhatsApp, e-mail nebo váš AI chat (Claude, ChatGPT) s konektorem{" "}
+            Napište, co chcete změnit, třeba „přidejte stránku s ceníkem“ nebo „změňte telefon“. Stačí tlačítko
+            Napsat botovi vpravo dole, WhatsApp, e-mail nebo váš AI chat (Claude, ChatGPT) s konektorem{" "}
             <code>https://mcp.mobilut.com/mcp</code>. Bot připraví náhled a změna se nasadí, až ji potvrdíte tlačítkem
             Nasadit.
           </p>
