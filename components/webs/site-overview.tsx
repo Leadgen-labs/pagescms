@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useConfig } from "@/contexts/config-context";
 import { Button } from "@/components/ui/button";
-import { formatDate, requestLabel, SiteChecklist, statusLabel, type SiteOverviewData } from "@/components/webs/site-checklist";
+import { formatDate, requestLabel, SiteChecklist, SiteLinks, statusLabel, type SiteOverviewData } from "@/components/webs/site-checklist";
 
 /** Úvodní stránka webu v administraci: co je hotové a co ne + návod na jednu stránku. */
 export function SiteOverview() {
@@ -43,6 +43,12 @@ export function SiteOverview() {
               </a>
               {site.lastDeployAt && <> · poslední nasazení {formatDate(site.lastDeployAt)}</>}
             </p>
+          )}
+          {site && (
+            <SiteLinks
+              className="mt-2 text-sm"
+              links={site.measurement.clientAccess ? site.links : { site: site.links.site, preview: site.links.preview }}
+            />
           )}
         </div>
         <Button variant="outline" disabled={busy} onClick={() => void load()}>

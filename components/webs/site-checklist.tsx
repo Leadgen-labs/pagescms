@@ -10,6 +10,8 @@ export type SiteOverviewData = {
   url: string;
   domain: string | null;
   domainActive: boolean;
+  reachable: boolean | null;
+  links: { site: string; preview: string | null; ga4?: string; gtm?: string; gsc?: string };
   indexable: boolean;
   measurement: { gtm: boolean; gtmOwner: string; ga4: boolean; gsc: boolean; clientAccess: number };
   missing: string[] | null;
@@ -20,6 +22,30 @@ export type SiteOverviewData = {
   aiSpendMonthUsd?: number;
   checks: SiteCheck[];
 };
+
+export type SiteAlert = { slug: string; name: string; level: "error" | "warning"; text: string };
+
+/** Odkazy webu: web, náhled na Cloudflaru, Google Analytics, Tag Manager, Search Console. */
+export function SiteLinks({ links, className }: { links: SiteOverviewData["links"]; className?: string }) {
+  const items: [string, string | null | undefined][] = [
+    ["Web", links.site],
+    ["Náhled", links.preview],
+    ["GA4", links.ga4],
+    ["GTM", links.gtm],
+    ["Search Console", links.gsc],
+  ];
+  return (
+    <span className={cn("flex flex-wrap gap-x-3 gap-y-1", className)}>
+      {items
+        .filter((item): item is [string, string] => Boolean(item[1]))
+        .map(([label, href]) => (
+          <a key={label} className="underline" href={href} target="_blank" rel="noopener noreferrer">
+            {label}
+          </a>
+        ))}
+    </span>
+  );
+}
 
 /** Stav rozpracované úpravy (konverzace bota) pro klienta. */
 export const requestLabel: Record<string, string> = {

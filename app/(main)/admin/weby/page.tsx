@@ -6,7 +6,7 @@ import { callWebsBot } from "@/lib/webs/bot";
 import { DocumentTitle } from "@/components/document-title";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate, SiteChecklist, statusLabel, type SiteOverviewData } from "@/components/webs/site-checklist";
+import { formatDate, SiteChecklist, SiteLinks, statusLabel, type SiteAlert, type SiteOverviewData } from "@/components/webs/site-checklist";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -15,15 +15,19 @@ export const dynamic = "force-dynamic";
 export default async function Page() {
   const { user } = await requireAdminSession();
   let sites: SiteOverviewData[] = [];
+  let alerts: SiteAlert[] = [];
+  let checkedFor = 0;
   let error = "";
   try {
-    const { status, data } = await callWebsBot<{ sites?: SiteOverviewData[]; error?: string }>("/cms/overview", {
+    const { status, data } = await callWebsBot<{ sites?: SiteOverviewData[]; alerts?: SiteAlert[]; checkedForSeconds?: number; error?: string }>("/cms/overview", {
       op: "all",
       email: user.email,
       admin: true,
     });
     if (status !== 200) error = data.error ?? `Bot vrátil ${status}.`;
     sites = data.sites ?? [];
+    alerts = data.alerts ?? [];
+    checkedFor = data.checkedForSeconds ?? 0;
   } catch (e) {
     error = (e as Error).message;
   }
@@ -42,14 +46,34 @@ export default async function Page() {
         <header>
           <h1 className="font-semibold tracking-tight text-lg md:text-2xl">Weby</h1>
           <p className="text-sm text-muted-foreground">
-            Stav všech webů z bota: doména, měření, poslední nasazení a poptávky (bez náhledů). Údaje jsou z registru
-            bota po posledním nasazení.
+            Stav všech webů z bota: doména, měření, poslední nasazení a poptávky (bez náhledů). Dostupnost,
+            robots.txt a nasazení se kontrolují nejvýš jednou za {Math.round(checkedFor / 60) || 5} minut.
           </p>
         </header>
         {error && (
           <div role="alert" className="rounded-lg border border-red-300 p-4 text-sm text-red-700">
             {error}
           </div>
+        )}
+        {!error && (
+          <section aria-label="Co řešit" className="space-y-2">
+            {alerts.length ? (
+              alerts.map((a, i) => (
+                <div
+                  key={`${a.slug}-${i}`}
+                  role={a.level === "error" ? "alert" : undefined}
+                  className={cn(
+                    "rounded-lg border p-3 text-sm",
+                    a.level === "error" ? "border-red-300 bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-200" : "border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+                  )}
+                >
+                  <strong>{a.name}:</strong> {a.text}
+                </div>
+              ))
+            ) : (
+              <p className="rounded-lg border p-3 text-sm text-emerald-700">Nic k řešení: poptávky se doručují, spuštěné weby odpovídají a měří.</p>
+            )}
+          </section>
         )}
         <div className="overflow-x-auto rounded-lg border">
           <Table>
@@ -73,11 +97,13 @@ export default async function Page() {
                       {s.name}
                     </a>
                     <div className="text-xs text-muted-foreground">{s.domain ?? s.slug}</div>
+                    <SiteLinks className="mt-1 text-xs" links={s.links} />
                   </TableCell>
                   <TableCell>
                     {statusLabel[s.status] ?? s.status}
                     <div className="text-xs text-muted-foreground">
-                      {s.domainActive ? "doména aktivní" : "bez domény"} · {s.indexable ? "indexace povolená" : "robots zakazuje"}
+                      {s.status === "live" && s.reachable === false ? "doména neodpovídá" : s.domainActive ? "doména aktivní" : "bez domény"} ·{" "}
+                      {s.indexable ? "indexace povolená" : "robots zakazuje"}
                     </div>
                   </TableCell>
                   <TableCell className="text-xs">
