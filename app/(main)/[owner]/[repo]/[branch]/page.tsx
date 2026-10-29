@@ -17,7 +17,10 @@ export default function Page() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (config?.object.content?.[0]) {
+    // Weby agentury (obsahová repa webs-obsah-*) začínají přehledem: co je hotové a návod.
+    if (config?.repo.startsWith("webs-obsah-")) {
+      router.replace(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`);
+    } else if (config?.object.content?.[0]) {
       router.replace(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/${config.object.content[0].type}/${config.object.content[0].name}`);
     } else if (config?.object.media) {
       router.replace(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/media/${config.object.media[0].name}`);
