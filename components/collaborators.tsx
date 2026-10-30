@@ -133,6 +133,13 @@ function InviteCollaboratorsDialog({
             required
             rows={6}
           />
+          <label className="flex flex-col gap-2 text-sm font-medium">
+            Jazyk pozvánky / Invitation language
+            <select name="locale" defaultValue="cs" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option value="cs">Čeština</option>
+              <option value="en">English</option>
+            </select>
+          </label>
           {state?.error ? (
             <p className="text-sm font-medium text-destructive">
               {state.error}
@@ -274,7 +281,7 @@ export function Collaborators({
     }
   };
 
-  const handleResendInvite = async (collaboratorId: number) => {
+  const handleResendInvite = async (collaboratorId: number, locale: "cs" | "en" = "cs") => {
     setResending((prev) => [...prev, collaboratorId]);
 
     try {
@@ -282,6 +289,7 @@ export function Collaborators({
         collaboratorId,
         owner,
         repo,
+        locale,
       );
       if (resent.error) {
         toast.error(resent.error);
@@ -455,7 +463,13 @@ export function Collaborators({
                         resending.includes(collaborator.id)
                       }
                     >
-                      Poslat pozvánku znovu
+                      Poslat pozvánku znovu (česky)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => void handleResendInvite(collaborator.id, "en")}
+                      disabled={removing.includes(collaborator.id) || resending.includes(collaborator.id)}
+                    >
+                      Resend invitation (English)
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
