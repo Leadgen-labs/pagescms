@@ -36,6 +36,7 @@ export async function GET(
 
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get("type");
+    const websitesOnly = searchParams.get("websites_only") === "1";
 
     const githubAccount = await getGithubAccount(user.id);
     if (githubAccount?.accessToken && hasGithubIdentity(user)) {
@@ -52,7 +53,7 @@ export async function GET(
         }
       } else {
         // All repos are selected, we search for the repos based on parameters
-        const keyword = searchParams.get("keyword");
+        const keyword = websitesOnly ? "webs-obsah-" : searchParams.get("keyword") || "";
 
         const octokit = createOctokitInstance(token);
         const query = `${keyword} in:name ${type}:${params.owner} fork:true`;
@@ -60,9 +61,17 @@ export async function GET(
           q: query,
           sort: "updated",
           order: "desc",
-          per_page: 5
+          per_page: websitesOnly ? 100 : 5
         });
         githubRepos = response.data.items;
+        if (websitesOnly) {
+          let page = 2;
+          while (githubRepos.length < response.data.total_count && githubRepos.length < 1000) {
+            const next = await octokit.rest.search.repos({ q: query, sort: "updated", order: "desc", per_page: 100, page: page++ });
+            if (!next.data.items.length) break;
+            githubRepos.push(...next.data.items);
+          }
+        }
       }
 
       githubRepos = githubRepos.filter(repo => repo.permissions.push).map(repo => ({
@@ -92,7 +101,7 @@ export async function GET(
       }
     }
 
-    const repos = Array.from(reposByKey.values());
+    const repos = Array.from(reposByKey.values()).filter(repo => !websitesOnly || repo.repo.startsWith("webs-obsah-"));
     for (const repo of repos) repo.displayName = projectName(repo.repo);
     // Optional display metadata, after the existing authorization checks.
     try {

@@ -1,5 +1,15 @@
 /** Authored administration copy; repository content and identifiers are never machine translated. */
 export const uiTranslations: Record<string, string> = {
+  "Switch website": "Přepnout web",
+  "Your websites": "Vaše weby",
+  "All websites": "Všechny weby",
+  "Loading websites…": "Načítání webů…",
+  "Search websites…": "Hledat web…",
+  "Choose a website to open its overview and manage its content.": "Vyberte web, otevřete jeho přehled a spravujte obsah.",
+  "Some websites could not be loaded. Open the overview to retry.": "Některé weby se nepodařilo načíst. Zkuste obnovit přehled.",
+  "No websites match your search.": "Hledání neodpovídá žádný web.",
+  "No websites yet. Ask the website administrator for access.": "Zatím nemáte přístup k žádnému webu. Požádejte správce webu o pozvání.",
+  "Other GitHub projects": "Další projekty na GitHubu",
   "Export and import": "Export a import",
   "← Export and import": "← Export a import",
   "Import review": "Kontrola importu",

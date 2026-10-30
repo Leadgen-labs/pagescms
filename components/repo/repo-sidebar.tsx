@@ -24,6 +24,7 @@ import { isCacheEnabled, isConfigEnabled } from "@/lib/config";
 import { getRootActions } from "@/lib/actions";
 import { getVisits } from "@/lib/tracker";
 import { CreateContent } from "@/components/webs/create-content";
+import { WebsiteSwitcher } from "@/components/webs/website-switcher";
 import { RepoActionButtons } from "@/components/repo/repo-action-buttons";
 import { RepoBranches } from "@/components/repo/repo-branches";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -270,7 +271,8 @@ function RepoHeader() {
   const { user } = useUser();
   const { repo } = useRepo();
   const { config } = useConfig();
-  if (!repo.startsWith("webs-obsah-") && hasGithubIdentity(user)) return <RepoSwitcher />;
+  if (repo.startsWith("webs-obsah-")) return <WebsiteSwitcher />;
+  if (hasGithubIdentity(user)) return <RepoSwitcher />;
   return (
     <div className="flex h-16 items-center gap-2 px-2">
       <LayoutDashboard className="size-8 shrink-0 rounded-md bg-sidebar-accent p-1.5" />
