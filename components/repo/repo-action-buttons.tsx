@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNowStrict } from "date-fns";
@@ -89,7 +90,7 @@ const formatRunLine = (run: ActionRunSummary) => {
   if (!createdAt || Number.isNaN(createdAt.getTime())) {
     return (
       <span className="flex min-w-0 flex-col">
-        <span className="truncate">Unknown time</span>
+        <span className="truncate"><UiText text={"Unknown time"} /></span>
         {secondary && (
           <span className="truncate text-xs text-muted-foreground">{secondary}</span>
         )}
@@ -379,8 +380,7 @@ export function RepoActionButtons({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/${owner}/${repo}/${encodeURIComponent(refName)}/actions`}>
-                  View all actions
-                </Link>
+                  <UiText text={"View all actions"} /> </Link>
               </DropdownMenuItem>
             </>
           )}
@@ -428,8 +428,7 @@ export function RepoActionButtons({
             setDialogAction(null);
             setDialogValues({});
           }}>
-            Cancel
-          </Button>
+            <UiText text={"Cancel"} /> </Button>
           <Button onClick={handleDialogSubmit} disabled={isDialogSubmitDisabled}>
             {typeof dialogAction?.confirm === "object" && dialogAction.confirm.button
               ? dialogAction.confirm.button

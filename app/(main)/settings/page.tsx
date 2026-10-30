@@ -1,3 +1,4 @@
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
@@ -49,12 +50,10 @@ export default async function Page() {
           href="/"
         >
           <ArrowLeft />
-          Go home
-        </Link>
+          <UiText text={"Go home"} /> </Link>
         <header className="flex items-center mb-6">
           <h1 className="font-semibold tracking-tight text-lg md:text-2xl">
-            Settings
-          </h1>
+            <UiText text={"Settings"} /> </h1>
         </header>
         <div className="flex flex-col relative flex-1 space-y-6">
           <Profile
@@ -65,10 +64,9 @@ export default async function Page() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Authentication</CardTitle>
+              <CardTitle><UiText text={"Authentication"} /></CardTitle>
               <CardDescription>
-                Your sign-in methods and linked identity providers.
-              </CardDescription>
+                <UiText text={"Your sign-in methods and linked identity providers."} /> </CardDescription>
             </CardHeader>
             <CardContent>
               <Identities
@@ -84,11 +82,9 @@ export default async function Page() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base md:text-lg">
-                  Installations
-                </CardTitle>
+                  <UiText text={"Installations"} /> </CardTitle>
                 <CardDescription>
-                  Manage the accounts the Github application is installed on.
-                </CardDescription>
+                  <UiText text={"Manage the accounts the Github application is installed on."} /> </CardDescription>
               </CardHeader>
               <CardContent>
                 <Installations />

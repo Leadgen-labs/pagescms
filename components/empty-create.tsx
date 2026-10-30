@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader as LucideLoader } from "lucide-react";
@@ -65,7 +66,7 @@ const EmptyCreate = ({
   } else {
     throw new Error(`Invalid type "${type}".`);
   }
-  
+
   const handleCreate = async () => {
     if (isCreating) return;
     setIsCreating(true);
@@ -105,8 +106,7 @@ const EmptyCreate = ({
     <Button type="button" onClick={handleCreate} disabled={isCreating}>
       {isCreating ? (
         <span className="inline-flex items-center gap-x-2">
-          Creating...
-          <LucideLoader className="h-4 w-4 animate-spin" />
+          <UiText text={"Creating..."} /> <LucideLoader className="h-4 w-4 animate-spin" />
         </span>
       ) : children}
     </Button>

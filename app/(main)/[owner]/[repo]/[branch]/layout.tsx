@@ -1,3 +1,4 @@
+import { UiText } from "@/components/ui-text";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getConfig } from "@/lib/config-store";
@@ -37,7 +38,7 @@ export default async function Layout({
     version: "",
     object: {}
   }
-  
+
   let errorMessage = null;
 
   try {
@@ -63,13 +64,12 @@ export default async function Layout({
         errorMessage = (
           <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
-              <EmptyTitle>Branch not found</EmptyTitle>
+              <EmptyTitle><UiText text={"Branch not found"} /></EmptyTitle>
               <EmptyDescription>{`The branch "${decodedBranch}" could not be found. It may have been removed or renamed.`}</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Link className={buttonVariants({ variant: "default" })} href={`/${owner}/${repo}`}>
-                Open default branch
-              </Link>
+                <UiText text={"Open default branch"} /> </Link>
             </EmptyContent>
           </Empty>
         );
@@ -78,13 +78,12 @@ export default async function Layout({
       errorMessage = (
         <Empty className="absolute inset-0 border-0 rounded-none">
           <EmptyHeader>
-            <EmptyTitle>Access denied</EmptyTitle>
-            <EmptyDescription>You do not have permission to access this repository.</EmptyDescription>
+            <EmptyTitle><UiText text={"Access denied"} /></EmptyTitle>
+            <EmptyDescription><UiText text={"You do not have permission to access this repository."} /></EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Link className={buttonVariants({ variant: "default" })} href="/">
-              Choose another repository
-            </Link>
+              <UiText text={"Choose another repository"} /> </Link>
           </EmptyContent>
         </Empty>
       );

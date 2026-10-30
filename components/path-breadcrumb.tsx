@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { Fragment } from "react";
 import { getRelativePath, joinPathSegments, normalizePath } from "@/lib/utils/file";
 import {
@@ -67,7 +68,7 @@ const PathBreadcrumb = ({
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-1">
                     <BreadcrumbEllipsis className="h-4 w-4" />
-                    <span className="sr-only">Toggle menu</span>
+                    <span className="sr-only"><UiText text={"Toggle menu"} /></span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
                     {breadcrumbDropdown.map((item) => (

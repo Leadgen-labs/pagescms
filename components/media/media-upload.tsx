@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useRef, cloneElement, useMemo, useCallback, createContext, useContext, useState } from "react";
 import { useConfig } from "@/contexts/config-context";
 import { getUploadFileName, joinPathSegments } from "@/lib/utils/file";
@@ -42,7 +43,7 @@ function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
 
-  const configMedia = useMemo(() => 
+  const configMedia = useMemo(() =>
     media
       ? getSchemaByName(config.object, media, "media")
       : config.object.media[0],
@@ -51,8 +52,8 @@ function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple
 
   const accept = useMemo(() => {
     if (!configMedia?.extensions && !extensions) return undefined;
-    
-    const allowedExtensions = extensions 
+
+    const allowedExtensions = extensions
       ? configMedia?.extensions
         ? extensions.filter(ext => configMedia.extensions.includes(ext))
         : extensions
@@ -132,7 +133,7 @@ function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple
 function MediaUploadTrigger({ children }: MediaUploadTriggerProps) {
   const context = useContext(MediaUploadContext);
   if (!context) throw new Error("MediaUploadTrigger must be used within a MediaUpload component");
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filterAcceptedFiles = useCallback((files: File[]) => {
@@ -190,7 +191,7 @@ function MediaUploadTrigger({ children }: MediaUploadTriggerProps) {
 function MediaUploadDropZone({ children, className }: MediaUploadDropZoneProps) {
   const context = useContext(MediaUploadContext);
   if (!context) throw new Error("MediaUploadDropZone must be used within a MediaUpload component");
-  
+
   const [isDragging, setIsDragging] = useState(false);
 
   const filterAcceptedFiles = useCallback((files: File[]) => {
@@ -230,7 +231,7 @@ function MediaUploadDropZone({ children, className }: MediaUploadDropZoneProps) 
     if (context.disabled) return;
     e.preventDefault();
     setIsDragging(false);
-    
+
     const files = e.dataTransfer.files;
     if (!files || files.length === 0) return;
 
@@ -251,8 +252,7 @@ function MediaUploadDropZone({ children, className }: MediaUploadDropZoneProps) 
       {!context.disabled && isDragging && (
         <div className="absolute inset-0 bg-primary/10 rounded-lg flex items-center justify-center">
           <p className="text-sm text-foreground font-medium bg-background rounded-full px-3 py-1">
-            Drop files here to upload
-          </p>
+            <UiText text={"Drop files here to upload"} /> </p>
         </div>
       )}
     </div>

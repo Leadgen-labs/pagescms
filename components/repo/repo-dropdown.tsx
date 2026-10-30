@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
@@ -75,12 +76,11 @@ export function RepoDropdown({
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <a href={`https://github.com/${owner}/${repo}`} target="_blank" onClick={onClick} >
-              View on GitHub
-              <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
+              <UiText text={"View on GitHub"} /> <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator/>
-          <DropdownMenuLabel className="w-40 text-xs text-muted-foreground font-medium">Branches{branchesCount && ` (${branchesCount})`}</DropdownMenuLabel>
+          <DropdownMenuLabel className="w-40 text-xs text-muted-foreground font-medium"><UiText text={"Branches"} />{branchesCount && ` (${branchesCount})`}</DropdownMenuLabel>
             {displayBranches.length > 0 && (
               <>
                 <DropdownMenuRadioGroup value={config?.branch} onValueChange={handleBranchChange}>
@@ -94,12 +94,12 @@ export function RepoDropdown({
               </>
             )}
           <DialogTrigger asChild>
-            <DropdownMenuItem onClick={onClick}>Manage branches</DropdownMenuItem>
+            <DropdownMenuItem onClick={onClick}><UiText text={"Manage branches"} /></DropdownMenuItem>
           </DialogTrigger>
         </DropdownMenuContent>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Manage branches</DialogTitle>
+            <DialogTitle><UiText text={"Manage branches"} /></DialogTitle>
           </DialogHeader>
           <RepoBranches/>
         </DialogContent>

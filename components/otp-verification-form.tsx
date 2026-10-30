@@ -1,5 +1,7 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
+import { useLanguage } from "@/contexts/language-context";
 import type { FormEvent } from "react";
 import { Loader } from "lucide-react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
@@ -31,20 +33,20 @@ export function OtpVerificationForm({
   pending,
   resendDisabled,
   resendPending,
-  submitLabel = "Verify code",
+  submitLabel,
   onChange,
   onResend,
   onSignInAnotherWay,
   onSubmit,
 }: OtpVerificationFormProps) {
+  const { t } = useLanguage();
   return (
     <form className="flex w-full flex-col items-center gap-6" onSubmit={onSubmit}>
       <div className="space-y-2 text-center">
         <h1 className="text-lg font-medium tracking-tight">
-          Verify your login
-        </h1>
+          <UiText text={"Verify your login"} /> </h1>
         <p className="text-sm text-muted-foreground">
-          Enter the 6-digit code sent to {emailLabel}.
+          {t("Zadejte šestimístný kód zaslaný na", "Enter the 6-digit code sent to")} {emailLabel}.
         </p>
       </div>
 
@@ -69,7 +71,7 @@ export function OtpVerificationForm({
 
       <div className="w-full space-y-2">
         <Button className="w-full" disabled={busy || otp.length !== 6} type="submit">
-          {submitLabel}
+          {submitLabel ?? t("Ověřit kód", "Verify code")}
           {pending && <Loader className="size-4 animate-spin" />}
         </Button>
         <Button
@@ -79,8 +81,7 @@ export function OtpVerificationForm({
           type="button"
           variant="ghost"
         >
-          Resend code
-          {resendPending && <Loader className="size-4 animate-spin" />}
+          <UiText text={"Resend code"} /> {resendPending && <Loader className="size-4 animate-spin" />}
         </Button>
         {onSignInAnotherWay && (
           <Button
@@ -90,7 +91,7 @@ export function OtpVerificationForm({
             type="button"
             variant="ghost"
           >
-            Sign in another way
+            {t("Přihlásit se jinak", "Sign in another way")}
           </Button>
         )}
       </div>

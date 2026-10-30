@@ -1,3 +1,5 @@
+import { getPreferredLanguage } from "@/lib/language-server";
+import { emailSubject } from "@/lib/language";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -164,11 +166,13 @@ export const auth = betterAuth({
       sendVerificationOTP: async ({ email, otp, type }) => {
         if (type !== "sign-in") return;
 
-        const subject = `Your Pages CMS temporary code is ${otp}`;
+        const language = await getPreferredLanguage(email);
+        const subject = emailSubject("login", language, otp);
         const html = await render(
           LoginEmailTemplate({
             email,
             otp,
+            language,
             preview: subject,
           }),
         );

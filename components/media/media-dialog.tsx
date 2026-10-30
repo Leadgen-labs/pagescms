@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { forwardRef, useCallback, useImperativeHandle, useState } from "react";
 import { flushSync } from "react-dom";
 import { useConfig } from "@/contexts/config-context";
@@ -106,36 +107,35 @@ const MediaDialog = forwardRef(({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {children && 
+      {children &&
         <DialogTrigger asChild>
           {children}
         </DialogTrigger>
       }
       <DialogContent className="w-full sm:max-w-screen-xl sm:w-[calc(100vw-6rem)] h-[calc(100vh-6rem)] grid-rows-[auto_minmax(0,1fr)_auto]">
         <DialogHeader>
-          <DialogTitle>Select images</DialogTitle>
+          <DialogTitle><UiText text={"Select images"} /></DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        
-        <MediaView 
-          media={configMedia.name} 
-          extensions={extensions} 
-          initialSelected={selectedImages} 
-          onSelect={handleSelect} 
+
+        <MediaView
+          media={configMedia.name}
+          extensions={extensions}
+          initialSelected={selectedImages}
+          onSelect={handleSelect}
           onUpload={handleUpload}
-          maxSelected={maxSelected} 
+          maxSelected={maxSelected}
           initialPath={initialPath || ""}
           usePageHeader={false}
         />
         {configMedia.input &&
           <DialogFooter>
-            <Button 
-              type="button" 
-              onClick={() => void handleSubmit()} 
+            <Button
+              type="button"
+              onClick={() => void handleSubmit()}
               disabled={selectedImages.length === 0 || isSubmitting}
             >
-              Select
-              {isSubmitting ? <Loader className="animate-spin" /> : null}
+              <UiText text={"Select"} /> {isSubmitting ? <Loader className="animate-spin" /> : null}
             </Button>
           </DialogFooter>
         }

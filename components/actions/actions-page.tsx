@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { formatDistanceToNowStrict } from "date-fns";
@@ -486,7 +487,7 @@ export function ActionsPage({
     () => (
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-lg">Actions</h1>
+          <h1 className="font-semibold text-lg"><UiText text={"Actions"} /></h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -501,11 +502,11 @@ export function ActionsPage({
                   rel="noreferrer"
                 >
                   <BookText />
-                  <span className="sr-only">View docs</span>
+                  <span className="sr-only"><UiText text={"View docs"} /></span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View docs</TooltipContent>
+            <TooltipContent><UiText text={"View docs"} /></TooltipContent>
           </Tooltip>
         </div>
         <div className="flex items-center gap-2">
@@ -522,11 +523,11 @@ export function ActionsPage({
                   <PopoverTrigger asChild>
                     <Button type="button" variant="outline" size="icon">
                       <Funnel />
-                      <span className="sr-only">Open filters</span>
+                      <span className="sr-only"><UiText text={"Open filters"} /></span>
                     </Button>
                   </PopoverTrigger>
                 </TooltipTrigger>
-                <TooltipContent>Filters</TooltipContent>
+                <TooltipContent><UiText text={"Filters"} /></TooltipContent>
               </Tooltip>
               <PopoverContent align="end" className="w-56 p-3">
                 <div className="grid gap-2">
@@ -535,10 +536,10 @@ export function ActionsPage({
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All statuses</SelectItem>
-                      <SelectItem value="succeeded">Succeeded</SelectItem>
-                      <SelectItem value="failed">Failed</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="all"><UiText text={"All statuses"} /></SelectItem>
+                      <SelectItem value="succeeded"><UiText text={"Succeeded"} /></SelectItem>
+                      <SelectItem value="failed"><UiText text={"Failed"} /></SelectItem>
+                      <SelectItem value="pending"><UiText text={"Pending"} /></SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={actionFilter} onValueChange={setActionFilter}>
@@ -546,7 +547,7 @@ export function ActionsPage({
                       <SelectValue placeholder="Action" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All actions</SelectItem>
+                      <SelectItem value="all"><UiText text={"All actions"} /></SelectItem>
                       {actionOptions.map((actionName) => (
                         <SelectItem key={actionName} value={actionName}>
                           {actionLabels[actionName] ?? actionName}
@@ -562,7 +563,7 @@ export function ActionsPage({
                       <SelectValue placeholder="Triggered by" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Anyone</SelectItem>
+                      <SelectItem value="all"><UiText text={"Anyone"} /></SelectItem>
                       {triggeredByOptions.map((name) => (
                         <SelectItem key={name} value={name}>
                           {name}
@@ -589,10 +590,10 @@ export function ActionsPage({
                 }}
               >
                 <CircleX />
-                <span className="sr-only">Reset filters</span>
+                <span className="sr-only"><UiText text={"Reset filters"} /></span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Reset filters</TooltipContent>
+            <TooltipContent><UiText text={"Reset filters"} /></TooltipContent>
           </Tooltip>
         </div>
       </div>
@@ -621,11 +622,11 @@ export function ActionsPage({
         <TableHeader>
           <TableRow>
             <TableHead></TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Context</TableHead>
-            <TableHead>Triggered</TableHead>
-            <TableHead>Triggered by</TableHead>
-            <TableHead>Ref</TableHead>
+            <TableHead><UiText text={"Name"} /></TableHead>
+            <TableHead><UiText text={"Context"} /></TableHead>
+            <TableHead><UiText text={"Triggered"} /></TableHead>
+            <TableHead><UiText text={"Triggered by"} /></TableHead>
+            <TableHead><UiText text={"Ref"} /></TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
@@ -756,7 +757,7 @@ export function ActionsPage({
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="icon-sm">
                         <EllipsisVertical className="size-4" />
-                        <span className="sr-only">Run actions</span>
+                        <span className="sr-only"><UiText text={"Run actions"} /></span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -766,8 +767,7 @@ export function ActionsPage({
                           target="_blank"
                           rel="noreferrer"
                         >
-                          View on GitHub
-                          <ArrowUpRight className="ml-auto size-3 text-muted-foreground" />
+                          <UiText text={"View on GitHub"} /> <ArrowUpRight className="ml-auto size-3 text-muted-foreground" />
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -775,15 +775,13 @@ export function ActionsPage({
                         disabled={!run.canRerun}
                         onClick={() => void handleRunAction(run, "rerun")}
                       >
-                        Run again
-                      </DropdownMenuItem>
+                        <UiText text={"Run again"} /> </DropdownMenuItem>
                       <DropdownMenuItem
                         variant="destructive"
                         disabled={!run.canCancel}
                         onClick={() => void handleRunAction(run, "cancel")}
                       >
-                        Cancel run
-                      </DropdownMenuItem>
+                        <UiText text={"Cancel run"} /> </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

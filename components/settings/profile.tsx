@@ -1,5 +1,8 @@
 "use client";
 
+import { LanguageSwitcher } from "@/components/webs/language-switcher";
+import { useLanguage } from "@/contexts/language-context";
+import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -29,6 +32,7 @@ type ProfileProps = {
 };
 
 export function Profile({ name, email, githubUsername }: ProfileProps) {
+  const { t } = useLanguage();
   const router = useRouter();
   const [displayName, setDisplayName] = useState(name?.trim() || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -64,10 +68,10 @@ export function Profile({ name, email, githubUsername }: ProfileProps) {
   };
 
   return (
-    <Card>
+    <> <Card>
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>Manage the information displayed to other users.</CardDescription>
+        <CardTitle><UiText text={"Profile"} /></CardTitle>
+        <CardDescription><UiText text={"Manage the information displayed to other users."} /></CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -80,8 +84,7 @@ export function Profile({ name, email, githubUsername }: ProfileProps) {
           <div className="grid w-full items-center gap-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
+                <UiText text={"Name"} /> </Label>
               <div className="col-span-3">
                 <Input
                   id="name"
@@ -95,8 +98,7 @@ export function Profile({ name, email, githubUsername }: ProfileProps) {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="picture" className="text-right">
-                Picture
-              </Label>
+                <UiText text={"Picture"} /> </Label>
               <div className="col-span-3">
                 <Avatar className="h-24 w-24 rounded-md">
                   <AvatarImage
@@ -123,10 +125,9 @@ export function Profile({ name, email, githubUsername }: ProfileProps) {
           onClick={() => void handleSave()}
           disabled={!canSave}
         >
-          Save profile
-          {isSaving && <Loader className="ml-2 h-4 w-4 animate-spin" />}
+          <UiText text={"Save profile"} /> {isSaving && <Loader className="ml-2 h-4 w-4 animate-spin" />}
         </Button>
       </CardFooter>
-    </Card>
+    </Card><Card><CardHeader><CardTitle>{t("Jazyk administrace a e-mailů", "Administration and email language")}</CardTitle><CardDescription>{t("Volba se ukládá k vašemu účtu a platí i při příštím přihlášení a na dalších zařízeních.", "Your preference is saved to your account and applies on your next sign-in and on other devices.")}</CardDescription></CardHeader><CardContent><LanguageSwitcher/></CardContent></Card></>
   );
 }

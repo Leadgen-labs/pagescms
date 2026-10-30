@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import {
   Fragment,
   useCallback,
@@ -8,6 +9,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { useLanguage } from "@/contexts/language-context";
+import { LanguageSwitcher } from "@/components/webs/language-switcher";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
@@ -196,14 +199,12 @@ function RepoSwitcher() {
                 target="_blank"
                 rel="noreferrer"
               >
-                View on GitHub
-                <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
+                <UiText text={"View on GitHub"} /> <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Branches
-            </DropdownMenuLabel>
+              <UiText text={"Branches"} /> </DropdownMenuLabel>
             <DropdownMenuRadioGroup
               value={currentBranch}
               onValueChange={handleBranchChange}
@@ -216,14 +217,13 @@ function RepoSwitcher() {
             </DropdownMenuRadioGroup>
             <DropdownMenuSeparator />
             <DialogTrigger asChild>
-              <DropdownMenuItem>Manage branches</DropdownMenuItem>
+              <DropdownMenuItem><UiText text={"Manage branches"} /></DropdownMenuItem>
             </DialogTrigger>
             {recentRepos.length > 0 && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Recently visited
-                </DropdownMenuLabel>
+                  <UiText text={"Recently visited"} /> </DropdownMenuLabel>
                 {recentRepos.map((visit) => (
                   <DropdownMenuItem
                     asChild
@@ -245,14 +245,14 @@ function RepoSwitcher() {
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/">All projects</Link>
+              <Link href="/"><UiText text={"All projects"} /></Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Manage branches</DialogTitle>
+          <DialogTitle><UiText text={"Manage branches"} /></DialogTitle>
         </DialogHeader>
         <RepoBranches />
       </DialogContent>
@@ -261,6 +261,7 @@ function RepoSwitcher() {
 }
 
 export function RepoSidebar() {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const { user } = useUser();
   const { config } = useConfig();
@@ -324,8 +325,8 @@ export function RepoSidebar() {
     const canManageRepo = hasGithubIdentity(user);
 
     const items: NavItem[] = [];
-    if (config.repo.startsWith("webs-obsah-")) items.push({key:"prehled",label:"Přehled webu",href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`,icon:<LayoutDashboard className="size-4"/>});
-    if (config.repo.startsWith("webs-obsah-")) items.push({key:"submissions",label:"Formuláře a poptávky",href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/submissions`,icon:<Database className="size-4"/>});
+    if (config.repo.startsWith("webs-obsah-")) items.push({key:"prehled",label:t("Přehled webu", "Website overview"),href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`,icon:<LayoutDashboard className="size-4"/>});
+    if (config.repo.startsWith("webs-obsah-")) items.push({key:"submissions",label:t("Formuláře a poptávky", "Forms and enquiries"),href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/submissions`,icon:<Database className="size-4"/>});
 
     const configObject = (config.object as any) ?? {};
 
@@ -341,14 +342,14 @@ export function RepoSidebar() {
     if (canManageRepo) {
       items.push({
         key: "admin-actions",
-        label: "Actions",
+        label: t("Akce", "Actions"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/actions`,
         icon: <ListVideo className="size-4" />,
       });
 
       items.push({
         key: "admin-collaborators",
-        label: "Collaborators",
+        label: t("Spolupracovníci", "Collaborators"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collaborators`,
         icon: <Users className="size-4" />,
       });
@@ -357,14 +358,14 @@ export function RepoSidebar() {
     if (canManageRepo && isConfigEnabled(configObject)) {
       items.push({
         key: "admin-configuration",
-        label: "Configuration",
+        label: t("Konfigurace", "Configuration"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/configuration`,
         icon: <Settings className="size-4" />,
       });
     }
 
     return items;
-  }, [config, user]);
+  }, [config, user, t]);
   const rootActions = useMemo(
     () => getRootActions(config?.object),
     [config?.object],
@@ -471,7 +472,7 @@ export function RepoSidebar() {
               >
                 <button type="button" onClick={() => toggleGroup(key)}>
                   <ChevronRight className={cn("size-4 transition-transform", isOpen && "rotate-90")} />
-                  <span>{node.label || node.name}</span>
+                  <span><UiText text={node.label || node.name} /></span>
               </button>
             </SidebarMenuSubButton>
             {isOpen && node.items && node.items.length > 0 && (
@@ -573,12 +574,12 @@ export function RepoSidebar() {
   };
 
   const groups = [
-    renderNavigationGroup("Content", contentNavigation),
-    renderNavigationGroup("Media", mediaNavigation),
+    renderNavigationGroup(t("Obsah", "Content"), contentNavigation),
+    renderNavigationGroup(t("Média", "Media"), mediaNavigation),
     rootActions.length > 0 && config
       ? (
         <SidebarGroup key="Actions">
-          <SidebarGroupLabel>Actions</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("Akce", "Actions")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <RepoActionButtons
               actions={rootActions}
@@ -592,7 +593,7 @@ export function RepoSidebar() {
         </SidebarGroup>
       )
       : null,
-    renderFlatGroup("Admin", adminItems),
+    renderFlatGroup(t("Správa", "Admin"), adminItems),
   ].filter(Boolean);
 
   return (
@@ -610,6 +611,7 @@ export function RepoSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className="border-t">
+        <div className="py-1"><LanguageSwitcher/></div>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <User align="start" />

@@ -1,3 +1,4 @@
+import type { Language } from "@/lib/language";
 import * as React from "react";
 import {
   Body,
@@ -16,18 +17,21 @@ import {
 import { emailTheme } from "@/components/email/theme";
 
 export const InviteEmailTemplate = ({
+  language = "cs",
   email,
   repoName,
   inviteUrl,
   invitedByName,
   invitedByUrl,
 }: {
+  language?: Language;
   email: string;
   repoName: string;
   inviteUrl: string;
   invitedByName: string;
   invitedByUrl: string;
 }) => {
+  const t = (cs: string, en: string) => language === "cs" ? cs : en;
   const baseUrl = process.env.BASE_URL
     ? process.env.BASE_URL
     : process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -35,10 +39,10 @@ export const InviteEmailTemplate = ({
       : "";
 
   return (
-    <Html>
+    <Html lang={language}>
       <Head />
       <Preview>
-        {invitedByName} invited you to &quot;{repoName}&quot;
+        {language === "cs" ? `${invitedByName} vás zve ke správě webu „${repoName}“` : `${invitedByName} invited you to "${repoName}"`}
       </Preview>
       <Tailwind>
         <Body
@@ -62,7 +66,7 @@ export const InviteEmailTemplate = ({
               className="text-[24px] font-semibold p-0 my-[30px] mx-0 text-center tracking-tight"
               style={{ color: emailTheme.foreground }}
             >
-              Join &quot;{repoName}&quot; on Pages CMS
+              {language === "cs" ? `Pozvánka ke správě webu „${repoName}“` : `Join "${repoName}" on Pages CMS`}
             </Heading>
             <Text
               className="text-[16px] leading-[24px]"
@@ -75,8 +79,7 @@ export const InviteEmailTemplate = ({
               >
                 {invitedByName}
               </Link>{" "}
-              has invited you to the &quot;{repoName}&quot; project on Pages
-              CMS. Use the following link to start collaborating:
+              {language === "cs" ? `vás zve ke správě webu „${repoName}“. Přístup získáte přes následující odkaz:` : `has invited you to the "${repoName}" project on Pages CMS. Use the following link to start collaborating:`}
             </Text>
             <Section className="text-center mt-[24px] mb-[24px]">
               <Button
@@ -88,14 +91,14 @@ export const InviteEmailTemplate = ({
                   color: emailTheme.buttonForeground,
                 }}
               >
-                Join &quot;{repoName}&quot;
+                {t("Přijmout pozvánku", "Accept invitation")}
               </Button>
             </Section>
             <Text
               className="text-[16px] leading-[24px]"
               style={{ color: emailTheme.foreground }}
             >
-              or copy and paste this URL into your browser:{" "}
+              {t("Nebo zkopírujte tuto adresu do prohlížeče:", "Or copy and paste this URL into your browser:")}{" "}
             </Text>
             <Text
               className="text-[16px] leading-[24px]"
@@ -113,7 +116,7 @@ export const InviteEmailTemplate = ({
               className="text-[14px] leading-[24px] mt-[36px]"
               style={{ color: emailTheme.mutedForeground }}
             >
-              This email was intended for{" "}
+              {t("Tento e-mail je určen pro", "This email was intended for")}{" "}
               <Link
                 href={`mailto:${email}`}
                 className="underline"
@@ -121,8 +124,7 @@ export const InviteEmailTemplate = ({
               >
                 {email}
               </Link>
-              . If you think this is a mistake, you can safely ignore this
-              email.
+              {t(". Pokud je pozvánka omyl, můžete zprávu ignorovat.", ". If you think this is a mistake, you can safely ignore this email.")}
             </Text>
           </Container>
         </Body>

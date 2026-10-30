@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/contexts/language-context";
+import { translateUiText } from "@/lib/ui-translations";
 import { useEffect } from "react";
 
 const APP_TITLE = "Pages CMS";
@@ -22,9 +24,10 @@ export function DocumentTitle({
 }: {
   title?: string | null;
 }) {
+  const { language } = useLanguage();
   useEffect(() => {
-    document.title = formatDocumentTitle(title);
-  }, [title]);
+    document.title = formatDocumentTitle(title?.split(" | ").map(part => translateUiText(part, language)).join(" | "));
+  }, [title, language]);
 
   return null;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useMemo, useState } from "react";
 import { useConfig } from "@/contexts/config-context";
 import { getParentPath, getRelativePath, joinPathSegments, normalizePath } from "@/lib/utils/file";
@@ -76,7 +77,7 @@ export function FileOptions({
     try {
       const deletePromise = new Promise(async (resolve, reject) => {
         try {
-          const params = new URLSearchParams({ 
+          const params = new URLSearchParams({
             sha,
             type: (type === "collection" || type === "file") ? "content" : type
           });
@@ -106,7 +107,7 @@ export function FileOptions({
       console.error(error);
     }
   };
-  
+
   return (
     <>
       <AlertDialog>
@@ -117,8 +118,7 @@ export function FileOptions({
           <DropdownMenuContent align="end" portalProps={portalProps}>
             <DropdownMenuItem asChild>
               <a href={`https://github.com/${config.owner}/${config.repo}/blob/${encodeURIComponent(config.branch)}/${path}`} target="_blank">
-                View on GitHub
-                <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
+                <UiText text={"View on GitHub"} /> <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
               </a>
             </DropdownMenuItem>
             {(showRename || showDelete)
@@ -126,14 +126,12 @@ export function FileOptions({
                   <DropdownMenuSeparator />
                   {showRename &&
                     <DropdownMenuItem onSelect={() => setIsRenameOpen(true)}>
-                      Rename
-                    </DropdownMenuItem>
+                      <UiText text={"Rename"} /> </DropdownMenuItem>
                   }
                   {showDelete && (
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem variant="destructive">
-                        Delete
-                      </DropdownMenuItem>
+                        <UiText text={"Delete"} /> </DropdownMenuItem>
                     </AlertDialogTrigger>
                   )}
                 </>
@@ -142,12 +140,12 @@ export function FileOptions({
           </DropdownMenuContent>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to delete this file?</AlertDialogTitle>
+              <AlertDialogTitle><UiText text={"Are you sure you want to delete this file?"} /></AlertDialogTitle>
               <AlertDialogDescription>This will premanently delete &quot;{path}&quot;.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+              <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete}><UiText text={"Delete"} /></AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </DropdownMenu>

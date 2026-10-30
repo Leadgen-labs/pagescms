@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
@@ -7,7 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getVisits } from "@/lib/tracker";
 import { Skeleton } from "@/components/ui/skeleton";
-  
+
 export function RepoLatest() {
   const [recentVisits, setRecentVisits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,8 +50,8 @@ export function RepoLatest() {
   return (
     <ul>
       {displayedVisits.map((visit, index) => (
-        <li 
-          key={index} 
+        <li
+          key={index}
           className={cn(
             "flex gap-x-2 items-center border border-b-0 last:border-b px-3 py-2 text-sm",
             index === 0 && "rounded-t-md",
@@ -67,8 +68,7 @@ export function RepoLatest() {
             className={cn("ml-auto", buttonVariants({ variant: "outline", size: "xs"}))}
             href={`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`}
           >
-            Open
-          </Link>
+            <UiText text={"Open"} /> </Link>
         </li>
       ))}
     </ul>

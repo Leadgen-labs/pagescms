@@ -1,3 +1,4 @@
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { MainRootLayout } from "../../main-root-layout";
@@ -80,7 +81,7 @@ export default async function Page() {
             <TableHeader>
               <TableRow>
                 <TableHead>Web</TableHead>
-                <TableHead>Stav</TableHead>
+                <TableHead><UiText text={"Stav"} /></TableHead>
                 <TableHead>Měření</TableHead>
                 <TableHead>Nasazeno</TableHead>
                 <TableHead className="text-right">Leady 7 / 30 dní</TableHead>

@@ -1,3 +1,4 @@
+import { UiText } from "@/components/ui-text";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getToken } from "@/lib/token";
@@ -35,18 +36,17 @@ export default async function Layout({
 
     const repoInfo = await getRepoSnapshot(owner, repo, token);
     const branchNames = repoInfo.branches ?? [];
-    
+
     if (branchNames.length === 0) {
       return(
         <Empty className="absolute inset-0 border-0 rounded-none">
           <EmptyHeader>
-            <EmptyTitle>Empty repository</EmptyTitle>
+            <EmptyTitle><UiText text={"Empty repository"} /></EmptyTitle>
             <EmptyDescription>Create a branch and add a &quot;.pages.yml&quot; file to configure this repository.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Link className={buttonVariants({ variant: "default" })} href="/">
-              Choose another repository
-            </Link>
+              <UiText text={"Choose another repository"} /> </Link>
           </EmptyContent>
         </Empty>
       );
@@ -69,30 +69,28 @@ export default async function Layout({
         return(
           <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
-              <EmptyTitle>Repository not found</EmptyTitle>
-              <EmptyDescription>It may have been removed, renamed, or the URL may be incorrect.</EmptyDescription>
+              <EmptyTitle><UiText text={"Repository not found"} /></EmptyTitle>
+              <EmptyDescription><UiText text={"It may have been removed, renamed, or the URL may be incorrect."} /></EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Link className={buttonVariants({ variant: "default" })} href="/">
-                Choose another repository
-              </Link>
+                <UiText text={"Choose another repository"} /> </Link>
             </EmptyContent>
           </Empty>
-        ); 
+        );
       case 403:
         return(
           <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
-              <EmptyTitle>Access denied</EmptyTitle>
-              <EmptyDescription>You do not have permission to access this repository.</EmptyDescription>
+              <EmptyTitle><UiText text={"Access denied"} /></EmptyTitle>
+              <EmptyDescription><UiText text={"You do not have permission to access this repository."} /></EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Link className={buttonVariants({ variant: "default" })} href="/">
-                Choose another repository
-              </Link>
+                <UiText text={"Choose another repository"} /> </Link>
             </EmptyContent>
           </Empty>
-        ); 
+        );
       default:
         throw error;
     }

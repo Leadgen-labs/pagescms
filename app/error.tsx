@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useEffect } from "react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
@@ -31,7 +32,7 @@ export default function Error({
   return (
     <Empty className="absolute inset-0 border-0 rounded-none">
       <EmptyHeader>
-        <EmptyTitle>Something went wrong</EmptyTitle>
+        <EmptyTitle><UiText text={"Something went wrong"} /></EmptyTitle>
         <EmptyDescription>{error.message}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex-row justify-center gap-2">
@@ -39,14 +40,12 @@ export default function Error({
           className={buttonVariants({ variant: "default" })}
           href="/"
         >
-          Go home
-        </Link>
+          <UiText text={"Go home"} /> </Link>
         <button
           className={buttonVariants({ variant: "outline" })}
           onClick={reset}
         >
-          Try again
-        </button>
+          <UiText text={"Try again"} /> </button>
       </EmptyContent>
     </Empty>
   );

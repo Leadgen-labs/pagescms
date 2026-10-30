@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import {
   Fragment,
   memo,
@@ -147,7 +148,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
               </FolderCreate>
             </div>
           </TooltipTrigger>
-          <TooltipContent>Create folder</TooltipContent>
+          <TooltipContent><UiText text={"Create folder"} /></TooltipContent>
         </Tooltip>
       )}
       {showAddEntry && (
@@ -156,8 +157,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
             className={cn(buttonVariants(), "hidden sm:flex")}
             href={addEntryHref}
           >
-            Add an entry
-          </Link>
+            <UiText text={"Add an entry"} /> </Link>
           <Link
             className={cn(buttonVariants({ size: "icon" }), "sm:hidden shrink-0")}
             href={addEntryHref}
@@ -550,8 +550,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                 )}
                 href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}/edit/${encodeURIComponent(row.original.path)}`}
               >
-                Edit
-              </Link>
+                <UiText text={"Edit"} /> </Link>
               <FileOptions
                 path={row.original.path}
                 sha={row.original.sha}
@@ -590,11 +589,11 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                       </Button>
                     </AlertDialogTrigger>
                   </TooltipTrigger>
-                  <TooltipContent>Add children entry</TooltipContent>
+                  <TooltipContent><UiText text={"Add children entry"} /></TooltipContent>
                 </Tooltip>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Rename this file first?</AlertDialogTitle>
+                    <AlertDialogTitle><UiText text={"Rename this file first?"} /></AlertDialogTitle>
                     <AlertDialogDescription>
                       Before adding children to this file, you must rename it
                       from &quot;{row.original.path}&quot; to &quot;
@@ -606,7 +605,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() =>
                         handleConfirmRenameNode(
@@ -618,8 +617,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                         )
                       }
                     >
-                      Rename
-                    </AlertDialogAction>
+                      <UiText text={"Rename"} /> </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -643,7 +641,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                     <Plus className="size-4" />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent>Add children entry</TooltipContent>
+                <TooltipContent><UiText text={"Add children entry"} /></TooltipContent>
               </Tooltip>
             ))}
         </div>
@@ -770,8 +768,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                 <div className="flex gap-1 justify-end">
                   <ButtonGroup>
                     <Button variant="outline" size="sm" disabled>
-                      Edit
-                    </Button>
+                      <UiText text={"Edit"} /> </Button>
                     <Button variant="outline" size="icon-sm" disabled>
                       <EllipsisVertical className="size-4" />
                     </Button>
@@ -865,7 +862,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center">
                     <BreadcrumbEllipsis className="size-4" />
-                    <span className="sr-only">Show hidden segments</span>
+                    <span className="sr-only"><UiText text={"Show hidden segments"} /></span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
                     {middleEntries.map((entry) => (
@@ -1001,16 +998,14 @@ export function Collection({ name, path }: { name: string; path?: string }) {
           {error === "Not found" ? (
             canCreate ? (
               <EmptyCreate type="content" name={schema.name}>
-                Create folder
-              </EmptyCreate>
+                <UiText text={"Create folder"} /> </EmptyCreate>
             ) : null
           ) : (
             <Link
               className={buttonVariants({ variant: "default" })}
               href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/settings`}
             >
-              Go to settings
-            </Link>
+              <UiText text={"Go to settings"} /> </Link>
           )}
         </EmptyContent>
       </Empty>

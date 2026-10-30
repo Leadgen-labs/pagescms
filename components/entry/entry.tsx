@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { Fragment, useEffect, useState, useMemo, useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -113,10 +114,10 @@ export function Entry({
   const { mutate } = useSWRConfig();
 
   const router = useRouter();
-  
+
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
-  
+
   const schema = useMemo(() => {
     if (!name) return;
     return getSchemaByName(config?.object, name)
@@ -152,7 +153,7 @@ export function Entry({
   }, [filenameFieldMode, path, schemaType]);
   const [filenameValue, setFilenameValue] = useState("");
   const [isFilenameUnlocked, setIsFilenameUnlocked] = useState(false);
-  
+
   const entryFields = useMemo(() => {
     return !schema?.fields || schema.fields.length === 0
       ? [{
@@ -380,7 +381,7 @@ export function Entry({
           response,
           "Failed to save file",
         );
-        
+
         if (data.data.sha !== sha) setSha(data.data.sha);
         if (submitStartChangeVersion === changeVersionRef.current) {
           setHasRegisteredChanges(false);
@@ -565,7 +566,7 @@ export function Entry({
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center">
                   <BreadcrumbEllipsis className="h-4 w-4" />
-                  <span className="sr-only">Show hidden segments</span>
+                  <span className="sr-only"><UiText text={"Show hidden segments"} /></span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {middleEntries.map((entry) => (
@@ -702,7 +703,7 @@ export function Entry({
             aria-label="Save"
           >
             <Save className="size-4 sm:hidden" />
-            <span className="hidden sm:inline">Save</span>
+            <span className="hidden sm:inline"><UiText text={"Save"} /></span>
           </Button>
           {path && (
             <ButtonGroup>
@@ -737,7 +738,7 @@ export function Entry({
   const loadingSkeleton = useMemo(() => (
     <div className="w-full max-w-screen-md mx-auto grid items-start gap-6">
       {path !== ".pages.yml"
-        ? 
+        ?
           <>
             <div className="space-y-2">
               <Skeleton className="w-24 h-5 rounded" />
@@ -765,7 +766,7 @@ export function Entry({
     </div>
   ), [path]);
 
-  
+
   if (error) {
     // TODO: should we use a custom error class with code?
     // TODO: errors show no header (unlike collection and media). Consider standardizing templates.
@@ -784,9 +785,9 @@ export function Entry({
             </EmptyHeader>
             <EmptyContent>
               {isSettingsPage ? (
-                <EmptyCreate type="settings">Create configuration file</EmptyCreate>
+                <EmptyCreate type="settings"><UiText text={"Create configuration file"} /></EmptyCreate>
               ) : canCreate ? (
-                <EmptyCreate type="content" name={schema?.name ?? name}>Create file</EmptyCreate>
+                <EmptyCreate type="content" name={schema?.name ?? name}><UiText text={"Create file"} /></EmptyCreate>
               ) : null}
             </EmptyContent>
           </Empty>
@@ -797,7 +798,7 @@ export function Entry({
         <div className="absolute inset-0 p-4 md:p-6 flex items-center justify-center">
           <Empty className="max-w-[420px] flex-none">
             <EmptyHeader>
-              <EmptyTitle>Something went wrong</EmptyTitle>
+              <EmptyTitle><UiText text={"Something went wrong"} /></EmptyTitle>
               <EmptyDescription>{error}</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
@@ -805,8 +806,7 @@ export function Entry({
                 className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
                 href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/configuration`}
               >
-                Go to configuration
-              </Link>
+                <UiText text={"Go to configuration"} /> </Link>
             </EmptyContent>
           </Empty>
         </div>
@@ -819,24 +819,22 @@ export function Entry({
       <div className="absolute inset-0 p-4 md:p-6 flex items-center justify-center">
         <Empty className="max-w-[420px] flex-none">
           <EmptyHeader>
-            <EmptyTitle>Creating entries is disabled</EmptyTitle>
+            <EmptyTitle><UiText text={"Creating entries is disabled"} /></EmptyTitle>
             <EmptyDescription>
-              New entries are not allowed for this collection.
-            </EmptyDescription>
+              <UiText text={"New entries are not allowed for this collection."} /> </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Link
               className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
               href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${encodeURIComponent(name)}`}
             >
-              Back to collection
-            </Link>
+              <UiText text={"Back to collection"} /> </Link>
           </EmptyContent>
         </Empty>
       </div>
     );
   }
-  
+
   return (
     isLoading
       ? loadingSkeleton

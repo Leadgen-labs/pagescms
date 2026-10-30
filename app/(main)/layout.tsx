@@ -1,3 +1,5 @@
+import { LanguageProvider } from "@/contexts/language-context";
+import { getPreferredLanguage } from "@/lib/language-server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getAccounts } from "@/lib/accounts";
@@ -23,6 +25,7 @@ export default async function Layout({
       : "/sign-in";
   if (!session?.user) return redirect(signInUrl);
 
+  const language = await getPreferredLanguage(session.user.email);
   let accounts;
   try {
     accounts = await getAccounts(session.user as User);
@@ -39,10 +42,10 @@ export default async function Layout({
     isAdmin: hasAdminAccess(session.user as User),
     accounts,
   };
-  
+
 	return (
     <UserProvider user={userWithAccounts}>
-      {children}
+      <LanguageProvider initialLanguage={language} persistToAccount>{children}</LanguageProvider>
     </UserProvider>
   );
 }

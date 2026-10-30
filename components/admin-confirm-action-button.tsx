@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +52,7 @@ export function AdminConfirmActionButton({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
           <form
             className="contents"
             action={async () => {

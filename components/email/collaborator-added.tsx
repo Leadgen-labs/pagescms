@@ -1,3 +1,4 @@
+import type { Language } from "@/lib/language";
 import * as React from "react";
 import {
   Body,
@@ -16,18 +17,21 @@ import {
 import { emailTheme } from "@/components/email/theme";
 
 export const CollaboratorAddedEmailTemplate = ({
+  language = "cs",
   email,
   repoName,
   repoUrl,
   invitedByName,
   invitedByUrl,
 }: {
+  language?: Language;
   email: string;
   repoName: string;
   repoUrl: string;
   invitedByName: string;
   invitedByUrl: string;
 }) => {
+  const t = (cs: string, en: string) => language === "cs" ? cs : en;
   const baseUrl = process.env.BASE_URL
     ? process.env.BASE_URL
     : process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -35,10 +39,10 @@ export const CollaboratorAddedEmailTemplate = ({
       : "";
 
   return (
-    <Html>
+    <Html lang={language}>
       <Head />
       <Preview>
-        You were added to &quot;{repoName}&quot; on Pages CMS
+        {language === "cs" ? `Máte přístup ke správě webu „${repoName}“` : `You were added to "${repoName}" on Pages CMS`}
       </Preview>
       <Tailwind>
         <Body
@@ -62,7 +66,7 @@ export const CollaboratorAddedEmailTemplate = ({
               className="text-[24px] font-semibold p-0 my-[30px] mx-0 text-center tracking-tight"
               style={{ color: emailTheme.foreground }}
             >
-              You were added to &quot;{repoName}&quot;
+              {language === "cs" ? `Máte přístup ke správě webu „${repoName}“` : `You were added to "${repoName}"`}
             </Heading>
             <Text
               className="text-[16px] leading-[24px]"
@@ -75,8 +79,7 @@ export const CollaboratorAddedEmailTemplate = ({
               >
                 {invitedByName}
               </Link>{" "}
-              added you to the &quot;{repoName}&quot; project on Pages CMS.
-              You already have access, so there is nothing to accept.
+              {language === "cs" ? `vám udělil(a) přístup ke správě webu „${repoName}“. Přístup už je aktivní, nemusíte nic potvrzovat.` : `added you to the "${repoName}" project on Pages CMS. You already have access, so there is nothing to accept.`}
             </Text>
             <Section className="text-center mt-[24px] mb-[24px]">
               <Button
@@ -88,14 +91,14 @@ export const CollaboratorAddedEmailTemplate = ({
                   color: emailTheme.buttonForeground,
                 }}
               >
-                Open &quot;{repoName}&quot;
+                {t("Otevřít administraci webu", "Open website administration")}
               </Button>
             </Section>
             <Text
               className="text-[14px] leading-[24px] mt-[36px]"
               style={{ color: emailTheme.mutedForeground }}
             >
-              This email was intended for{" "}
+              {t("Tento e-mail je určen pro", "This email was intended for")}{" "}
               <Link
                 href={`mailto:${email}`}
                 className="underline"

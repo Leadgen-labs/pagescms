@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { Entry } from "@/components/entry/entry";
 import {
@@ -35,10 +36,9 @@ export default function Page() {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>
-          <EmptyTitle>Access denied</EmptyTitle>
+          <EmptyTitle><UiText text={"Access denied"} /></EmptyTitle>
           <EmptyDescription>
-            Only GitHub users can manage repository configuration.
-          </EmptyDescription>
+            <UiText text={"Only GitHub users can manage repository configuration."} /> </EmptyDescription>
         </EmptyHeader>
       </Empty>
     );
@@ -75,11 +75,11 @@ export default function Page() {
                   rel="noreferrer"
                 >
                   <BookText />
-                  <span className="sr-only">Configuration docs</span>
+                  <span className="sr-only"><UiText text={"Configuration docs"} /></span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View docs</TooltipContent>
+            <TooltipContent><UiText text={"View docs"} /></TooltipContent>
           </Tooltip>
         }
       />

@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { ActionsPage } from "@/components/actions/actions-page";
 import { DocumentTitle, formatRepoBranchTitle } from "@/components/document-title";
 import { useConfig } from "@/contexts/config-context";
@@ -18,8 +19,8 @@ export default function Page() {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>
-          <EmptyTitle>Access denied</EmptyTitle>
-          <EmptyDescription>Only GitHub users can view action history.</EmptyDescription>
+          <EmptyTitle><UiText text={"Access denied"} /></EmptyTitle>
+          <EmptyDescription><UiText text={"Only GitHub users can view action history."} /></EmptyDescription>
         </EmptyHeader>
       </Empty>
     );

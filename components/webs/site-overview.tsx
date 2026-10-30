@@ -1,152 +1,56 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useConfig } from "@/contexts/config-context";
+import { useLanguage } from "@/contexts/language-context";
+import { LanguageSwitcher } from "@/components/webs/language-switcher";
+import { ManagementGuide } from "@/components/webs/management-guide";
 import { Button } from "@/components/ui/button";
 import { formatDate, requestLabel, SiteChecklist, SiteLinks, statusLabel, type SiteOverviewData } from "@/components/webs/site-checklist";
 
-/** Úvodní stránka webu v administraci: co je hotové a co ne + návod na jednu stránku. */
+const englishStates: Record<string, string> = {live:"Live",draft:"Draft",paused:"Paused",collecting:"collecting requirements",queued:"queued",running:"in progress",preview:"preview awaiting your approval",awaiting_admin:"awaiting our team",deploying:"deploying",failed:"needs attention"};
 export function SiteOverview() {
   const { config } = useConfig();
+  const { language, t } = useLanguage();
   const [site, setSite] = useState<SiteOverviewData | null>(null);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(true);
+  const controller = useRef<AbortController | null>(null);
   const base = config ? `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}` : "";
-
   const load = useCallback(async () => {
-    if (!config) return;
-    setBusy(true);
-    setError("");
+    if (!base) return;
+    controller.current?.abort();
+    const pending = new AbortController();
+    controller.current = pending;
+    setBusy(true); setError("");
     try {
-      const res = await fetch(`/api${base}/webs-overview`, { method: "POST", cache: "no-store" });
+      const res = await fetch(`/api${base}/webs-overview`, { method: "POST", cache: "no-store", signal: pending.signal });
       const data = await res.json();
       if (!res.ok) throw Error(data.error || data.message || "Přehled se nepodařilo načíst.");
-      setSite(data.site);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }, [base, config]);
-  useEffect(() => void load(), [load]);
-
-  return (
-    <section className="mx-auto max-w-4xl space-y-6 p-4 md:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{site?.name ?? "Přehled webu"}</h1>
-          {site && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {statusLabel[site.status] ?? site.status} ·{" "}
-              <a className="underline" href={site.url} target="_blank" rel="noopener noreferrer">
-                {site.domain && site.status === "live" ? site.domain : "náhled webu"}
-              </a>
-              {site.lastDeployAt && <> · poslední nasazení {formatDate(site.lastDeployAt)}</>}
-            </p>
-          )}
-          {site && (
-            <SiteLinks
-              className="mt-2 text-sm"
-              links={site.measurement.clientAccess ? site.links : { site: site.links.site, preview: site.links.preview }}
-            />
-          )}
-        </div>
-        <Button variant="outline" disabled={busy} onClick={() => void load()}>
-          Obnovit
-        </Button>
+      if (!data.site?.checks || !data.site?.leads || !data.site?.measurement || !data.site?.links) throw Error("Server vrátil neúplná data.");
+      if (!pending.signal.aborted) setSite(data.site);
+    } catch (e) { if (!pending.signal.aborted) setError((e as Error).message); }
+    finally { if (!pending.signal.aborted) setBusy(false); }
+  }, [base]);
+  useEffect(() => { setSite(null); void load(); return () => controller.current?.abort(); }, [load]);
+  return <section lang={language} className="mx-auto max-w-5xl space-y-6 p-4 pb-24 md:p-6 md:pb-24">
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div><h1 className="text-2xl font-semibold">{site?.name ?? t("Přehled webu", "Website overview")}</h1>
+        {site && <><p className="mt-1 text-sm text-muted-foreground">{(language === "en" ? englishStates : statusLabel)[site.status] ?? site.status} · <a className="underline" href={site.url} target="_blank" rel="noopener noreferrer">{site.domain && site.status === "live" ? site.domain : t("náhled webu", "website preview")}</a>{site.lastDeployAt && <> · {t("poslední nasazení", "last deployed")} {formatDate(site.lastDeployAt, language)}</>}</p>
+        <SiteLinks language={language} className="mt-2 text-sm" links={site.measurement.clientAccess ? site.links : { site: site.links.site, preview: site.links.preview }}/></>}
       </div>
-
-      {error && (
-        <div role="alert" className="rounded-lg border border-red-300 p-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {site && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border p-5">
-            <h2 className="mb-3 font-semibold">Co je hotové</h2>
-            <SiteChecklist checks={site.checks} />
-            {site.openRequest && (
-              <p className="mt-4 text-sm">
-                Rozpracovaná úprava: <strong>{requestLabel[site.openRequest.state] ?? site.openRequest.state}</strong>
-                {site.openRequest.previewUrl && (
-                  <>
-                    {" "}·{" "}
-                    <a className="underline" href={site.openRequest.previewUrl} target="_blank" rel="noopener noreferrer">
-                      náhled
-                    </a>
-                  </>
-                )}
-              </p>
-            )}
-          </div>
-          <div className="rounded-lg border p-5">
-            <h2 className="mb-3 font-semibold">Poptávky</h2>
-            <dl className="grid grid-cols-3 gap-3 text-center">
-              <div>
-                <dt className="text-xs text-muted-foreground">7 dní</dt>
-                <dd className="text-2xl font-semibold">{site.leads.last7}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">30 dní</dt>
-                <dd className="text-2xl font-semibold">{site.leads.last30}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Nedoručeno</dt>
-                <dd className={site.leads.failed30 ? "text-2xl font-semibold text-red-600" : "text-2xl font-semibold"}>{site.leads.failed30}</dd>
-              </div>
-            </dl>
-            {config?.repo.startsWith("webs-obsah-") && (
-              <Link className="mt-4 inline-block text-sm underline" href={`${base}/submissions`}>
-                Formuláře a poptávky
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
-
-      <article className="space-y-4 rounded-lg border p-5 text-sm leading-relaxed">
-        <h2 className="text-lg font-semibold">Jak web spravovat</h2>
-        <div>
-          <h3 className="font-medium">Texty, fotky a články upravíte sami</h3>
-          <p>
-            V levém menu jsou stránky webu, články a nastavení (titulky pro Google). Článek je po uložení na webu
-            zhruba do minuty, změna textů a fotek stránek za 3 až 5 minut. Novou stránku nebo změnu vzhledu
-            zadejte botovi.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-medium">Větší úpravy zadáte botovi</h3>
-          <p>
-            Napište, co chcete změnit, třeba „přidejte stránku s ceníkem“ nebo „změňte telefon“. Stačí tlačítko
-            Napsat botovi vpravo dole, WhatsApp, e-mail nebo váš AI chat (Claude, ChatGPT) s konektorem{" "}
-            <code>https://mcp.mobilut.com/mcp</code>. Bot připraví náhled a změna se nasadí, až ji potvrdíte tlačítkem
-            Nasadit.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-medium">Kam chodí poptávky</h3>
-          <p>
-            Odeslané formuláře chodí na e-maily nastavené u webu, případně rovnou do vašeho systému nebo k partnerovi.
-            Přehled odeslání a jejich výsledek najdete v sekci Formuláře a poptávky.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-medium">Návštěvnost a měření</h3>
-          <p>
-            Web měří přes Google Tag Manager a Google Analytics, jen se souhlasem z cookie lišty. Přístup vám dáme
-            na váš Google účet, stačí nám napsat jeho e-mail.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-medium">Když něco nefunguje</h3>
-          <p>
-            Napište botovi stejně jako u úprav, dotaz předá nám. Když se nedoručí poptávka, upozornění dostaneme
-            i my.
-          </p>
-        </div>
-      </article>
-    </section>
-  );
+      <div className="flex flex-wrap items-center gap-2"><LanguageSwitcher/><Button variant="outline" disabled={busy} onClick={() => void load()}>{busy ? t("Načítání…", "Loading…") : t("Obnovit", "Refresh")}</Button></div>
+    </div>
+    {error && <div role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm"><p className="font-medium">{t("Přehled se nepodařilo načíst.", "Could not load the overview.")}</p><p className="mt-1 text-muted-foreground">{t(error, "Please refresh and try again. If the problem continues, contact your administrator.")}</p><p className="mt-2 text-muted-foreground">{t("Návod níže i úpravy obsahu v menu můžete používat dál.", "You can still use the guide below and edit content from the menu.")}</p></div>}
+    {busy && !site && <p role="status" className="rounded-xl border p-5 text-sm text-muted-foreground">{t("Načítáme stav webu a poptávky…", "Loading website status and enquiries…")}</p>}
+    {site && <div className="grid gap-4 md:grid-cols-2">
+      <section className="rounded-xl border p-5"><h2 className="mb-3 font-semibold">{t("Co je hotové", "Website checklist")}</h2><SiteChecklist language={language} checks={site.checks}/>
+        {site.openRequest && <p className="mt-4 text-sm">{t("Rozpracovaná úprava:", "Change in progress:")} <strong>{(language === "en" ? englishStates : requestLabel)[site.openRequest.state] ?? site.openRequest.state}</strong>{site.openRequest.previewUrl && <> · <a className="underline" href={site.openRequest.previewUrl} target="_blank" rel="noopener noreferrer">{t("náhled", "preview")}</a></>}</p>}
+      </section>
+      <section className="rounded-xl border p-5"><h2 className="mb-3 font-semibold">{t("Poptávky", "Enquiries")}</h2><dl className="grid grid-cols-3 gap-3 text-center">
+        {[ [t("7 dní", "7 days"),site.leads.last7], [t("30 dní", "30 days"),site.leads.last30], [t("Nedoručeno", "Undelivered"),site.leads.failed30] ].map(([label, count], i) => <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className={`text-2xl font-semibold ${i === 2 && count ? "text-destructive" : ""}`}>{count}</dd></div>)}
+      </dl><Link className="mt-4 inline-block text-sm underline" href={`${base}/submissions`}>{t("Formuláře a poptávky", "Forms and enquiries")}</Link></section>
+    </div>}
+    <ManagementGuide/>
+  </section>;
 }

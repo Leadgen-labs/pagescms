@@ -4,6 +4,8 @@
 // ve WhatsAppu nebo Slacku: úpravy vzhledu, nové stránky, dotazy. Zprávy jdou
 // přes /api/[owner]/[repo]/[branch]/webs-bot, historie zůstává v prohlížeči.
 
+import { UiText } from "@/components/ui-text";
+import { useLanguage } from "@/contexts/language-context";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, Loader2, MessageCircle, Send } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -51,6 +53,7 @@ function saveHistory(key: string, items: Item[]) {
 }
 
 export function BotChat() {
+  const { t } = useLanguage();
   const { config } = useConfig();
   const enabledRepo = Boolean(config?.repo?.startsWith(CONTENT_REPO_PREFIX));
   const apiUrl = config ? `/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/webs-bot` : "";
@@ -174,18 +177,18 @@ export function BotChat() {
         type="button"
         onClick={() => setOpen(true)}
         className="fixed bottom-4 right-4 z-40 h-11 rounded-full px-4 shadow-lg"
-        aria-label={unread ? `Chat s botem, ${unread} nových zpráv` : "Chat s botem"}
+        aria-label={unread ? t(`Chat s botem, ${unread} nových zpráv`, `Chat with the bot, ${unread} new messages`) : t("Chat s botem", "Chat with the bot")}
       >
         <MessageCircle className="size-4" />
-        <span>Napsat botovi</span>
+        <span><UiText text={"Napsat botovi"} /></span>
         {unread > 0 && <span className="ml-1 rounded-full bg-background px-1.5 text-xs font-semibold text-foreground">{unread}</span>}
       </Button>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
           <SheetHeader className="border-b p-4">
-            <SheetTitle>Chat s botem</SheetTitle>
+            <SheetTitle><UiText text={"Chat s botem"} /></SheetTitle>
             <SheetDescription>
-              Úpravy vzhledu, nové stránky, dotazy. Napište vše najednou jako zadání, bot připraví náhled ke schválení a pošle ho i e-mailem.
+              {t("Úpravy vzhledu, nové stránky, dotazy. Napište vše najednou jako zadání, bot připraví náhled ke schválení a pošle ho i e-mailem.", "Design changes, new pages and questions. Describe the request in one message. The bot prepares a preview for approval and emails it to you.")}
             </SheetDescription>
           </SheetHeader>
 
@@ -207,7 +210,7 @@ export function BotChat() {
           )}
 
           <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
-            {items.length === 0 && <p className="text-sm text-muted-foreground">Zatím žádné zprávy. Napište, co chcete na webu změnit.</p>}
+            {items.length === 0 && <p className="text-sm text-muted-foreground"><UiText text={"Zatím žádné zprávy. Napište, co chcete na webu změnit."} /></p>}
             {items.map((item) =>
               item.kind === "client" ? (
                 <div key={item.key} className="ml-8 rounded-lg bg-primary px-3 py-2 text-sm whitespace-pre-wrap text-primary-foreground">
@@ -265,8 +268,7 @@ export function BotChat() {
               </p>
             )}
             <label htmlFor="webs-bot-message" className="sr-only">
-              Zpráva pro bota
-            </label>
+              <UiText text={"Zpráva pro bota"} /> </label>
             <Textarea
               id="webs-bot-message"
               value={text}
@@ -277,16 +279,15 @@ export function BotChat() {
                   send();
                 }
               }}
-              placeholder="Např. Na úvodní stránku přidejte sekci s referencemi…"
+              placeholder={t("Např. Na úvodní stránku přidejte sekci s referencemi…", "For example: Add a testimonials section to the homepage…")}
               className="max-h-48 min-h-20"
               maxLength={8000}
             />
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">Ctrl + Enter odešle</span>
+              <span className="text-xs text-muted-foreground"><UiText text={"Ctrl + Enter odešle"} /></span>
               <Button type="submit" size="sm" disabled={sending || !text.trim()}>
                 {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                Odeslat
-              </Button>
+                <UiText text={"Odeslat"} /> </Button>
             </div>
           </form>
         </SheetContent>
