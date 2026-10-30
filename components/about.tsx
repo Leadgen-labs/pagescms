@@ -1,5 +1,7 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
@@ -31,6 +33,7 @@ const version =
 const UPDATE_DOCS_URL = "https://pagescms.org/docs";
 
 export function About() {
+  const ui = useUi();
   const [open, setOpen] = useState(false);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
 
@@ -84,11 +87,11 @@ export function About() {
                     <path d="M0 4.8C0 2.14903 2.14903 0 4.8 0H12.0118C13.2848 0 14.5057 0.505713 15.4059 1.40589L22.5941 8.59411C23.4943 9.49429 24 10.7152 24 11.9882V19.2C24 21.851 21.851 24 19.2 24H4.8C2.14903 24 0 21.851 0 19.2V4.8Z"></path>
                   </svg>
                 </span>
-                <span className="sr-only">About Pages CMS</span>
+                <span className="sr-only"><UiText text={"About Pages CMS"} /></span>
               </Button>
             </DialogTrigger>
           </TooltipTrigger>
-          <TooltipContent>About Pages CMS</TooltipContent>
+          <TooltipContent><UiText text={"About Pages CMS"} /></TooltipContent>
         </Tooltip>
       </TooltipProvider>
       <DialogContent className="w-[20rem] max-w-[calc(100vw-2rem)]">
@@ -107,14 +110,12 @@ export function About() {
             Pages CMS
           </DialogTitle>
           <DialogDescription>
-            Open source CMS for static sites. Edit directly on GitHub with a
-            clean interface.
-          </DialogDescription>
+            <UiText text={"Open source CMS for static sites. Edit directly on GitHub with a clean interface."} /> </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border">
           <Row
-            label="Version"
+            label={ui("Version")}
             value={
               <div className="flex items-center gap-2">
                 <span className="text-sm">{version}</span>
@@ -129,7 +130,7 @@ export function About() {
                       variant="secondary"
                       className="bg-primary/10 font-medium text-primary"
                     >
-                      Update to {latestVersion}
+                      <UiText text={"Update to"}/>{latestVersion}
                       <ArrowUpRight className="ml-1 size-3" />
                     </Badge>
                   </a>
@@ -138,7 +139,7 @@ export function About() {
             }
           />
           <Row
-            label="Website"
+            label={ui("Website")}
             value={
               <ExternalLink href="https://pagescms.org">
                 pagescms.org
@@ -146,7 +147,7 @@ export function About() {
             }
           />
           <Row
-            label="Docs"
+            label={ui("Docs")}
             value={
               <ExternalLink href="https://pagescms.org/docs">
                 pagescms.org/docs

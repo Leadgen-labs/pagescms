@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+
+import { UiText } from "@/components/ui-text";
+import { useLanguage } from "@/contexts/language-context";
+import type { Language } from "@/lib/language";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Loader } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { authClient } from "@/lib/auth-client";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { OtpVerificationForm } from "@/components/otp-verification-form";
@@ -22,16 +26,36 @@ type InviteState =
   | { status: "ready"; destinationPath: string }
   | {
       status: "otp_required";
+      language?: Language;
       email: string;
       maskedEmail: string;
       destinationPath: string;
     };
 
 export function InviteSignIn({ token }: { token: string }) {
+  const { t, setLanguage } = useLanguage();
   const [state, setState] = useState<InviteState>({ status: "loading" });
   const [otp, setOtp] = useState("");
   const [pending, setPending] = useState<null | "send" | "verify" | "sign-out">(null);
   const sentOtpForInviteRef = useRef<string | null>(null);
+
+  const sendOtp = useCallback(async (email: string) => {
+    setPending("send");
+    try {
+      const result = await authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: "sign-in",
+      });
+
+      if (result.error?.message) {
+        toast.error(result.error.message);
+      }
+    } catch {
+      toast.error(t("Přihlašovací kód se nepodařilo odeslat.", "Unable to send sign-in code."));
+    } finally {
+      setPending(null);
+    }
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,7 +65,7 @@ export function InviteSignIn({ token }: { token: string }) {
       try {
         const response = await fetch(`/api/collaborator-invites/${encodeURIComponent(token)}`);
         const next = (await response.json()) as InviteState;
-        if (!cancelled) setState(next);
+        if (!cancelled) { setState(next); if (next.status === "otp_required" && next.language) void setLanguage(next.language); }
       } catch {
         if (!cancelled) setState({ status: "unavailable" });
       }
@@ -52,7 +76,7 @@ export function InviteSignIn({ token }: { token: string }) {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, setLanguage]);
 
   useEffect(() => {
     if (state.status === "ready") {
@@ -67,30 +91,12 @@ export function InviteSignIn({ token }: { token: string }) {
 
     sentOtpForInviteRef.current = token;
     void sendOtp(state.email);
-  }, [state, token]);
-
-  async function sendOtp(email: string) {
-    setPending("send");
-    try {
-      const result = await authClient.emailOtp.sendVerificationOtp({
-        email,
-        type: "sign-in",
-      });
-
-      if (result.error?.message) {
-        toast.error(result.error.message);
-      }
-    } catch {
-      toast.error("Unable to send sign-in code.");
-    } finally {
-      setPending(null);
-    }
-  }
+  }, [state, token, sendOtp]);
 
   async function verifyOtp() {
     if (state.status !== "otp_required") return;
     if (otp.length !== 6) {
-      toast.error("Enter the 6-digit code.");
+      toast.error(t("Zadejte šestimístný kód.", "Enter the 6-digit code."));
       return;
     }
 
@@ -121,10 +127,10 @@ export function InviteSignIn({ token }: { token: string }) {
         return;
       }
 
-      toast.error("Unable to claim this invitation.");
+      toast.error(t("Pozvánku se nepodařilo přijmout.", "Unable to claim this invitation."));
       setPending(null);
     } catch {
-      toast.error("Unable to verify code.");
+      toast.error(t("Kód se nepodařilo ověřit.", "Unable to verify code."));
       setPending(null);
     }
   }
@@ -143,13 +149,12 @@ export function InviteSignIn({ token }: { token: string }) {
     return (
       <Empty className={shellClassName}>
         <EmptyHeader>
-          <EmptyTitle>Invite unavailable</EmptyTitle>
-          <EmptyDescription>This invitation is no longer available.</EmptyDescription>
+          <EmptyTitle>{t("Pozvánka není dostupná", "Invite unavailable")}</EmptyTitle>
+          <EmptyDescription>{t("Tato pozvánka již není dostupná.", "This invitation is no longer available.")}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Link href="/sign-in" className={buttonVariants()}>
-            Sign in
-          </Link>
+            <UiText text={"Sign in"} /> </Link>
         </EmptyContent>
       </Empty>
     );
@@ -159,8 +164,8 @@ export function InviteSignIn({ token }: { token: string }) {
     return (
       <Empty className={shellClassName}>
         <EmptyHeader>
-          <EmptyTitle>Wrong account</EmptyTitle>
-          <EmptyDescription>This invitation was sent to another account.</EmptyDescription>
+          <EmptyTitle>{t("Jiný účet", "Wrong account")}</EmptyTitle>
+          <EmptyDescription>{t("Pozvánka je určena jinému účtu.", "This invitation was sent to another account.")}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button
@@ -175,12 +180,10 @@ export function InviteSignIn({ token }: { token: string }) {
               }
             }}
           >
-            Sign out
-            {pending === "sign-out" && <Loader className="size-4 animate-spin" />}
+            <UiText text={"Sign out"} /> {pending === "sign-out" && <Loader className="size-4 animate-spin" />}
           </Button>
           <Link href="/" className={buttonVariants({ variant: "outline" })}>
-            Go home
-          </Link>
+            <UiText text={"Go home"} /> </Link>
         </EmptyContent>
       </Empty>
     );

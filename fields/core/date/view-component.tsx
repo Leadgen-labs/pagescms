@@ -1,4 +1,6 @@
 "use client";
+import { useLanguage } from "@/contexts/language-context";
+import {cs,enGB} from "date-fns/locale";
 import { parse, format, isValid } from "date-fns";
 import { Field } from "@/types/field";
 import { CalendarIcon } from "lucide-react";
@@ -11,6 +13,7 @@ const ViewComponent = ({
   value: string | string[],
   field: Field
 }) => {
+  const {language}=useLanguage();
   if (!value) return null;
 
   const firstValue = Array.isArray(value) ? value[0] : value;
@@ -25,9 +28,9 @@ const ViewComponent = ({
       console.warn(`Date for field '${field.name}' is saved in the wrong format or invalid: ${date}.`);
       return null;
     }
-    return format(parsedDate, outputFormat);
+    return format(parsedDate, language === "cs" ? (field.options?.time ? "d. MMM yyyy - HH:mm" : "d. MMM yyyy") : outputFormat, {locale:language === "cs"?cs:enGB});
   };
-  
+
   return (
     <span className="flex items-center gap-x-1.5">
       <Badge variant="secondary">

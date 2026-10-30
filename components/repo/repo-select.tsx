@@ -1,10 +1,13 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import { publicProjectPath } from "@/lib/project-url";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { formatDistanceToNow } from "date-fns";
+
 import Link from "next/link";
 import { useUser } from "@/contexts/user-context";
 import { getGithubInstallationUrl } from "@/lib/github-app";
@@ -31,6 +34,7 @@ export function RepoSelect({
 }: {
   onAccountSelect?: (account: any) => void
 }) {
+  const ui = useUi();
   const { user } = useUser();
   const isGithubUser = hasGithubIdentity(user);
 
@@ -71,10 +75,10 @@ export function RepoSelect({
   useEffect(() => {
     const fetchResults = async () => {
       if (!selectedAccount) return;
-  
+
       abortControllerRef.current?.abort();
       abortControllerRef.current = new AbortController();
-  
+
       setIsLoading(true);
       try {
         const params = new URLSearchParams({
@@ -82,7 +86,7 @@ export function RepoSelect({
           keyword: debouncedKeyword,
           repository_selection: selectedAccount.repositorySelection
         });
-  
+
         const response = await fetch(
           `/api/repos/${selectedAccount.login}?${params.toString()}`,
           { signal: abortControllerRef.current.signal }
@@ -91,7 +95,7 @@ export function RepoSelect({
           response,
           "Failed to fetch repos",
         );
-  
+
         setResults(data.data);
       } catch (error: any) {
         if (error.name !== "AbortError") {
@@ -117,8 +121,7 @@ export function RepoSelect({
           <Skeleton className="h-5 w-24 text-left rounded" />
           <Skeleton className="h-5 w-24 text-left rounded" />
           <Button variant="outline" size="xs" className="ml-auto" disabled>
-            Open
-          </Button>
+            <UiText text={"Open"} /> </Button>
         </li>
       ))}
     </ul>
@@ -153,7 +156,7 @@ export function RepoSelect({
                 <>
                   <DropdownMenuSeparator/>
                   <DropdownMenuItem asChild>
-                    <Link href="/api/github-app/install">Manage GitHub accounts</Link>
+                    <Link href="/api/github-app/install"><UiText text={"Manage GitHub accounts"} /></Link>
                   </DropdownMenuItem>
                 </>
               }
@@ -174,13 +177,13 @@ export function RepoSelect({
                   <Settings />
                 </a>
               </TooltipTrigger>
-              <TooltipContent sideOffset={6}>Manage GitHub App</TooltipContent>
+              <TooltipContent sideOffset={6}><UiText text={"Manage GitHub App"} /></TooltipContent>
             </Tooltip>
           )}
         </ButtonGroup>
-        <div className="relative flex-1"> 
+        <div className="relative flex-1">
           <Input
-            placeholder="Search repositories by name"
+            placeholder={ui("Search repositories by name")}
             className="pl-9"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -200,23 +203,21 @@ export function RepoSelect({
                   >{result.displayName || result.repo}</Link>
                   {result.private && <LockKeyhole className="h-3 w-3 opacity-50"/>}
                   {result.updatedAt &&
-                    <div className="text-muted-foreground truncate">{formatDistanceToNow(new Date(result.updatedAt))} ago</div>
+                    <div className="text-muted-foreground truncate"><RelativeTime date={result.updatedAt}/></div>
                   }
                   <Link
                     className={cn("ml-auto", buttonVariants({ variant: "outline", size: "xs"}))}
                     href={publicProjectPath(`/${result.owner}/${result.repo}/${result.defaultBranch ? encodeURIComponent(result.defaultBranch) : ""}`)}
                   >
-                    Open
-                  </Link>
+                    <UiText text={"Open"} /> </Link>
                 </li>
               ))}
             </ul>
           : <Empty className="h-[206px] flex-none bg-accent p-4 md:p-6">
               <EmptyHeader>
-                <EmptyTitle>No projects</EmptyTitle>
+                <EmptyTitle><UiText text={"No projects"} /></EmptyTitle>
                 <EmptyDescription>
-                  No projects matched your search.
-                </EmptyDescription>
+                  <UiText text={"No projects matched your search."} /> </EmptyDescription>
               </EmptyHeader>
               {selectedAccountInstallationUrl && (
                 <EmptyContent>
@@ -226,8 +227,7 @@ export function RepoSelect({
                     rel="noreferrer"
                     className={buttonVariants({ variant: "outline" })}
                   >
-                    Manage GitHub App
-                  </a>
+                    <UiText text={"Manage GitHub App"} /> </a>
                 </EmptyContent>
               )}
             </Empty>

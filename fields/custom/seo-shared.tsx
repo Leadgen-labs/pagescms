@@ -4,6 +4,8 @@
 // výchozí hodnota z jiného pole, přípona titulku z Nastavení webu, šířka textu
 // v pixelech jako v Googlu a živý náhled výsledku vyhledávání.
 
+import { UiText } from "@/components/ui-text";
+import { ui, useUi } from "@/components/use-ui";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useWatch } from "react-hook-form";
 import { useParams } from "next/navigation";
@@ -181,6 +183,7 @@ export function GooglePreview({
   url: string;
   siteName: string;
 }) {
+  const ui = useUi();
   const t = truncateToWidth(title || "Titulek stránky", SERP.titleSize, SERP.titlePx);
   const d = truncateToWidth(description || "Google sem doplní úryvek z textu stránky.", SERP.descriptionSize, SERP.descriptionPx);
   let host = url;
@@ -193,8 +196,8 @@ export function GooglePreview({
   const name = siteName || host;
 
   return (
-    <div className="mt-3 rounded-md border bg-white p-4 text-left dark:bg-white" aria-label="Náhled ve výsledcích Googlu">
-      <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Náhled v Googlu</div>
+    <div className="mt-3 rounded-md border bg-white p-4 text-left dark:bg-white" aria-label={ui("Náhled ve výsledcích Googlu")}>
+      <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><UiText text={"Náhled v Googlu"}/></div>
       <div className="flex items-center gap-3">
         <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 text-xs font-semibold text-neutral-600">
           {name.slice(0, 1).toUpperCase()}

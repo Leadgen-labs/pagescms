@@ -1,5 +1,7 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
+import { useLanguage } from "@/contexts/language-context";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/user-context";
@@ -29,6 +31,7 @@ export function User({
   onClick?: () => void;
   align?: "start" | "center" | "end";
 }) {
+  const { t } = useLanguage();
   const { user } = useUser();
   const { theme, setTheme } = useTheme();
 
@@ -68,22 +71,21 @@ export function User({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="w-40 text-xs text-muted-foreground font-medium">
-          Theme
-        </DropdownMenuLabel>
+          <UiText text={"Theme"} /> </DropdownMenuLabel>
         <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
           <DropdownMenuRadioItem value="light" onClick={onClick}>
-            Light
+            {t("Světlý", "Light")}
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="dark" onClick={onClick}>
-            Dark
+            {t("Tmavý", "Dark")}
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="system" onClick={onClick}>
-            System
+            {t("Podle systému", "System")}
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/settings">Settings</Link>
+          <Link href="/settings">{t("Nastavení", "Settings")}</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -94,8 +96,7 @@ export function User({
             window.location.assign("/sign-in");
           }}
         >
-          Sign out
-        </DropdownMenuItem>
+          <UiText text={"Sign out"} /> </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

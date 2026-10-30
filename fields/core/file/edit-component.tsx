@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { forwardRef, useCallback, useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -47,7 +48,7 @@ type FieldOptions = {
   rename?: boolean | "safe" | "random";
 };
 
-const FileTeaser = ({ file, config, onRemove, getFileIcon }: { 
+const FileTeaser = ({ file, config, onRemove, getFileIcon }: {
   file: string;
   config: Pick<Config, "owner" | "repo" | "branch">;
   onRemove?: () => void;
@@ -74,7 +75,7 @@ const FileTeaser = ({ file, config, onRemove, getFileIcon }: {
               </a>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>View on GitHub</TooltipContent>
+          <TooltipContent><UiText text={"View on GitHub"}/></TooltipContent>
         </Tooltip>
         {onRemove && (
           <Tooltip>
@@ -90,7 +91,7 @@ const FileTeaser = ({ file, config, onRemove, getFileIcon }: {
                 <Trash2 />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Remove</TooltipContent>
+            <TooltipContent><UiText text={"Remove"}/></TooltipContent>
           </Tooltip>
         )}
       </ButtonGroup>
@@ -98,7 +99,7 @@ const FileTeaser = ({ file, config, onRemove, getFileIcon }: {
   )
 };
 
-const SortableItem = ({ id, file, config, onRemove, getFileIcon, readonly = false }: { 
+const SortableItem = ({ id, file, config, onRemove, getFileIcon, readonly = false }: {
   id: string;
   file: string;
   config: Pick<Config, "owner" | "repo" | "branch">;
@@ -131,7 +132,7 @@ const SortableItem = ({ id, file, config, onRemove, getFileIcon, readonly = fals
             <GripVertical />
           </Button>
         )}
-        
+
         <FileTeaser file={file} config={config} onRemove={onRemove} getFileIcon={getFileIcon} />
       </div>
     </div>
@@ -145,8 +146,8 @@ const EditComponent = forwardRef((props: EditorProps, ref: React.Ref<HTMLInputEl
   if (!config) throw new Error("Configuration not found.");
   const options = (field.options ?? {}) as FieldOptions;
   const isReadonly = Boolean(field.readonly);
-  
-  const [files, setFiles] = useState<FileEntry[]>(() => 
+
+  const [files, setFiles] = useState<FileEntry[]>(() =>
     typeof value === "string"
       ? (value.trim()
         ? [{ id: generateId(), path: normalizeMediaPath(value) }]
@@ -310,13 +311,12 @@ const EditComponent = forwardRef((props: EditorProps, ref: React.Ref<HTMLInputEl
   if (!mediaConfig) {
     return (
       <p className="text-muted-foreground bg-muted rounded-md px-3 py-2">
-      No media configuration found. {' '}
-      <a 
+      <UiText text={"No media configuration found."}/>{' '}
+      <a
         href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch || "")}/settings`}
         className="underline hover:text-foreground"
       >
-        Check your settings
-      </a>.
+        <UiText text={"Check your settings"}/></a>.
     </p>
     );
   }
@@ -336,17 +336,17 @@ const EditComponent = forwardRef((props: EditorProps, ref: React.Ref<HTMLInputEl
           {files.length > 0 && (
             isMultiple ? (
               <div className="space-y-2">
-                <DndContext 
+                <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   onDragEnd={handleDragEnd}
                 >
-                  <SortableContext 
+                  <SortableContext
                     items={files.map(f => f.id)}
                     strategy={verticalListSortingStrategy}
                   >
                     {files.map((file) => (
-                      <SortableItem 
+                      <SortableItem
                         key={file.id}
                         id={file.id}
                         file={file.path}
@@ -370,10 +370,9 @@ const EditComponent = forwardRef((props: EditorProps, ref: React.Ref<HTMLInputEl
               <MediaUpload.Trigger>
                 <Button type="button" size="sm" variant="outline" className="gap-2">
                   <Upload className="h-3.5 w-3.5"/>
-                  Upload
-                </Button>
+                  <UiText text={"Upload"}/></Button>
               </MediaUpload.Trigger>
-              
+
               <MediaDialog
                 media={mediaConfig.name}
                 initialPath={rootPath}
@@ -383,8 +382,7 @@ const EditComponent = forwardRef((props: EditorProps, ref: React.Ref<HTMLInputEl
               >
                 <Button type="button" size="sm" variant="outline">
                   <FolderOpen />
-                  Select
-                </Button>
+                  <UiText text={"Select"}/></Button>
               </MediaDialog>
             </div>
           )}

@@ -1,5 +1,8 @@
 "use client";
 
+import { ErrorText } from "@/components/error-text";
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import { Fragment, memo, type ReactNode, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -48,7 +51,7 @@ import {
   House,
   Ban,
   Check,
-  EllipsisVertical,  
+  EllipsisVertical,
   File,
   Folder,
   FolderPlus,
@@ -79,13 +82,12 @@ function MediaHeaderActions({
             </FolderCreate>
           </div>
         </TooltipTrigger>
-        <TooltipContent>Create folder</TooltipContent>
+        <TooltipContent><UiText text={"Create folder"} /></TooltipContent>
       </Tooltip>
       <MediaUpload.Trigger>
         <Button type="button" className="gap-2">
           <Upload />
-          Upload
-        </Button>
+          <UiText text={"Upload"} /> </Button>
       </MediaUpload.Trigger>
     </div>
   );
@@ -211,6 +213,7 @@ const MediaView = ({
   extensions?: string[],
   usePageHeader?: boolean,
 }) => {
+  const ui = useUi();
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
   const { mutate } = useSWRConfig();
@@ -225,8 +228,8 @@ const MediaView = ({
 
   const filteredExtensions = useMemo(() => {
     if (!mediaConfig?.extensions && !extensions) return [];
-    
-    const allowedExtensions = extensions 
+
+    const allowedExtensions = extensions
       ? mediaConfig?.extensions
         ? extensions.filter(ext => mediaConfig.extensions.includes(ext))
         : extensions
@@ -267,12 +270,12 @@ const MediaView = ({
     return mediaConfig.input;
   });
   const [data, setData] = useState<MediaItem[] | undefined>(undefined);
-  
+
   // Filter the data based on filteredExtensions when displaying
   const filteredData = useMemo(() => {
     if (!data) return undefined;
     if (filteredExtensionsSet.size === 0) return data;
-    return data.filter(item => 
+    return data.filter(item =>
       item.type === "dir" ||
       filteredExtensionsSet.has(item.extension?.toLowerCase())
     );
@@ -284,7 +287,7 @@ const MediaView = ({
       return a.type === "dir" ? -1 : 1;
     });
   }, []);
-  
+
   const buildMediaApiUrl = useCallback((targetPath: string): string => (
     `/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/media/${encodeURIComponent(mediaConfig.name)}/${encodeURIComponent(targetPath)}`
   ), [config.branch, config.owner, config.repo, mediaConfig.name]);
@@ -321,9 +324,9 @@ const MediaView = ({
 
   useEffect(() => {
     if (!swrMediaError) return;
-    const message = swrMediaError instanceof Error ? swrMediaError.message : "Failed to fetch media.";
+    const message = swrMediaError instanceof Error ? swrMediaError.message : ui("Failed to fetch media.");
     setError(message);
-  }, [swrMediaError]);
+  }, [swrMediaError, ui]);
 
   const isLoading = swrMediaLoading && !data;
 
@@ -403,7 +406,7 @@ const MediaView = ({
       size: 0,
       url: null,
     };
-    
+
     setData((prevData) => {
       if (!prevData) return [parent];
       if (prevData.some((item) => item.path === parent.path && item.type === "dir")) {
@@ -527,7 +530,7 @@ const MediaView = ({
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center">
                     <BreadcrumbEllipsis className="h-4 w-4" />
-                    <span className="sr-only">Show hidden segments</span>
+                    <span className="sr-only"><UiText text={"Show hidden segments"} /></span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
                     {middleEntries.map((entry) => (
@@ -618,16 +621,15 @@ const MediaView = ({
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>
-          <EmptyTitle>Media not configured</EmptyTitle>
-          <EmptyDescription>No media folder is configured for this repository.</EmptyDescription>
+          <EmptyTitle><UiText text={"Media not configured"} /></EmptyTitle>
+          <EmptyDescription><UiText text={"No media folder is configured for this repository."} /></EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Link
             className={buttonVariants({ variant: "default" })}
             href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/configuration`}
           >
-            Open configuration
-          </Link>
+            <UiText text={"Open configuration"} /> </Link>
         </EmptyContent>
       </Empty>
     );
@@ -640,7 +642,7 @@ const MediaView = ({
       return (
         <Empty className="absolute inset-0 border-0 rounded-none">
           <EmptyHeader>
-            <EmptyTitle>Media folder not found</EmptyTitle>
+            <EmptyTitle><UiText text={"Media folder not found"} /></EmptyTitle>
             <EmptyDescription>
               {isRootFolder
                 ? `The media folder "${mediaConfig.input}" does not exist yet.`
@@ -653,11 +655,11 @@ const MediaView = ({
       return (
         <Empty className="absolute inset-0 border-0 rounded-none">
           <EmptyHeader>
-            <EmptyTitle>Something went wrong</EmptyTitle>
-            <EmptyDescription>{error}</EmptyDescription>
+            <EmptyTitle><UiText text={"Something went wrong"} /></EmptyTitle>
+            <EmptyDescription><ErrorText text={String(error)}/></EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button onClick={() => handleNavigate(mediaConfig.input)}>Open media root</Button>
+            <Button onClick={() => handleNavigate(mediaConfig.input)}><UiText text={"Open media root"} /></Button>
           </EmptyContent>
         </Empty>
       );
@@ -671,7 +673,7 @@ const MediaView = ({
           ? loadingSkeleton
           : gridItems.length > 0
             ? <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 p-1">
-                {gridItems.map(({ item, isImage, displaySize }) => 
+                {gridItems.map(({ item, isImage, displaySize }) =>
                   <li key={item.path}>
                     {item.type === "dir"
                       ? <MediaFolderTile item={item} onNavigate={handleNavigate} />
@@ -688,14 +690,14 @@ const MediaView = ({
                           onRename={handleRename}
                         />
                     }
-                    
+
                   </li>
                 )}
               </ul>
             : <Empty className="border-0 shadow-none">
                 <EmptyHeader>
-                  <EmptyTitle>Empty folder</EmptyTitle>
-                  <EmptyDescription>Drag and drop files here, or use Upload to add files to this folder.</EmptyDescription>
+                  <EmptyTitle><UiText text={"Empty folder"} /></EmptyTitle>
+                  <EmptyDescription><UiText text={"Drag and drop files here, or use Upload to add files to this folder."} /></EmptyDescription>
                 </EmptyHeader>
               </Empty>
         }

@@ -1,5 +1,7 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import {
   memo,
   useState,
@@ -86,7 +88,7 @@ import {
   ChevronsUpDown,
   ChevronRight,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { interpolate } from "@/lib/schema";
 
 type BeforeSubmitHook = () => void | Promise<void>;
@@ -279,20 +281,18 @@ const ListItemRow = memo(function ListItemRow({
             </TooltipTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Remove this item?</AlertDialogTitle>
+                <AlertDialogTitle><UiText text={"Remove this item?"} /></AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone.
-                </AlertDialogDescription>
+                  <UiText text={"This action cannot be undone."} /> </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
                 <AlertDialogAction onClick={() => onRemoveConfirm(index)}>
-                  Remove
-                </AlertDialogAction>
+                  <UiText text={"Remove"} /> </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <TooltipContent>Remove item</TooltipContent>
+          <TooltipContent><UiText text={"Remove item"} /></TooltipContent>
         </Tooltip>
       )}
     </SortableItem>
@@ -312,6 +312,7 @@ const ListField = ({
   registerBeforeSubmitHook?: RegisterBeforeSubmitHook;
   runBeforeSubmitHooks?: () => Promise<void>;
 }) => {
+  const ui = useUi();
   const supportsItemCollapse =
     field.type === "object" || field.type === "block";
   const isCollapsible = !!(
@@ -469,20 +470,18 @@ const ListField = ({
             <div className="flex items-center h-5 gap-x-2">
               {field.label !== false && (
                 <FormLabel className="text-sm font-medium">
-                  {field.label || field.name}
+                  <UiText text={field.label || field.name}/>
                 </FormLabel>
               )}
               {field.required && (
                 <Badge variant="secondary" className="text-muted-foreground">
                   <Asterisk className="-ml-1 -mr-0.5" />
-                  Required
-                </Badge>
+                  <UiText text={"Required"} /> </Badge>
               )}
               {hasExplicitReadonly(field) && (
                 <Badge variant="secondary" className="text-muted-foreground">
                   <Ban className="-ml-0.5" />
-                  Readonly
-                </Badge>
+                  <UiText text={"Readonly"} /> </Badge>
               )}
               {isCollapsible &&
                 arrayFields.length > 0 &&
@@ -498,7 +497,7 @@ const ListField = ({
                       onClick={() => toggleAll(isAllExpanded)}
                     >
                       {isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
-                      {isAllExpanded ? "Collapse all" : "Expand all"}
+                      {isAllExpanded ? ui("Collapse all") : ui("Expand all")}
                     </Button>
                   );
                 })()}
@@ -546,8 +545,7 @@ const ListField = ({
                   onClick={addItem}
                 >
                   <Plus />
-                  Add an item
-                </Button>
+                  <UiText text={"Add an item"} /> </Button>
               )}
             </div>
             <FormMessage />
@@ -628,7 +626,7 @@ const BlocksField = forwardRef<HTMLDivElement, NestedFieldProps>(
       <div className="space-y-3" ref={ref as React.Ref<HTMLDivElement>}>
         {!selectedBlockDefinition ? (
           <div className="rounded-lg border p-4 space-y-4">
-            <div className="text-sm">Choose content block:</div>
+            <div className="text-sm"><UiText text={"Choose content block:"} /></div>
             <div className="flex flex-wrap gap-2">
               {blocks.map((blockDef: Field) => (
                 <Button
@@ -704,26 +702,23 @@ const BlocksField = forwardRef<HTMLDivElement, NestedFieldProps>(
                       >
                         <AlertDialogHeader>
                           <AlertDialogTitle>
-                            Remove this block?
-                          </AlertDialogTitle>
+                            <UiText text={"Remove this block?"} /> </AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone.
-                          </AlertDialogDescription>
+                            <UiText text={"This action cannot be undone."} /> </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => {
                               handleRemoveBlock();
                               setIsRemoveBlockDialogOpen(false);
                             }}
                           >
-                            Remove
-                          </AlertDialogAction>
+                            <UiText text={"Remove"} /> </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                    <TooltipContent>Remove block</TooltipContent>
+                    <TooltipContent><UiText text={"Remove block"} /></TooltipContent>
                   </Tooltip>
                 )}
               </Badge>
@@ -917,20 +912,18 @@ const SingleField = ({
           <div className="flex items-center h-5 gap-x-2">
             {field.label !== false && (
               <Label className={hasErrors() ? "text-destructive" : ""}>
-                {field.label || field.name}
+                <UiText text={field.label || field.name}/>
               </Label>
             )}
             {field.required && (
               <Badge variant="secondary" className="text-muted-foreground">
                 <Asterisk className="-ml-1 -mr-0.5" />
-                Required
-              </Badge>
+                <UiText text={"Required"} /> </Badge>
             )}
             {hasExplicitReadonly(field) && (
               <Badge variant="secondary" className="text-muted-foreground">
                 <Ban className="-ml-0.5" />
-                Readonly
-              </Badge>
+                <UiText text={"Readonly"} /> </Badge>
             )}
           </div>
         )}
@@ -971,7 +964,7 @@ const SingleField = ({
               <div className="flex items-center justify-between min-h-6 gap-x-2">
                 <div className="flex items-center gap-x-2 min-w-0">
                   {field.label !== false && (
-                    <FormLabel>{field.label || field.name}</FormLabel>
+                    <FormLabel><UiText text={field.label || field.name}/></FormLabel>
                   )}
                   {field.required && (
                     <Badge
@@ -979,8 +972,7 @@ const SingleField = ({
                       className="text-muted-foreground"
                     >
                       <Asterisk className="-ml-1 -mr-0.5" />
-                      Required
-                    </Badge>
+                      <UiText text={"Required"} /> </Badge>
                   )}
                   {hasExplicitReadonly(field) && (
                     <Badge
@@ -988,8 +980,7 @@ const SingleField = ({
                       className="text-muted-foreground"
                     >
                       <Ban className="-ml-0.5" />
-                      Readonly
-                    </Badge>
+                      <UiText text={"Readonly"} /> </Badge>
                   )}
                 </div>
                 {showLabelSlot && <div id={labelSlotId} className="shrink-0" />}
@@ -1042,6 +1033,7 @@ const EntryForm = ({
   onDirtyChange?: (isDirty: boolean) => void;
   onChangeRegistered?: () => void;
 }) => {
+  const ui = useUi();
   const zodSchema = useMemo(() => {
     return generateZodSchema(fields);
   }, [fields]);
@@ -1145,9 +1137,9 @@ const EntryForm = ({
     [form, onSubmit],
   );
 
-  const handleError = () => {
-    toast.error("Please fix the errors before saving.", { duration: 5000 });
-  };
+  const handleError = useCallback(() => {
+    toast.error(ui("Please fix the errors before saving."), { duration: 5000 });
+  }, [ui]);
 
   const handleFormSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -1155,7 +1147,7 @@ const EntryForm = ({
       await runBeforeValidationHooks();
       await form.handleSubmit(handleSubmit, handleError)(event);
     },
-    [form, handleSubmit, runBeforeValidationHooks],
+    [form, handleSubmit, handleError, runBeforeValidationHooks],
   );
 
   return (
@@ -1167,7 +1159,7 @@ const EntryForm = ({
       >
         {filePath && (
           <div className="space-y-2 overflow-hidden">
-            <FormLabel>Filename</FormLabel>
+            <FormLabel><UiText text={"Filename"} /></FormLabel>
             {filePath}
           </div>
         )}

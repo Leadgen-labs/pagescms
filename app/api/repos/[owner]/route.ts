@@ -15,9 +15,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * Fetches repositories for a user.
- * 
+ *
  * GET /api/repos/[owner]
- * 
+ *
  * Requires authentication.
  */
 
@@ -43,7 +43,7 @@ export async function GET(
 
       const repositorySelection = searchParams.get("repository_selection");
 
-      if (repositorySelection === "selected") {  
+      if (repositorySelection === "selected") {
         // Only some repos are selected
         // TODO: investigate why it's slow
         const installations = await getInstallations(token, [params.owner]);
@@ -53,7 +53,7 @@ export async function GET(
       } else {
         // All repos are selected, we search for the repos based on parameters
         const keyword = searchParams.get("keyword");
-        
+
         const octokit = createOctokitInstance(token);
         const query = `${keyword} in:name ${type}:${params.owner} fork:true`;
         const response = await octokit.rest.search.repos({

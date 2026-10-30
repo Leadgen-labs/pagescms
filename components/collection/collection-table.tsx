@@ -1,5 +1,7 @@
 "use client"
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   flexRender,
@@ -56,10 +58,10 @@ export type TableData = {
 
 const LShapeIcon = ({ className }: { className?: string }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M4 4V11C4 12.0609 4.42143 13.0783 5.17157 13.8284C5.92172 14.5786 6.93913 15 8 15H20" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <path d="M4 4V11C4 12.0609 4.42143 13.0783 5.17157 13.8284C5.92172 14.5786 6.93913 15 8 15H20"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"/>
   </svg>
 );
@@ -87,8 +89,9 @@ export function CollectionTable<TData extends TableData>({
   isTree?: boolean,
   primaryField?: string
 }) {
+  const ui = useUi();
   const [expanded, setExpanded] = useState<ExpandedState>({});
-  
+
   const [loadingRows, setLoadingRows] = useState<Record<string, boolean>>({});
   const loadingPathSetRef = useRef<Set<string>>(new Set());
 
@@ -170,7 +173,7 @@ export function CollectionTable<TData extends TableData>({
 
   useEffect(() => {
     if (!isTree) return;
-    
+
     table.getRowModel().rows.forEach((row) => {
       if (
         !row.getIsExpanded() &&
@@ -202,10 +205,10 @@ export function CollectionTable<TData extends TableData>({
                     title={
                       header.column.getCanSort()
                         ? header.column.getNextSortingOrder() === 'asc'
-                          ? 'Seřadit vzestupně'
+                          ? ui("Sort ascending")
                           : header.column.getNextSortingOrder() === 'desc'
-                            ? 'Seřadit sestupně'
-                            : 'Clear sort'
+                            ? ui("Sort descending")
+                            : ui("Clear sort")
                         : undefined
                     }
                   >
@@ -303,10 +306,10 @@ export function CollectionTable<TData extends TableData>({
                                   disabled={row.getIsExpanded() && Array.isArray(row.original.subRows) && row.original.subRows.length === 0}
                                 >
                                   {row.getIsExpanded() ? <CircleMinus className="text-muted-foreground hover:text-foreground h-4 w-4" /> : <CirclePlus className="text-muted-foreground hover:text-foreground h-4 w-4" />}
-                                  <span className="sr-only">{row.getIsExpanded() ? 'Collapse row' : 'Expand row'}</span>
+                                  <span className="sr-only">{row.getIsExpanded() ? ui("Collapse row") : ui("Expand row")}</span>
                                 </Button>
                           )}
-                          
+
                         </div>
                       </TableCell>
                     ))
@@ -316,7 +319,7 @@ export function CollectionTable<TData extends TableData>({
           ) : (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={columns.length} className="text-center text-muted-foreground text-sm p-6">
-                <span>{search ? "Nic neodpovídá hledání. Zkuste změnit hledaný text." : "Zatím tu nejsou žádné záznamy. Použijte tlačítko pro vytvoření nebo obnovte seznam."}</span>
+                <span>{search ? ui("Nic neodpovídá hledání. Zkuste změnit hledaný text.") : ui("Zatím tu nejsou žádné záznamy. Použijte tlačítko pro vytvoření nebo obnovte seznam.")}</span>
               </TableCell>
             </TableRow>
           )}

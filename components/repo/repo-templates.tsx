@@ -1,5 +1,7 @@
 "use client";
 
+import { ErrorText } from "@/components/error-text";
+import { UiText } from "@/components/ui-text";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { ChevronsUpDown, ArrowUpRight } from "lucide-react";
 
 export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
@@ -137,11 +139,9 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
               <DialogContent className="sm:max-w-[425px]">
                 <form action={copyTemplateAction} className="grid gap-4">
                   <DialogHeader>
-                    <DialogTitle>Copy template</DialogTitle>
+                    <DialogTitle><UiText text={"Copy template"} /></DialogTitle>
                     <DialogDescription>
-                      This will create a copy of the template repository below
-                      under the selected account.
-                    </DialogDescription>
+                      <UiText text={"This will create a copy of the template repository below under the selected account."} /> </DialogDescription>
                   </DialogHeader>
                   <a
                     href={`https://github.com/${template.repository}`}
@@ -180,8 +180,7 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
                     />
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="name" className="text-right">
-                        Account
-                      </Label>
+                        <UiText text={"Account"} /> </Label>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" className="px-3 col-span-3">
@@ -219,8 +218,7 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
                         htmlFor="name"
                         className="h-10 inline-flex items-center justify-end"
                       >
-                        Name
-                      </Label>
+                        <UiText text={"Name"} /> </Label>
                       <div className="col-span-3">
                         <Input
                           name="name"
@@ -230,13 +228,12 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
                         />
                         {copyTemplateState?.error && (
                           <div className="text-sm font-medium text-destructive mt-2 ">
-                            {copyTemplateState.error}
+                            <ErrorText text={String(copyTemplateState.error)}/>
                           </div>
                         )}
                         {!isValidName && (
                           <div className="text-sm font-medium text-destructive mt-2 ">
-                            Invalid name
-                          </div>
+                            <UiText text={"Invalid name"} /> </div>
                         )}
                       </div>
                     </div>
@@ -244,8 +241,7 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
                   <DialogFooter>
                     <DialogClose ref={dialogCloseRef}></DialogClose>
                     <SubmitButton type="submit" disabled={!isValidName}>
-                      Create copy
-                    </SubmitButton>
+                      <UiText text={"Create copy"} /> </SubmitButton>
                   </DialogFooter>
                 </form>
               </DialogContent>

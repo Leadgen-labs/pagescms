@@ -1,5 +1,6 @@
 "use client"
 
+import { ErrorText } from "@/components/error-text";
 import * as React from "react"
 import type { Label as LabelPrimitive } from "radix-ui"
 import { Slot } from "radix-ui"
@@ -150,7 +151,7 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
       className={cn("text-destructive text-sm", className)}
       {...props}
     >
-      {body}
+      {typeof body === "string" ? <ErrorText text={body}/> : body}
     </p>
   )
 }

@@ -1,8 +1,11 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
-import { formatDistanceToNowStrict } from "date-fns";
+
 import {
   ArrowUpRight,
   BookText,
@@ -12,7 +15,7 @@ import {
   Funnel,
   Loader,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { useRepoHeader } from "@/components/repo/repo-header-context";
 import { useActionToasts } from "@/contexts/action-toast-context";
 import { getInitialsFromName } from "@/lib/utils/avatar";
@@ -119,9 +122,9 @@ const formatContext = (
 };
 
 const formatDetails = (run: ActionRunSummary) => [
-  { label: "Surface", value: run.contextType ?? "-" },
-  { label: "Name", value: run.contextName ?? "-" },
-  { label: "Path", value: run.contextPath ?? "-" },
+  { label: ui("Surface"), value: run.contextType ?? "-" },
+  { label: ui("Name"), value: run.contextName ?? "-" },
+  { label: ui("Path"), value: run.contextPath ?? "-" },
 ];
 
 const getShaUrl = (owner: string, repo: string, sha: string | null) => {
@@ -313,6 +316,7 @@ export function ActionsPage({
   actionLabels = {},
   contextLabels = {},
 }: ActionsPageProps) {
+  const ui = useUi();
   const { trackActionRun } = useActionToasts();
   const [runs, setRuns] = useState<ActionRunSummary[] | null>(null);
   const [search, setSearch] = useState("");
@@ -362,14 +366,14 @@ export function ActionsPage({
           toastId,
         });
       } else if (intent === "cancel") {
-        toast.success("Run cancelled.");
+        toast.success(ui("Run cancelled."));
       }
 
       await loadRuns();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Action failed.");
+      toast.error(error instanceof Error ? error.message : ui("Action failed."));
     }
-  }, [actionLabels, branch, loadRuns, owner, repo, trackActionRun]);
+  }, [actionLabels, branch, loadRuns, owner, repo, trackActionRun, ui]);
 
   useEffect(() => {
     void loadRuns();
@@ -486,7 +490,7 @@ export function ActionsPage({
     () => (
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-lg">Actions</h1>
+          <h1 className="font-semibold text-lg"><UiText text={"Actions"} /></h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -501,11 +505,11 @@ export function ActionsPage({
                   rel="noreferrer"
                 >
                   <BookText />
-                  <span className="sr-only">View docs</span>
+                  <span className="sr-only"><UiText text={"View docs"} /></span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View docs</TooltipContent>
+            <TooltipContent><UiText text={"View docs"} /></TooltipContent>
           </Tooltip>
         </div>
         <div className="flex items-center gap-2">
@@ -513,7 +517,7 @@ export function ActionsPage({
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search"
+              placeholder={ui("Search")}
               className="w-44"
             />
             <Popover>
@@ -522,31 +526,31 @@ export function ActionsPage({
                   <PopoverTrigger asChild>
                     <Button type="button" variant="outline" size="icon">
                       <Funnel />
-                      <span className="sr-only">Open filters</span>
+                      <span className="sr-only"><UiText text={"Open filters"} /></span>
                     </Button>
                   </PopoverTrigger>
                 </TooltipTrigger>
-                <TooltipContent>Filters</TooltipContent>
+                <TooltipContent><UiText text={"Filters"} /></TooltipContent>
               </Tooltip>
               <PopoverContent align="end" className="w-56 p-3">
                 <div className="grid gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Status" />
+                      <SelectValue placeholder={ui("Status")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All statuses</SelectItem>
-                      <SelectItem value="succeeded">Succeeded</SelectItem>
-                      <SelectItem value="failed">Failed</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="all"><UiText text={"All statuses"} /></SelectItem>
+                      <SelectItem value="succeeded"><UiText text={"Succeeded"} /></SelectItem>
+                      <SelectItem value="failed"><UiText text={"Failed"} /></SelectItem>
+                      <SelectItem value="pending"><UiText text={"Pending"} /></SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={actionFilter} onValueChange={setActionFilter}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Action" />
+                      <SelectValue placeholder={ui("Action")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All actions</SelectItem>
+                      <SelectItem value="all"><UiText text={"All actions"} /></SelectItem>
                       {actionOptions.map((actionName) => (
                         <SelectItem key={actionName} value={actionName}>
                           {actionLabels[actionName] ?? actionName}
@@ -559,10 +563,10 @@ export function ActionsPage({
                     onValueChange={setTriggeredByFilter}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Triggered by" />
+                      <SelectValue placeholder={ui("Triggered by")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Anyone</SelectItem>
+                      <SelectItem value="all"><UiText text={"Anyone"} /></SelectItem>
                       {triggeredByOptions.map((name) => (
                         <SelectItem key={name} value={name}>
                           {name}
@@ -589,10 +593,10 @@ export function ActionsPage({
                 }}
               >
                 <CircleX />
-                <span className="sr-only">Reset filters</span>
+                <span className="sr-only"><UiText text={"Reset filters"} /></span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Reset filters</TooltipContent>
+            <TooltipContent><UiText text={"Reset filters"} /></TooltipContent>
           </Tooltip>
         </div>
       </div>
@@ -605,8 +609,7 @@ export function ActionsPage({
       search,
       statusFilter,
       triggeredByFilter,
-      triggeredByOptions,
-    ],
+      triggeredByOptions, ui],
   );
 
   useRepoHeader({ header: headerNode });
@@ -621,11 +624,11 @@ export function ActionsPage({
         <TableHeader>
           <TableRow>
             <TableHead></TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Context</TableHead>
-            <TableHead>Triggered</TableHead>
-            <TableHead>Triggered by</TableHead>
-            <TableHead>Ref</TableHead>
+            <TableHead><UiText text={"Name"} /></TableHead>
+            <TableHead><UiText text={"Context"} /></TableHead>
+            <TableHead><UiText text={"Triggered"} /></TableHead>
+            <TableHead><UiText text={"Triggered by"} /></TableHead>
+            <TableHead><UiText text={"Ref"} /></TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
@@ -636,7 +639,7 @@ export function ActionsPage({
                 colSpan={7}
                 className="py-8 text-center text-muted-foreground"
               >
-                {runs.length === 0 ? "No actions yet." : "No matching actions."}
+                {runs.length === 0 ? ui("No actions yet.") : ui("No matching actions.")}
               </TableCell>
             </TableRow>
           ) : (
@@ -672,9 +675,7 @@ export function ActionsPage({
                 </TableCell>
                 <TableCell>
                   {run.createdAt
-                    ? formatDistanceToNowStrict(new Date(run.createdAt), {
-                        addSuffix: true,
-                      })
+                    ? <RelativeTime date={run.createdAt}/>
                     : "-"}
                 </TableCell>
                 <TableCell>
@@ -756,7 +757,7 @@ export function ActionsPage({
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="icon-sm">
                         <EllipsisVertical className="size-4" />
-                        <span className="sr-only">Run actions</span>
+                        <span className="sr-only"><UiText text={"Run actions"} /></span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -766,8 +767,7 @@ export function ActionsPage({
                           target="_blank"
                           rel="noreferrer"
                         >
-                          View on GitHub
-                          <ArrowUpRight className="ml-auto size-3 text-muted-foreground" />
+                          <UiText text={"View on GitHub"} /> <ArrowUpRight className="ml-auto size-3 text-muted-foreground" />
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -775,15 +775,13 @@ export function ActionsPage({
                         disabled={!run.canRerun}
                         onClick={() => void handleRunAction(run, "rerun")}
                       >
-                        Run again
-                      </DropdownMenuItem>
+                        <UiText text={"Run again"} /> </DropdownMenuItem>
                       <DropdownMenuItem
                         variant="destructive"
                         disabled={!run.canCancel}
                         onClick={() => void handleRunAction(run, "cancel")}
                       >
-                        Cancel run
-                      </DropdownMenuItem>
+                        <UiText text={"Cancel run"} /> </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

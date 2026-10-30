@@ -1,3 +1,5 @@
+import { ui } from "@/lib/ui-source";
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { desc, eq, or, sql } from "drizzle-orm";
 import { ArrowLeft, RefreshCcw } from "lucide-react";
@@ -175,7 +177,7 @@ export default async function Page({
 
   return (
     <MainRootLayout>
-      <DocumentTitle title="Admin" />
+      <DocumentTitle title={ui("Admin")} />
       <div className="max-w-screen-lg mx-auto p-4 md:p-6 space-y-6">
         <Link
           className={cn(
@@ -185,40 +187,37 @@ export default async function Page({
           href="/"
         >
           <ArrowLeft />
-          Go home
-        </Link>
+          <UiText text={"Go home"} /> </Link>
 
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-semibold tracking-tight text-lg md:text-2xl">
-            Admin
-          </h1>
+            <UiText text={"Admin"}/></h1>
           <Link className={buttonVariants({ variant: "default", size: "sm" })} href="/admin/weby">
-            Přehled webů
-          </Link>
+            <UiText text={"Přehled webů"}/></Link>
         </header>
 
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Overview</CardTitle>
-              <CardDescription>High-level installation metrics.</CardDescription>
+              <CardTitle><UiText text={"Overview"} /></CardTitle>
+              <CardDescription><UiText text={"High-level installation metrics."} /></CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-4">
                 <div className="md:pr-4 md:border-r">
-                  <div className="mb-1.5 text-sm text-muted-foreground">Users</div>
+                  <div className="mb-1.5 text-sm text-muted-foreground"><UiText text={"Users"} /></div>
                   <div className="text-3xl font-semibold tracking-tight">{formatCompactNumber(userCount?.count ?? 0)}</div>
                 </div>
                 <div className="md:px-4 md:border-r">
-                  <div className="mb-1.5 text-sm text-muted-foreground">Installs</div>
+                  <div className="mb-1.5 text-sm text-muted-foreground"><UiText text={"Installs"} /></div>
                   <div className="text-3xl font-semibold tracking-tight">{formatCompactNumber(installCount?.count ?? 0)}</div>
                 </div>
                 <div className="md:px-4 md:border-r">
-                  <div className="mb-1.5 text-sm text-muted-foreground">Configured repos</div>
+                  <div className="mb-1.5 text-sm text-muted-foreground"><UiText text={"Configured repos"} /></div>
                   <div className="text-3xl font-semibold tracking-tight">{formatCompactNumber(repoCount?.count ?? 0)}</div>
                 </div>
                 <div className="md:pl-4">
-                  <div className="mb-1.5 text-sm text-muted-foreground">Cached files</div>
+                  <div className="mb-1.5 text-sm text-muted-foreground"><UiText text={"Cached files"} /></div>
                   <div className="text-3xl font-semibold tracking-tight">{formatCompactNumber(cacheFileCount?.count ?? 0)}</div>
                 </div>
               </div>
@@ -227,18 +226,17 @@ export default async function Page({
 
           <Card>
             <CardHeader>
-              <CardTitle>Users</CardTitle>
+              <CardTitle><UiText text={"Users"} /></CardTitle>
               <CardDescription>
-                Search and revoke active sessions for individual users or everyone at once.
-              </CardDescription>
+                <UiText text={"Search and revoke active sessions for individual users or everyone at once."} /> </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex items-center justify-between gap-2">
                 <AdminUserSearch initialQuery={query} />
                 <AdminConfirmActionButton
                   action={logoutAllUsers}
-                  label="Log out all users"
-                  title="Log out all users?"
+                  label={ui("Log out all users")}
+                  title={ui("Log out all users?")}
                   description="This will revoke every active session and redirect everyone to sign in again."
                   confirmLabel="Log out all"
                   variant="outline"
@@ -249,11 +247,11 @@ export default async function Page({
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10 min-w-10" />
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead><UiText text={"Name"} /></TableHead>
+                    <TableHead><UiText text={"Email"} /></TableHead>
                     <TableHead>GitHub</TableHead>
-                    <TableHead className="w-24 min-w-24">Created</TableHead>
-                    <TableHead className="w-24 min-w-24">Updated</TableHead>
+                    <TableHead className="w-24 min-w-24"><UiText text={"Created"} /></TableHead>
+                    <TableHead className="w-24 min-w-24"><UiText text={"Updated"} /></TableHead>
                     <TableHead className="w-12 min-w-12" />
                   </TableRow>
                 </TableHeader>
@@ -317,16 +315,14 @@ export default async function Page({
                   ) : (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center text-muted-foreground">
-                        No users found.
-                      </TableCell>
+                        <UiText text={"No users found."} /> </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
               <div className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
                 <div>
-                  Showing {users.length} of {filteredUserCount?.count ?? 0} users
-                </div>
+                  <UiText text={"Showing"}/>{users.length} <UiText text={"of"}/>{filteredUserCount?.count ?? 0} <UiText text={"users"}/></div>
                 <Pagination className="mx-0 w-auto justify-end">
                   <PaginationContent>
                     <PaginationItem>
@@ -339,7 +335,7 @@ export default async function Page({
                     </PaginationItem>
                     <PaginationItem>
                       <span className="px-2 text-xs">
-                        Page {safeCurrentPage} of {totalUserPages}
+                        <UiText text={"Page"}/>{safeCurrentPage} <UiText text={"of"}/>{totalUserPages}
                       </span>
                     </PaginationItem>
                     <PaginationItem>
@@ -358,35 +354,34 @@ export default async function Page({
 
           <Card>
             <CardHeader>
-              <CardTitle>Cache</CardTitle>
+              <CardTitle><UiText text={"Cache"}/></CardTitle>
               <CardDescription>
-                Global cache state across files, config, metadata, and permission checks.
-              </CardDescription>
+                <UiText text={"Global cache state across files, config, metadata, and permission checks."} /> </CardDescription>
             </CardHeader>
             <CardContent className="text-sm flex-1">
               <div className="grid rounded-md border md:grid-cols-2">
                 <div className="flex items-center justify-between gap-3 px-3 py-2 md:border-r md:border-b">
-                  <span className="text-muted-foreground">Cached files</span>
+                  <span className="text-muted-foreground"><UiText text={"Cached files"} /></span>
                   <span className="font-medium">{cacheFileCount?.count ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t px-3 py-2 md:border-r md:border-t-0 md:border-b">
-                  <span className="text-muted-foreground">Cache metadata rows</span>
+                  <span className="text-muted-foreground"><UiText text={"Cache metadata rows"} /></span>
                   <span className="font-medium">{cacheMetaCount?.count ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t px-3 py-2 md:border-r md:border-t-0 md:border-b">
-                  <span className="text-muted-foreground">Permission cache rows</span>
+                  <span className="text-muted-foreground"><UiText text={"Permission cache rows"} /></span>
                   <span className="font-medium">{cachePermissionCount?.count ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t px-3 py-2 md:border-t-0 md:border-b">
-                  <span className="text-muted-foreground">Collaborator rows</span>
+                  <span className="text-muted-foreground"><UiText text={"Collaborator rows"} /></span>
                   <span className="font-medium">{collaboratorCount?.count ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t px-3 py-2 md:border-r md:border-t-0">
-                  <span className="text-muted-foreground">Verified users</span>
+                  <span className="text-muted-foreground"><UiText text={"Verified users"} /></span>
                   <span className="font-medium">{verifiedUserCount?.count ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t px-3 py-2 md:border-t-0">
-                  <span className="text-muted-foreground">GitHub identities</span>
+                  <span className="text-muted-foreground"><UiText text={"GitHub identities"} /></span>
                   <span className="font-medium">{githubUserCount?.count ?? 0}</span>
                 </div>
               </div>
@@ -394,8 +389,8 @@ export default async function Page({
             <CardFooter className="flex justify-end">
               <AdminConfirmActionButton
                 action={resetGlobalCache}
-                label="Reset cache"
-                title="Reset cache?"
+                label={ui("Reset cache")}
+                title={ui("Reset cache?")}
                 description="This will clear cached files, cached config, cache metadata, and permission cache."
                 confirmLabel="Reset"
                 variant="outline"

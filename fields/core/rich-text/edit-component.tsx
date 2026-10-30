@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import {
   forwardRef,
   useCallback,
@@ -850,8 +851,7 @@ const EditComponent = forwardRef(
           disabled={isReadonly || isTransforming || pendingUploads > 0}
           data-active={mode === "editor" ? "true" : undefined}
         >
-          Editor
-        </button>
+          <UiText text={"Editor"}/></button>
         <button
           type="button"
           className={cn(
@@ -864,8 +864,7 @@ const EditComponent = forwardRef(
           disabled={isReadonly || isTransforming || pendingUploads > 0}
           data-active={mode === "source" ? "true" : undefined}
         >
-          Source
-        </button>
+          <UiText text={"Source"}/></button>
       </div>
     );
 

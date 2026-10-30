@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
@@ -30,28 +31,27 @@ export default function Page() {
       setError(true);
     }
   }, [config, router, user]);
-  
+
   return error
     ? (
       hasGithubIdentity(user)
         ? <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
-              <EmptyTitle>Configuration unavailable</EmptyTitle>
-              <EmptyDescription>This repository is not configured, and configuration access is disabled here. Edit &quot;.pages.yml&quot; on GitHub if you think this is a mistake.</EmptyDescription>
+              <EmptyTitle><UiText text={"Configuration unavailable"} /></EmptyTitle>
+              <EmptyDescription><UiText text={"This repository is not configured, and configuration access is disabled here. Edit \".pages.yml\" on GitHub if you think this is a mistake."}/></EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Link
                 className={buttonVariants({ variant: "default" })}
                 href={`https://github.com/${config?.owner}/${config?.repo}/edit/${encodeURIComponent(config!.branch)}/.pages.yml`}
               >
-                Edit configuration on GitHub
-              </Link>
+                <UiText text={"Edit configuration on GitHub"} /> </Link>
             </EmptyContent>
           </Empty>
         : <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
-              <EmptyTitle>Repository not configured</EmptyTitle>
-              <EmptyDescription>This repository does not have a &quot;.pages.yml&quot; file yet. Ask a GitHub admin to initialize the configuration first.</EmptyDescription>
+              <EmptyTitle><UiText text={"Repository not configured"} /></EmptyTitle>
+              <EmptyDescription><UiText text={"This repository does not have a \".pages.yml\" file yet. Ask a GitHub admin to initialize the configuration first."} /></EmptyDescription>
             </EmptyHeader>
           </Empty>
     )

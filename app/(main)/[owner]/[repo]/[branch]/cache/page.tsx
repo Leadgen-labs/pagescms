@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { CachePage } from "@/components/cache/cache-page";
 import { DocumentTitle, formatRepoBranchTitle } from "@/components/document-title";
 import { useConfig } from "@/contexts/config-context";
@@ -18,8 +19,8 @@ export default function Page() {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>
-          <EmptyTitle>Access denied</EmptyTitle>
-          <EmptyDescription>Only GitHub users can manage the cache.</EmptyDescription>
+          <EmptyTitle><UiText text={"Access denied"} /></EmptyTitle>
+          <EmptyDescription><UiText text={"Only GitHub users can manage the cache."} /></EmptyDescription>
         </EmptyHeader>
       </Empty>
     );
@@ -29,8 +30,8 @@ export default function Page() {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>
-          <EmptyTitle>Cache disabled</EmptyTitle>
-          <EmptyDescription>Enable the cache in &quot;.pages.yml&quot; by setting &quot;settings.cache: true&quot;.</EmptyDescription>
+          <EmptyTitle><UiText text={"Cache disabled"} /></EmptyTitle>
+          <EmptyDescription><UiText text={"Enable the cache in \".pages.yml\" by setting \"settings.cache: true\"."}/></EmptyDescription>
         </EmptyHeader>
       </Empty>
     );

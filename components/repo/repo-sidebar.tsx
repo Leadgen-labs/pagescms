@@ -1,5 +1,7 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import {
   Fragment,
   useCallback,
@@ -8,6 +10,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { useLanguage } from "@/contexts/language-context";
+import { LanguageSwitcher } from "@/components/webs/language-switcher";
 import Link from "next/link";
 import { internalProjectPath, publicProjectPath } from "@/lib/project-url";
 import { usePathname, useRouter } from "next/navigation";
@@ -201,14 +205,12 @@ function RepoSwitcher() {
                 target="_blank"
                 rel="noreferrer"
               >
-                View on GitHub
-                <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
+                <UiText text={"View on GitHub"} /> <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Branches
-            </DropdownMenuLabel>
+              <UiText text={"Branches"} /> </DropdownMenuLabel>
             <DropdownMenuRadioGroup
               value={currentBranch}
               onValueChange={handleBranchChange}
@@ -221,14 +223,13 @@ function RepoSwitcher() {
             </DropdownMenuRadioGroup>
             <DropdownMenuSeparator />
             <DialogTrigger asChild>
-              <DropdownMenuItem>Manage branches</DropdownMenuItem>
+              <DropdownMenuItem><UiText text={"Manage branches"} /></DropdownMenuItem>
             </DialogTrigger>
             {recentRepos.length > 0 && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Recently visited
-                </DropdownMenuLabel>
+                  <UiText text={"Recently visited"} /> </DropdownMenuLabel>
                 {recentRepos.map((visit) => (
                   <DropdownMenuItem
                     asChild
@@ -250,14 +251,14 @@ function RepoSwitcher() {
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/">All projects</Link>
+              <Link href="/"><UiText text={"All projects"} /></Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Manage branches</DialogTitle>
+          <DialogTitle><UiText text={"Manage branches"} /></DialogTitle>
         </DialogHeader>
         <RepoBranches />
       </DialogContent>
@@ -275,12 +276,14 @@ function RepoHeader() {
       <LayoutDashboard className="size-8 shrink-0 rounded-md bg-sidebar-accent p-1.5" />
       <div className="grid min-w-0 text-sm leading-tight">
         <span className="truncate font-medium">{projectName(repo, config?.object)}</span>
-        <span className="text-xs text-muted-foreground">Správa webu</span>
+        <span className="text-xs text-muted-foreground"><UiText text={"Správa webu"}/></span>
       </div>
     </div>
   );
 }
 export function RepoSidebar() {
+  const ui = useUi();
+  const { t } = useLanguage();
   const pathname = internalProjectPath(usePathname());
   const { user } = useUser();
   const { config } = useConfig();
@@ -353,14 +356,15 @@ export function RepoSidebar() {
     const canManageRepo = hasGithubIdentity(user);
 
     const items: NavItem[] = [];
-    if (config.repo.startsWith("webs-obsah-")) items.push({key:"submissions",label:"Formuláře a poptávky",href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/submissions`,icon:<Database className="size-4"/>});
+    if (config.repo.startsWith("webs-obsah-")) items.push({key:"prehled",label:t("Přehled webu", "Website overview"),href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`,icon:<LayoutDashboard className="size-4"/>});
+    if (config.repo.startsWith("webs-obsah-")) items.push({key:"submissions",label:t("Formuláře a poptávky", "Forms and enquiries"),href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/submissions`,icon:<Database className="size-4"/>});
 
     const configObject = (config.object as any) ?? {};
 
     if (canManageRepo && isCacheEnabled(configObject)) {
       items.push({
         key: "admin-cache",
-        label: "Cache",
+        label: ui("Cache"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/cache`,
         icon: <Database className="size-4" />,
       });
@@ -369,14 +373,14 @@ export function RepoSidebar() {
     if (canManageRepo) {
       items.push({
         key: "admin-actions",
-        label: "Actions",
+        label: t("Akce", "Actions"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/actions`,
         icon: <ListVideo className="size-4" />,
       });
 
       items.push({
         key: "admin-collaborators",
-        label: "Uživatelé a přístupy",
+        label: ui("Uživatelé a přístupy"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collaborators`,
         icon: <Users className="size-4" />,
       });
@@ -385,14 +389,14 @@ export function RepoSidebar() {
     if (canManageRepo && isConfigEnabled(configObject)) {
       items.push({
         key: "admin-configuration",
-        label: "Configuration",
+        label: t("Konfigurace", "Configuration"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/configuration`,
         icon: <Settings className="size-4" />,
       });
     }
 
     return items;
-  }, [config, user]);
+  }, [config, user, t, ui]);
   const rootActions = useMemo(
     () => getRootActions(config?.object).filter((action) =>
       !config?.repo.startsWith("webs-obsah-") || ![
@@ -506,7 +510,7 @@ export function RepoSidebar() {
               >
                 <button type="button" onClick={() => toggleGroup(key)}>
                   <ChevronRight className={cn("size-4 transition-transform", isOpen && "rotate-90")} />
-                  <span>{node.label || node.name}</span>
+                  <span><UiText text={node.label || node.name} /></span>
               </button>
             </SidebarMenuSubButton>
             {isOpen && node.items && node.items.length > 0 && (
@@ -608,12 +612,12 @@ export function RepoSidebar() {
   };
 
   const groups = [
-    renderNavigationGroup("Obsah", contentNavigation),
-    renderNavigationGroup("Soubory", mediaNavigation),
+    renderNavigationGroup(t("Obsah", "Content"), contentNavigation),
+    renderNavigationGroup(t("Soubory", "Files"), mediaNavigation),
     rootActions.length > 0 && config
       ? (
         <SidebarGroup key="Actions">
-          <SidebarGroupLabel>Akce</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("Akce", "Actions")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <RepoActionButtons
               actions={rootActions}
@@ -627,7 +631,7 @@ export function RepoSidebar() {
         </SidebarGroup>
       )
       : null,
-    renderFlatGroup("Admin", adminItems),
+    renderFlatGroup(t("Správa", "Admin"), adminItems),
   ].filter(Boolean);
 
   return (
@@ -649,7 +653,7 @@ export function RepoSidebar() {
                   <SidebarMenuButton asChild isActive={pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`}>
                     <Link href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`} onClick={handleNavigation}>
                       <LayoutDashboard className="size-4" />
-                      <span>Přehled webu</span>
+                      <span><UiText text="Website overview" /></span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -657,7 +661,7 @@ export function RepoSidebar() {
                   <SidebarMenuButton asChild isActive={pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer` || ["kontrola-importu", "kontrola-presmerovani"].some((name) => pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}` || pathname.startsWith(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}/`))}>
                     <Link href={publicProjectPath(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`)} onClick={handleNavigation}>
                       <ArrowDownUp className="size-4" />
-                      <span>Export a import</span>
+                      <span><UiText text={"Export a import"}/></span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -670,6 +674,7 @@ export function RepoSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className="border-t">
+        <div className="py-1"><LanguageSwitcher/></div>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <User align="start" />

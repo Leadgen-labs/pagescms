@@ -13,13 +13,13 @@ const trackVisit = (owner: string, repo: string, branch: string, displayName?: s
   try {
     const storedVisits = localStorage.getItem(STORAGE_KEY);
     const visits: RepoVisit[] = storedVisits ? JSON.parse(storedVisits) : [];
-    
-    const existingIndex = visits.findIndex(v => 
-      v.owner.toLowerCase() === owner.toLowerCase() && 
+
+    const existingIndex = visits.findIndex(v =>
+      v.owner.toLowerCase() === owner.toLowerCase() &&
       v.repo.toLowerCase() === repo.toLowerCase());
-    
+
     const currentTime = Math.floor(Date.now() / 1000);
-    
+
     if (existingIndex >= 0) {
       visits[existingIndex] = {
         owner,
@@ -37,11 +37,11 @@ const trackVisit = (owner: string, repo: string, branch: string, displayName?: s
         timestamp: currentTime
       });
     }
-    
+
     const updatedVisits = visits
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, MAX_VISITS);
-    
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedVisits));
   } catch (error) {
     console.error('Failed to save recent visit to localStorage', error);

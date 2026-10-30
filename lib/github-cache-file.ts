@@ -922,10 +922,10 @@ const getCollectionCache = async (
           inArray(cacheFileTable.path, subdirs.map((dir: any) => `${dir.path}/${nodeEntryFilename}`))
         )
       });
-      
+
       // Query the GitHub API for the missing node entries
       const missingSubdirs = subdirs.filter((dir: any) => !nodeEntries.some((entry: any) => entry.path === `${dir.path}/${nodeEntryFilename}`));
-      
+
       if (missingSubdirs.length > 0) {
         const nodeEntryExpressions = missingSubdirs.map((dir: { path: string }, i: number) => ({
           alias: `nodeFile${i}`,
@@ -952,12 +952,12 @@ const getCollectionCache = async (
         };
 
         const responseNodeEntries: any = await octokit.graphql(queryNodeEntries, variablesNodeEntries);
-        
+
         for (let i = 0; i < missingSubdirs.length; i++) {
           const dir = missingSubdirs[i];
           const alias = `nodeFile${i}`;
           const nodeEntry = responseNodeEntries.repository?.[alias];
-      
+
           if (nodeEntry) {
             nodeEntries.push({
               id: -1,

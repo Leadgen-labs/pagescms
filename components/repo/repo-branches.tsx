@@ -1,5 +1,7 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRepo } from "@/contexts/repo-context";
@@ -11,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Check, Loader } from "lucide-react";
 
 export function RepoBranches() {
+  const ui = useUi();
   const { owner, repo, branches, setBranches } = useRepo();
   const { config } = useConfig();
 
@@ -65,22 +68,21 @@ export function RepoBranches() {
   };
 
   if (!branches || branches.length === 0) {
-    return <div className="text-muted-foreground p-4">No branches.</div>;
+    return <div className="text-muted-foreground p-4"><UiText text={"No branches."} /></div>;
   }
 
   return (
     <div className="flex flex-col gap-y-2">
       <header className="flex gap-x-2">
         <Input
-          placeholder="Search branches by name"
+          placeholder={ui("Search branches by name")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <Button
           disabled={!search || !isValidBranchName(search) || branches.includes(search) || isSubmitting}
           onClick={handleCreateBranch}>
-          Create
-          {isSubmitting && (<Loader className="ml-2 h-4 w-4 animate-spin" />)}
+          <UiText text={"Create"} /> {isSubmitting && (<Loader className="ml-2 h-4 w-4 animate-spin" />)}
         </Button>
       </header>
       <main className="flex flex-col gap-y-1 overflow-auto max-h-[calc(100vh-9rem)] scrollbar text-sm">
@@ -100,7 +102,7 @@ export function RepoBranches() {
               {branch === config?.branch && <Check className="h-4 w-4 ml-auto opacity-50" />}
             </Link>
           ))
-          : <div className="text-muted-foreground py-6 text-center">No branches found.</div>
+          : <div className="text-muted-foreground py-6 text-center"><UiText text={"No branches found."} /></div>
         }
       </main>
     </div>

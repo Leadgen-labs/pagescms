@@ -8,4 +8,5 @@ export const CollaboratorAddedEmailTemplate = (props: {
   invitedByName: string;
   invitedByUrl: string;
   locale?: InvitationLocale;
-}) => InviteEmailTemplate({ ...props, inviteUrl: props.repoUrl, accessGranted: true });
+  language?: InvitationLocale;
+}) => InviteEmailTemplate({ ...props, language: props.language ?? props.locale, inviteUrl: props.repoUrl, accessGranted: true });

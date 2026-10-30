@@ -1,5 +1,8 @@
 "use client";
 
+import { ErrorText } from "@/components/error-text";
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import { Fragment, useEffect, useState, useMemo, useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -62,7 +65,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton"
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { EllipsisVertical, History, Lock, LockOpen, Save } from "lucide-react";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -94,6 +97,7 @@ export function Entry({
   headerMeta?: ReactNode;
   onSave?: (data: Record<string, unknown>) => void;
 }) {
+  const ui = useUi();
   const [path, setPath] = useState<string | undefined>(initialPath);
   const [entry, setEntry] = useState<EntryData | null>();
   const [sha, setSha] = useState<string | undefined>();
@@ -113,10 +117,10 @@ export function Entry({
   const { mutate } = useSWRConfig();
 
   const router = useRouter();
-  
+
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
-  
+
   const schema = useMemo(() => {
     if (!name) return;
     return getSchemaByName(config?.object, name)
@@ -152,13 +156,13 @@ export function Entry({
   }, [filenameFieldMode, path, schemaType]);
   const [filenameValue, setFilenameValue] = useState("");
   const [isFilenameUnlocked, setIsFilenameUnlocked] = useState(false);
-  
+
   const entryFields = useMemo(() => {
     return !schema?.fields || schema.fields.length === 0
       ? [{
           name: "body",
           type: "code",
-          label: showFilenameField ? "Obsah" : false,
+          label: showFilenameField ? ui("Content") : false,
           options: {
             format: schema?.extension || (entry?.name && getFileExtension(entry.name)) || "markdown",
             lintFn: path === ".pages.yml"
@@ -178,7 +182,7 @@ export function Entry({
             fields: schema.fields
           }]
         : schema.fields;
-  }, [schema, entry, path, showFilenameField]);
+  }, [schema, entry, path, showFilenameField, ui]);
 
   const entryContentObject = useMemo(() => {
     return path
@@ -266,10 +270,10 @@ export function Entry({
 
   useEffect(() => {
     if (!swrEntryError) return;
-    const message = swrEntryError instanceof Error ? swrEntryError.message : "Failed to fetch entry.";
+    const message = swrEntryError instanceof Error ? swrEntryError.message : ui("Failed to fetch entry.");
     setError(message);
     setIsLoading(false);
-  }, [swrEntryError]);
+  }, [swrEntryError, ui]);
 
   const historyApiUrl = useMemo(() => (
     path
@@ -380,7 +384,7 @@ export function Entry({
           response,
           "Failed to save file",
         );
-        
+
         if (data.data.sha !== sha) setSha(data.data.sha);
         if (submitStartChangeVersion === changeVersionRef.current) {
           setHasRegisteredChanges(false);
@@ -404,7 +408,7 @@ export function Entry({
         if (onSave) onSave(response.data);
         return response.message;
       },
-      error: (error: unknown) => error instanceof Error ? error.message : "Failed to save file.",
+      error: (error: unknown) => error instanceof Error ? error.message : ui("Failed to save file."),
     });
 
     try {
@@ -565,7 +569,7 @@ export function Entry({
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center">
                   <BreadcrumbEllipsis className="h-4 w-4" />
-                  <span className="sr-only">Show hidden segments</span>
+                  <span className="sr-only"><UiText text={"Show hidden segments"} /></span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {middleEntries.map((entry) => (
@@ -699,10 +703,10 @@ export function Entry({
                 )
               )
             }
-            aria-label="Uložit"
+            aria-label={ui("Save")}
           >
             <Save className="size-4 sm:hidden" />
-            <span className="hidden sm:inline">Uložit</span>
+            <span className="hidden sm:inline"><UiText text={"Save"} /></span>
           </Button>
           {path && (
             <ButtonGroup>
@@ -730,14 +734,14 @@ export function Entry({
         </div>
       )}
     </div>
-  ), [breadcrumbNode, canDelete, canRename, filenameChanged, filenameFieldMode, filenameValue, handleDelete, handleRename, hasRegisteredChanges, headerActionsNode, headerMeta, historyData, isBusy, isFilenameUnlocked, isFormDirty, isLoading, name, path, schemaType, sha, showFilenameField, showHeaderActions]);
+  ), [breadcrumbNode, canDelete, canRename, filenameChanged, filenameFieldMode, filenameValue, handleDelete, handleRename, hasRegisteredChanges, headerActionsNode, headerMeta, historyData, isBusy, isFilenameUnlocked, isFormDirty, isLoading, name, path, schemaType, sha, showFilenameField, showHeaderActions, ui]);
 
   useRepoHeader({ header: headerNode });
 
   const loadingSkeleton = useMemo(() => (
     <div className="w-full max-w-screen-md mx-auto grid items-start gap-6">
       {path !== ".pages.yml"
-        ? 
+        ?
           <>
             <div className="space-y-2">
               <Skeleton className="w-24 h-5 rounded" />
@@ -765,7 +769,7 @@ export function Entry({
     </div>
   ), [path]);
 
-  
+
   if (error) {
     // TODO: should we use a custom error class with code?
     // TODO: errors show no header (unlike collection and media). Consider standardizing templates.
@@ -775,18 +779,18 @@ export function Entry({
         <div className="absolute inset-0 p-4 md:p-6 flex items-center justify-center">
           <Empty className="max-w-[420px] flex-none">
             <EmptyHeader>
-              <EmptyTitle>{isSettingsPage ? "Configuration not found" : "File not found"}</EmptyTitle>
+              <EmptyTitle>{isSettingsPage ? ui("Configuration not found") : ui("File not found")}</EmptyTitle>
               <EmptyDescription>
                 {isSettingsPage
-                  ? "The configuration file \".pages.yml\" does not exist yet."
+                  ? ui("The configuration file \".pages.yml\" does not exist yet.")
                   : `The file "${path ?? schema?.path ?? "unknown"}" does not exist yet.`}
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               {isSettingsPage ? (
-                <EmptyCreate type="settings">Create configuration file</EmptyCreate>
+                <EmptyCreate type="settings"><UiText text={"Create configuration file"} /></EmptyCreate>
               ) : canCreate ? (
-                <EmptyCreate type="content" name={schema?.name ?? name}>Create file</EmptyCreate>
+                <EmptyCreate type="content" name={schema?.name ?? name}><UiText text={"Create file"} /></EmptyCreate>
               ) : null}
             </EmptyContent>
           </Empty>
@@ -797,16 +801,15 @@ export function Entry({
         <div className="absolute inset-0 p-4 md:p-6 flex items-center justify-center">
           <Empty className="max-w-[420px] flex-none">
             <EmptyHeader>
-              <EmptyTitle>Something went wrong</EmptyTitle>
-              <EmptyDescription>{error}</EmptyDescription>
+              <EmptyTitle><UiText text={"Something went wrong"} /></EmptyTitle>
+              <EmptyDescription><ErrorText text={String(error)}/></EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Link
                 className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
                 href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/configuration`}
               >
-                Go to configuration
-              </Link>
+                <UiText text={"Go to configuration"} /> </Link>
             </EmptyContent>
           </Empty>
         </div>
@@ -819,24 +822,22 @@ export function Entry({
       <div className="absolute inset-0 p-4 md:p-6 flex items-center justify-center">
         <Empty className="max-w-[420px] flex-none">
           <EmptyHeader>
-            <EmptyTitle>Vytváření záznamů je vypnuté</EmptyTitle>
+            <EmptyTitle><UiText text={"Creating entries is disabled"} /></EmptyTitle>
             <EmptyDescription>
-              V této sekci nelze přidávat nové záznamy.
-            </EmptyDescription>
+              <UiText text={"New entries are not allowed for this collection."} /> </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Link
               className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
               href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${encodeURIComponent(name)}`}
             >
-              Zpět na seznam
-            </Link>
+              <UiText text={"Back to collection"} /> </Link>
           </EmptyContent>
         </Empty>
       </div>
     );
   }
-  
+
   return (
     isLoading
       ? loadingSkeleton
@@ -850,9 +851,9 @@ export function Entry({
                 <InputGroupInput
                   value={filenameValue}
                   onChange={(event) => setFilenameValue(event.target.value)}
-                  placeholder="Název souboru"
+                  placeholder={ui("Filename")}
                   disabled={path ? !isFilenameUnlocked : false}
-                  aria-label="Název souboru"
+                  aria-label={ui("Filename")}
                 />
                 {path && filenameFieldMode === "enabled" && canRename && (
                   <InputGroupAddon align="inline-end">
@@ -863,7 +864,7 @@ export function Entry({
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => setIsFilenameUnlocked((prev) => !prev)}
-                          aria-label={isFilenameUnlocked ? "Zamknout název" : "Upravit název"}
+                          aria-label={isFilenameUnlocked ? ui("Lock filename") : ui("Unlock filename")}
                         >
                           {isFilenameUnlocked
                             ? <LockOpen className="size-3.5" />
@@ -871,7 +872,7 @@ export function Entry({
                         </InputGroupButton>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {isFilenameUnlocked ? "Zamknout název" : "Upravit název"}
+                        {isFilenameUnlocked ? ui("Lock filename") : ui("Unlock to edit")}
                       </TooltipContent>
                     </Tooltip>
                   </InputGroupAddon>

@@ -1,5 +1,7 @@
 "use server";
 
+import { initializePreferredLanguage, getPreferredLanguage, setPreferredLanguage } from "@/lib/language-server";
+import { isLanguage, defaultLanguage, emailSubject } from "@/lib/language";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getInstallationRepos, getInstallations } from "@/lib/github-app";
@@ -147,10 +149,11 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
     const emailsValidation = parseInviteEmails(formData.get("emails") ?? formData.get("email"));
 		if (!emailsValidation.success || emailsValidation.data.length === 0) throw new Error("Invalid email list");
     const emails = emailsValidation.data;
+    const requestedLanguage = formData.get("language") ?? defaultLanguage;
+    if (!isLanguage(requestedLanguage)) throw new Error("Unsupported language");
 
     const { repoAccess, installation } = await assertRepoInInstallation(user, owner, repo);
 
-    const locale = invitationLocale(formData.get("locale"));
     const siteName = await invitationSiteName(owner, repo);
 
 		const baseUrl = getBaseUrl();
@@ -162,6 +165,7 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
 
     for (const email of emails) {
       const normalizedEmail = normalizeEmail(email);
+      const language = await initializePreferredLanguage(normalizedEmail, requestedLanguage);
       const existingUser = await findVerifiedUserByEmail(normalizedEmail);
       const collaborator = await db.query.collaboratorTable.findFirst({
 				where: and(
@@ -197,7 +201,7 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
             InviteEmailTemplate({
               inviteUrl,
               repoName: siteName,
-              locale,
+              locale: language,
               email: normalizedEmail,
               invitedByName: user.name || user.githubUsername || user.email,
               invitedByUrl: `https://github.com/${user.githubUsername}`,
@@ -205,7 +209,7 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
           );
           await sendEmail({
             to: normalizedEmail,
-            subject: invitationSubject(baseUrl, siteName, locale),
+            subject: invitationSubject(baseUrl, siteName, language),
             html,
             text: toPlainText(html),
           });
@@ -218,9 +222,9 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
         try {
           const html = await render(
             CollaboratorAddedEmailTemplate({
+              language,
               email: normalizedEmail,
               repoName: siteName,
-              locale,
               repoUrl,
               invitedByName: user.name || user.githubUsername || user.email,
               invitedByUrl: `https://github.com/${user.githubUsername}`,
@@ -228,7 +232,7 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
           );
           await sendEmail({
             to: normalizedEmail,
-            subject: invitationSubject(baseUrl, siteName, locale),
+            subject: invitationSubject(baseUrl, siteName, language),
             html,
             text: toPlainText(html),
           });
@@ -251,7 +255,7 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
       }).returning();
 
       if (inserted.length > 0) {
-        createdCollaborators.push(...inserted);
+        createdCollaborators.push(...inserted.map(c => ({...c, language})));
         if (existingUser) {
           immediateAccessCount += 1;
         } else {
@@ -322,7 +326,7 @@ const handleRemoveCollaborator = async (collaboratorId: number, owner: string, r
 	}
 };
 
-const handleResendCollaboratorInvite = async (collaboratorId: number, owner: string, repo: string, language: "cs" | "en" = "cs") => {
+const handleResendCollaboratorInvite = async (collaboratorId: number, owner: string, repo: string) => {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -331,7 +335,6 @@ const handleResendCollaboratorInvite = async (collaboratorId: number, owner: str
     if (!user) throw new Error("You must be signed in with GitHub to resend collaborator invites.");
     await assertRepoInInstallation(user, owner, repo);
 
-    const locale = invitationLocale(language);
     const siteName = await invitationSiteName(owner, repo);
 
     const collaborator = await db.query.collaboratorTable.findFirst({ where: eq(collaboratorTable.id, collaboratorId) });
@@ -341,6 +344,7 @@ const handleResendCollaboratorInvite = async (collaboratorId: number, owner: str
       throw new Error("Collaborator does not belong to this repository.");
     }
 
+    const language = await getPreferredLanguage(collaborator.email);
     const baseUrl = getBaseUrl();
     const inviteUrl = await createCollaboratorInviteUrl({
       email: collaborator.email,
@@ -353,7 +357,7 @@ const handleResendCollaboratorInvite = async (collaboratorId: number, owner: str
       InviteEmailTemplate({
         inviteUrl,
         repoName: siteName,
-        locale,
+        locale: language,
         email: collaborator.email,
         invitedByName: user.name || user.githubUsername || user.email,
         invitedByUrl: `https://github.com/${user.githubUsername}`,
@@ -362,7 +366,7 @@ const handleResendCollaboratorInvite = async (collaboratorId: number, owner: str
 
     await sendEmail({
       to: collaborator.email,
-      subject: invitationSubject(baseUrl, siteName, locale),
+      subject: invitationSubject(baseUrl, siteName, language),
       html,
       text: toPlainText(html),
     });
@@ -374,4 +378,17 @@ const handleResendCollaboratorInvite = async (collaboratorId: number, owner: str
   }
 };
 
-export { handleAddCollaborator, handleRemoveCollaborator, handleResendCollaboratorInvite };
+const handleSetCollaboratorLanguage = async (collaboratorId: number, owner: string, repo: string, language: unknown) => {
+  try {
+    if (!isLanguage(language)) throw new Error("Unsupported language");
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user) throw new Error("Unauthorized");
+    await assertRepoInInstallation(session.user, owner, repo);
+    const collaborator = await db.query.collaboratorTable.findFirst({ where: and(eq(collaboratorTable.id, collaboratorId), sql`lower(${collaboratorTable.owner}) = lower(${owner})`, sql`lower(${collaboratorTable.repo}) = lower(${repo})`) });
+    if (!collaborator) throw new Error("Collaborator not found");
+    await setPreferredLanguage(collaborator.email, language);
+    return { language };
+  } catch (error) { return { error: error instanceof Error ? error.message : "Failed to save language" }; }
+};
+
+export { handleSetCollaboratorLanguage, handleAddCollaborator, handleRemoveCollaborator, handleResendCollaboratorInvite };

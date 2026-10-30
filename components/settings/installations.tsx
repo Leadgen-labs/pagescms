@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useUser } from "@/contexts/user-context";
 import { Button } from "@/components/ui/button";
 import { getGithubInstallationUrl } from "@/lib/github-app";
@@ -18,8 +19,7 @@ const Installations = () => {
     return (
       <div className="text-sm text-muted-foreground h-[50px] px-6 flex justify-center items-center bg-accent rounded-md">
         <Ban className="h-4 w-4 mr-2" />
-        No account with the Github application installed.
-      </div>
+        <UiText text={"No account with the Github application installed."} /> </div>
     );
   }
 
@@ -42,7 +42,7 @@ const Installations = () => {
             <DropdownMenuTrigger asChild>
               <Button size="icon-xs" variant="outline" className="ml-auto">
                 <EllipsisVertical className="h-4 w-4" />
-                <span className="sr-only">Installation actions</span>
+                <span className="sr-only"><UiText text={"Installation actions"} /></span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -52,8 +52,7 @@ const Installations = () => {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Manage GitHub App
-                  <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
+                  <UiText text={"Manage GitHub App"} /> <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
                 </a>
               </DropdownMenuItem>
             </DropdownMenuContent>

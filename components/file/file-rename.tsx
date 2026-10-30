@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useMemo, useState } from "react";
 import { useConfig } from "@/contexts/config-context";
 import { getRelativePath, joinPathSegments, normalizePath } from "@/lib/utils/file";
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 
 export function FileRename({
   isOpen,
@@ -37,7 +38,7 @@ export function FileRename({
 }) {
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
-  
+
   if (!name) throw new Error("Name is required for FileRename");
 
   const schema = getSchemaByName(config.object, name, type);
@@ -52,7 +53,7 @@ export function FileRename({
   const handleRename = async () => {
     try {
       const newPath = joinPathSegments([rootPath, normalizePath(newRelativePath)]);
-      
+
       const renamePromise = new Promise(async (resolve, reject) => {
         try {
           const response = await fetch(`/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/files/${encodeURIComponent(normalizedPath)}/rename`, {
@@ -84,12 +85,12 @@ export function FileRename({
       console.error(error);
     }
   };
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>      
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename file</DialogTitle>
+          <DialogTitle><UiText text={"Rename file"} /></DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
         <Input
@@ -98,10 +99,10 @@ export function FileRename({
         />
         <DialogFooter className="max-sm:gap-y-2">
           <DialogClose asChild>
-            <Button type="button" variant="outline">Cancel</Button>
+            <Button type="button" variant="outline"><UiText text={"Cancel"} /></Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button type="submit" onClick={handleRename}>Rename</Button>
+            <Button type="submit" onClick={handleRename}><UiText text={"Rename"} /></Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

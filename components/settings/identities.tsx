@@ -1,9 +1,11 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,6 +36,7 @@ export function Identities({
   githubUsername,
   githubManageUrl,
 }: IdentitiesProps) {
+  const ui = useUi();
   const router = useRouter();
   const [pendingAction, setPendingAction] = useState<
     "connect" | "disconnect" | null
@@ -69,13 +72,13 @@ export function Identities({
         throw new Error(message);
       }
 
-      toast.success("GitHub account disconnected.");
+      toast.success(ui("GitHub account disconnected."));
       router.refresh();
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Failed to disconnect GitHub account.";
+          : ui("Failed to disconnect GitHub account.");
       toast.error(message);
     } finally {
       setPendingAction(null);
@@ -87,7 +90,7 @@ export function Identities({
       <li className="flex items-center gap-x-3 border border-b-0 first:rounded-t-md px-3 py-2 text-sm">
         <div className="flex items-center gap-x-2">
           <Mail className="h-4 w-4" />
-          <span className="font-medium">Email</span>
+          <span className="font-medium"><UiText text={"Email"} /></span>
         </div>
         <div className="ml-2 truncate text-muted-foreground">{email}</div>
       </li>
@@ -103,7 +106,7 @@ export function Identities({
         </div>
         {githubConnected && (
           <div className="ml-2 truncate text-muted-foreground">
-            {githubUsername ? `@${githubUsername}` : "Connected"}
+            {githubUsername ? `@${githubUsername}` : ui("Connected")}
           </div>
         )}
         {!githubConnected ? (
@@ -114,8 +117,7 @@ export function Identities({
             onClick={handleConnectGithub}
             disabled={pendingAction !== null}
           >
-            Connect
-            {pendingAction === "connect" && (
+            <UiText text={"Connect"} /> {pendingAction === "connect" && (
               <Loader className="h-4 w-4 animate-spin" />
             )}
           </Button>
@@ -133,7 +135,7 @@ export function Identities({
                 ) : (
                   <EllipsisVertical className="h-4 w-4" />
                 )}
-                <span className="sr-only">GitHub actions</span>
+                <span className="sr-only"><UiText text={"GitHub actions"} /></span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -141,8 +143,7 @@ export function Identities({
                 <>
                   <DropdownMenuItem asChild>
                     <a href={githubManageUrl} target="_blank" rel="noreferrer">
-                      Manage on GitHub
-                      <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
+                      <UiText text={"Manage on GitHub"} /> <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
                     </a>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -153,8 +154,7 @@ export function Identities({
                 onClick={handleDisconnectGithub}
                 disabled={pendingAction !== null}
               >
-                Disconnect
-              </DropdownMenuItem>
+                <UiText text={"Disconnect"} /> </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}

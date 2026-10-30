@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/contexts/language-context";
+import { translateUiText } from "@/lib/ui-translations";
 import { useEffect } from "react";
 import { useOptionalConfig } from "@/contexts/config-context";
 import { projectName } from "@/lib/project-name";
@@ -24,13 +26,14 @@ export function DocumentTitle({
 }: {
   title?: string | null;
 }) {
+  const { language } = useLanguage();
   const config = useOptionalConfig()?.config;
   const displayTitle = config?.repo.startsWith("webs-obsah-") && title
     ? title.replace(`${config.owner}/${config.repo}@${config.branch}`, projectName(config.repo, config.object))
     : title;
   useEffect(() => {
-    document.title = formatDocumentTitle(displayTitle);
-  }, [displayTitle]);
+    document.title = formatDocumentTitle(displayTitle?.split(" | ").map(part => translateUiText(part, language)).join(" | "));
+  }, [displayTitle, language]);
 
   return null;
 }

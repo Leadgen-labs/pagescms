@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useMemo, Fragment, useState } from "react";
 import { FileRename } from "@/components/file/file-rename";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -54,8 +55,7 @@ export function FilePath({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            Rename
-          </TooltipContent>
+            <UiText text={"Rename"} /> </TooltipContent>
         </Tooltip>
       </div>
 

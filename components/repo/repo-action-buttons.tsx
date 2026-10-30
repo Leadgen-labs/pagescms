@@ -1,8 +1,11 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { formatDistanceToNowStrict } from "date-fns";
+
 import {
   CircleCheck,
   CirclePlay,
@@ -10,7 +13,7 @@ import {
   EllipsisVertical,
   Loader,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { useActionToasts } from "@/contexts/action-toast-context";
 import { useUser } from "@/contexts/user-context";
 import { hasGithubIdentity } from "@/lib/authz-shared";
@@ -106,7 +109,7 @@ const formatRunLine = (run: ActionRunSummary) => {
   if (!createdAt || Number.isNaN(createdAt.getTime())) {
     return (
       <span className="flex min-w-0 flex-col">
-        <span className="truncate">Unknown time</span>
+        <span className="truncate"><UiText text={"Unknown time"} /></span>
         {secondary && (
           <span className="truncate text-xs text-muted-foreground">{secondary}</span>
         )}
@@ -114,7 +117,7 @@ const formatRunLine = (run: ActionRunSummary) => {
     );
   }
 
-  const relative = formatDistanceToNowStrict(createdAt, { addSuffix: true });
+  const relative = <RelativeTime date={createdAt}/>;
 
   return (
     <span className="flex min-w-0 flex-col">
@@ -155,15 +158,16 @@ export function RepoActionButtons({
   contextData = {},
   layout = "header",
 }: RepoActionButtonsProps) {
+  const ui = useUi();
   const actions = useMemo(() => repo.startsWith("webs-obsah-")
     ? configuredActions.map(normalizeRepoAction).map((action) => ({
         ...action,
-        label: contentActionLabels[action.name] ?? action.label,
+        label: ui(contentActionLabels[action.name] ?? action.label),
         confirm: action.confirm ?? (contentActionDescriptions[action.name]
-          ? { message: contentActionDescriptions[action.name] }
+          ? { message: ui(contentActionDescriptions[action.name]) }
           : undefined),
       }))
-    : configuredActions.map(normalizeRepoAction), [configuredActions, repo]);
+    : configuredActions.map(normalizeRepoAction), [configuredActions, repo, ui]);
   const { user } = useUser();
   const { trackActionRun } = useActionToasts();
   const isGithubUser = hasGithubIdentity(user);
@@ -213,13 +217,13 @@ export function RepoActionButtons({
       } catch (error) {
         console.error(error);
         if (refreshErrorToastIdRef.current == null) {
-          refreshErrorToastIdRef.current = toast.error("Couldn’t refresh action status. Retrying…");
+          refreshErrorToastIdRef.current = toast.error(ui("Couldn’t refresh action status. Retrying…"));
         }
       }
     }, 4000);
 
     return () => window.clearInterval(interval);
-  }, [actions, loadRuns]);
+  }, [actions, loadRuns, ui]);
 
   const dispatchAction = useCallback(async (
     action: RepoActionConfig,
@@ -257,11 +261,11 @@ export function RepoActionButtons({
         toastId,
       });
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to dispatch action.", { id: toastId });
+        toast.error(error instanceof Error ? error.message : ui("Failed to dispatch action."), { id: toastId });
       } finally {
         setDispatching((current) => ({ ...current, [action.name]: false }));
       }
-  }, [contextData, contextName, contextPath, contextType, owner, refName, repo, trackActionRun]);
+  }, [contextData, contextName, contextPath, contextType, owner, refName, repo, trackActionRun, ui]);
 
   const handleActionClick = useCallback((action: RepoActionConfig) => {
     const shouldConfirm = action.confirm !== false;
@@ -405,8 +409,7 @@ export function RepoActionButtons({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/${owner}/${repo}/${encodeURIComponent(refName)}/actions`}>
-                  View all actions
-                </Link>
+                  <UiText text={"View all actions"} /> </Link>
               </DropdownMenuItem>
             </>
           )}
@@ -432,7 +435,7 @@ export function RepoActionButtons({
           <DialogDescription>
             {typeof dialogAction?.confirm === "object" && dialogAction.confirm.message
               ? dialogAction.confirm.message
-              : "This will trigger a GitHub Action."}
+              : ui("This will trigger a GitHub Action.")}
           </DialogDescription>
         </DialogHeader>
         {dialogAction?.fields?.length ? (
@@ -454,8 +457,7 @@ export function RepoActionButtons({
             setDialogAction(null);
             setDialogValues({});
           }}>
-            {repo.startsWith("webs-obsah-") ? "Zrušit" : "Cancel"}
-          </Button>
+            <UiText text={"Cancel"} /> </Button>
           <Button onClick={handleDialogSubmit} disabled={isDialogSubmitDisabled}>
             {typeof dialogAction?.confirm === "object" && dialogAction.confirm.button
               ? dialogAction.confirm.button

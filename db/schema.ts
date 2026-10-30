@@ -9,8 +9,17 @@ import {
   index,
   uniqueIndex,
   jsonb,
+  check,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+// An invitee has a language before creating an account. One preference follows
+// their email across repositories, sessions, invitations and login codes.
+export const languagePreferenceTable = pgTable("language_preference", {
+  email: text("email").primaryKey(),
+  language: text("language").$type<"cs" | "en">().notNull().default("cs"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, table => [check("language_preference_supported", sql`${table.language} IN ('cs', 'en')`)]);
 
 const userTable = pgTable("user", {
   id: text("id").notNull().primaryKey(),

@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { use } from "react";
 import { useSearchParams } from "next/navigation";
 import { DocumentTitle, formatRepoBranchTitle } from "@/components/document-title";
@@ -18,6 +19,7 @@ export default function Page({
     path: string;
   }>
 }) {
+  const ui = useUi();
   const resolvedParams = use(params);
   const { config } = useConfig();
   if (!config) throw new Error("Configuration not found.");
@@ -27,14 +29,14 @@ export default function Page({
   const schema = getSchemaByName(config.object, schemaName);
   const displayName = schema?.label || schema?.name || schemaName;
 
-  const title = schemaName.startsWith("blog-") ? "Nový článek" : schemaName.startsWith("kategorie-") ? "Nová kategorie" : "Nový záznam";
+  const title = schemaName.startsWith("blog-") ? "Nový článek" : schemaName.startsWith("kategorie-") ? "Nová kategorie" : "New entry";
 
   return (
     <>
       <DocumentTitle
         title={formatRepoBranchTitle(`${title} | ${displayName}`, config.owner, config.repo, config.branch)}
       />
-      <Entry name={schemaName} title={title} parent={parent}/>
+      <Entry name={schemaName} title={ui(title)} parent={parent}/>
     </>
   );
 }

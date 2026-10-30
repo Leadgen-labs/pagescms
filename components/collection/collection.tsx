@@ -1,5 +1,7 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import {
   Fragment,
   memo,
@@ -67,7 +69,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { cn } from "@/lib/utils";
 import useSWR, { useSWRConfig } from "swr";
 import {
@@ -107,7 +109,8 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
   onFolderCreate: (entry: any) => void;
   onSearchChange: (value: string) => void;
 }) {
-  const createLabel = name.startsWith("blog-") ? "Nový článek" : name.startsWith("kategorie-") ? "Nová kategorie" : "Přidat záznam";
+  const ui = useUi();
+  const createLabel = name.startsWith("blog-") ? ui("Nový článek") : name.startsWith("kategorie-") ? ui("Nová kategorie") : ui("Přidat záznam");
   const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
@@ -124,7 +127,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
           className="pl-9"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Hledat v seznamu…"
+          placeholder={ui("Hledat v seznamu…")}
         />
       </div>
       {showFolderCreate && (
@@ -148,7 +151,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
               </FolderCreate>
             </div>
           </TooltipTrigger>
-          <TooltipContent>Vytvořit složku</TooltipContent>
+          <TooltipContent><UiText text={"Vytvořit složku"}/></TooltipContent>
         </Tooltip>
       )}
       {showAddEntry && (
@@ -166,6 +169,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
 });
 
 export function Collection({ name, path }: { name: string; path?: string }) {
+  const ui = useUi();
   const [tableSearch, setTableSearch] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [data, setData] = useState<Record<string, any>[]>([]);
@@ -213,7 +217,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       pathAndFieldArray.push({
         path: "name",
         field: {
-          label: "Name",
+          label: ui("Name"),
           name: "name",
           type: "string",
         },
@@ -231,7 +235,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       pathAndFieldArray.push({
         path: "date",
         field: {
-          label: "Date",
+          label: ui("Date"),
           name: "date",
           type: "date",
         },
@@ -239,7 +243,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     }
 
     return pathAndFieldArray;
-  }, [schema]);
+  }, [schema, ui]);
 
   const primaryField = useMemo(
     () => getPrimaryField(schema) ?? "name",
@@ -336,9 +340,9 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     setError(
       swrCollectionError instanceof Error
         ? swrCollectionError.message
-        : "Fetch failed",
+        : ui("Fetch failed"),
     );
-  }, [swrCollectionError]);
+  }, [swrCollectionError, ui]);
 
   const fetchCollectionData = useCallback(
     async (fetchPath: string): Promise<Record<string, any>[] | undefined> => {
@@ -358,7 +362,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
           setError(err.message);
         } else {
           toast.error(
-            `Could not load items inside ${getFileName(fetchPath)}: ${err.message}`,
+            ui("Could not load items inside {0}: {1}", getFileName(fetchPath), err.message),
           );
         }
         return undefined;
@@ -370,8 +374,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       fetchCollectionByUrl,
       mutate,
       path,
-      schema.path,
-    ],
+      schema.path, ui],
   );
 
   const handleDelete = useCallback((path: string) => {
@@ -548,7 +551,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
 
     tableColumns.push({
       accessorKey: "actions",
-      header: "Akce",
+      header: ui("Akce"),
       cell: ({ row }: { row: any }) => (
         <div className="flex gap-1 justify-end">
           {row.original.type === "file" && (
@@ -559,8 +562,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                 )}
                 href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}/edit/${encodeURIComponent(row.original.path)}`}
               >
-                Upravit
-              </Link>
+                <UiText text={"Edit"} /> </Link>
               <FileOptions
                 path={row.original.path}
                 sha={row.original.sha}
@@ -599,23 +601,20 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                       </Button>
                     </AlertDialogTrigger>
                   </TooltipTrigger>
-                  <TooltipContent>Add children entry</TooltipContent>
+                  <TooltipContent><UiText text={"Add children entry"} /></TooltipContent>
                 </Tooltip>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Rename this file first?</AlertDialogTitle>
+                    <AlertDialogTitle><UiText text={"Rename this file first?"} /></AlertDialogTitle>
                     <AlertDialogDescription>
-                      Before adding children to this file, you must rename it
-                      from &quot;{row.original.path}&quot; to &quot;
-                      {row.original.path.replace(
+                      <UiText text={"Before adding children to this file, you must rename it from \""}/>{row.original.path}<UiText text={"\" to \""}/>{row.original.path.replace(
                         `.${schema.extension}`,
                         `/${schema.view?.node?.filename}`,
                       )}
-                      &quot;.
-                    </AlertDialogDescription>
+                      <UiText text={"\"."}/></AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() =>
                         handleConfirmRenameNode(
@@ -627,8 +626,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                         )
                       }
                     >
-                      Rename
-                    </AlertDialogAction>
+                      <UiText text={"Rename"} /> </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -652,7 +650,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                     <Plus className="size-4" />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent>Add children entry</TooltipContent>
+                <TooltipContent><UiText text={"Add children entry"} /></TooltipContent>
               </Tooltip>
             ))}
         </div>
@@ -677,8 +675,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     handleConfirmRenameNode,
     canCreate,
     canDelete,
-    canRename,
-  ]);
+    canRename, ui]);
 
   const initialState = useMemo(() => {
     const sortId =
@@ -779,8 +776,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                 <div className="flex gap-1 justify-end">
                   <ButtonGroup>
                     <Button variant="outline" size="sm" disabled>
-                      Upravit
-                    </Button>
+                      <UiText text={"Edit"} /> </Button>
                     <Button variant="outline" size="icon-sm" disabled>
                       <EllipsisVertical className="size-4" />
                     </Button>
@@ -874,7 +870,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center">
                     <BreadcrumbEllipsis className="size-4" />
-                    <span className="sr-only">Show hidden segments</span>
+                    <span className="sr-only"><UiText text={"Show hidden segments"} /></span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
                     {middleEntries.map((entry) => (
@@ -997,12 +993,12 @@ export function Collection({ name, path }: { name: string; path?: string }) {
         <EmptyHeader>
           <EmptyTitle>
             {error === "Not found"
-              ? "Složka ještě neexistuje"
-              : "Seznam se nepodařilo načíst"}
+              ? ui("Složka ještě neexistuje")
+              : ui("Seznam se nepodařilo načíst")}
           </EmptyTitle>
           <EmptyDescription>
             {error === "Not found"
-              ? "Tady zatím není žádný obsah. Vytvořte první záznam."
+              ? ui("Tady zatím není žádný obsah. Vytvořte první záznam.")
               : error}
           </EmptyDescription>
         </EmptyHeader>
@@ -1010,16 +1006,14 @@ export function Collection({ name, path }: { name: string; path?: string }) {
           {error === "Not found" ? (
             canCreate ? (
               <EmptyCreate type="content" name={schema.name}>
-                Vytvořit složku
-              </EmptyCreate>
+                <UiText text={"Vytvořit složku"}/></EmptyCreate>
             ) : null
           ) : (
             <Link
               className={buttonVariants({ variant: "default" })}
               href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/settings`}
             >
-              Nastavení
-            </Link>
+              <UiText text={"Nastavení"}/></Link>
           )}
         </EmptyContent>
       </Empty>
@@ -1041,8 +1035,8 @@ export function Collection({ name, path }: { name: string; path?: string }) {
 
   return <div className="min-w-0 flex flex-col space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted-foreground">{name.startsWith("blog-") ? "Články a koncepty. Nový článek se nejdřív uloží jako koncept; zveřejnění zvolíte v poli Stav." : "Vyberte záznam, který chcete upravit."}</p>
-      <Button variant="outline" disabled={isValidating || isRefreshing} onClick={() => void handleRefresh()}>{isValidating || isRefreshing ? "Načítání…" : "Obnovit seznam"}</Button>
+      <p className="text-sm text-muted-foreground">{name.startsWith("blog-") ? ui("Články a koncepty. Nový článek se nejdřív uloží jako koncept; zveřejnění zvolíte v poli Stav.") : ui("Vyberte záznam, který chcete upravit.")}</p>
+      <Button variant="outline" disabled={isValidating || isRefreshing} onClick={() => void handleRefresh()}>{isValidating || isRefreshing ? ui("Načítání…") : ui("Obnovit seznam")}</Button>
     </div>
     {contentNode}
   </div>;

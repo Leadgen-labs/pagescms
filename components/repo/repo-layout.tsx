@@ -1,5 +1,7 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
+import { ui, useUi } from "@/components/use-ui";
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -39,6 +41,7 @@ function RepoHeader() {
 }
 
 export function RepoLayout({ children }: { children: React.ReactNode }) {
+  const ui = useUi();
   const { config } = useConfig();
   const { owner, repo } = useRepo();
   const pathname = internalProjectPath(usePathname());
@@ -64,8 +67,8 @@ export function RepoLayout({ children }: { children: React.ReactNode }) {
           <main className="min-w-0 flex-1 p-4 md:p-6">
             {review && config && (
               <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-4 py-3 text-sm">
-                <Link className="font-medium underline underline-offset-4" href={publicProjectPath(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`) + (review === "kontrola-presmerovani" ? "?tab=redirects" : "?tab=content")}>← Export a import</Link>
-                <span className="text-muted-foreground">/ {review === "kontrola-presmerovani" ? "Kontrola přesměrování" : "Kontrola importu"}</span>
+                <Link className="font-medium underline underline-offset-4" href={publicProjectPath(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`) + (review === "kontrola-presmerovani" ? "?tab=redirects" : "?tab=content")}><UiText text={"← Export a import"}/></Link>
+                <span className="text-muted-foreground">/ {review === "kontrola-presmerovani" ? ui("Kontrola přesměrování") : ui("Kontrola importu")}</span>
               </div>
             )}
             {children}

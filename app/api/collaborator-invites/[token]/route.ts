@@ -1,3 +1,5 @@
+import { getPreferredLanguage } from "@/lib/language-server";
+import type { Language } from "@/lib/language";
 import { and, eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
@@ -12,6 +14,7 @@ type InviteState =
   | {
       status: "otp_required";
       email: string;
+      language?: Language;
       maskedEmail: string;
       destinationPath: string;
     };
@@ -107,6 +110,7 @@ export async function GET(
     return Response.json({
       status: "otp_required",
       email: invite.email,
+      language: await getPreferredLanguage(invite.email),
       maskedEmail: maskEmail(invite.email),
       destinationPath,
     } satisfies InviteState);

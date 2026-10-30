@@ -1,9 +1,11 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { useConfig } from "@/contexts/config-context";
 import { joinPathSegments, normalizePath } from "@/lib/utils/file";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import {
   Dialog,
   DialogClose,
@@ -35,17 +37,18 @@ const FolderCreate = ({
   name?: string;
   onCreate?: (entry: FolderCreateResult) => void;
 }) => {
+  const ui = useUi();
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
 
   const [open, setOpen] = useState(false);
   const [folderPath, setFolderPath] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const handleCreate = async () => {
     const normalizedFolderInput = normalizePath(folderPath.trim());
     if (!normalizedFolderInput) {
-      toast.error("Folder name is required.");
+      toast.error(ui("Folder name is required."));
       return;
     }
 
@@ -119,8 +122,8 @@ const FolderCreate = ({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create a folder</DialogTitle>
-          <DialogDescription>Choose a name for the folder to create{path ? ` under "${normalizePath(path)}"` : null}.</DialogDescription>
+          <DialogTitle><UiText text={"Create a folder"} /></DialogTitle>
+          <DialogDescription><UiText text={"Choose a name for the folder to create"} />{path ? ` under "${normalizePath(path)}"` : null}.</DialogDescription>
         </DialogHeader>
         <form
           onSubmit={async (event) => {
@@ -136,9 +139,9 @@ const FolderCreate = ({
           />
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary" disabled={isSubmitting}>Cancel</Button>
+              <Button type="button" variant="secondary" disabled={isSubmitting}><UiText text={"Cancel"} /></Button>
             </DialogClose>
-            <Button type="submit" disabled={isSubmitting || !folderPath.trim()}>Create</Button>
+            <Button type="submit" disabled={isSubmitting || !folderPath.trim()}><UiText text={"Create"} /></Button>
           </DialogFooter>
         </form>
       </DialogContent>

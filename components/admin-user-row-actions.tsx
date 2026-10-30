@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { MoreHorizontal, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,21 +47,20 @@ export function AdminUserRowActions({
             }}
           >
             <LogOut className="size-4" />
-            Log out
-          </DropdownMenuItem>
+            <UiText text={"Log out"} /> </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Log out user?</AlertDialogTitle>
+            <AlertDialogTitle><UiText text={"Log out user?"} /></AlertDialogTitle>
             <AlertDialogDescription>
-              This will revoke all active sessions for {name}.
+              <UiText text={"This will revoke all active sessions for"} /> {name}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
             <form
               className="contents"
               action={async () => {
@@ -68,7 +68,7 @@ export function AdminUserRowActions({
                 setConfirmOpen(false);
               }}
             >
-              <AlertDialogAction>Log out</AlertDialogAction>
+              <AlertDialogAction><UiText text={"Log out"} /></AlertDialogAction>
             </form>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,18 +22,18 @@ const EditComponent = forwardRef((props: any, ref: React.Ref<HTMLInputElement>) 
 
   return (
     <div className="flex gap-2">
-      <Input 
-        {...restProps} 
-        ref={ref} 
-        className="text-base" 
+      <Input
+        {...restProps}
+        ref={ref}
+        className="text-base"
         readOnly={isInputReadonly}
       />
       {field?.options?.generate !== false && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="outline"
                 size="icon"
                 onClick={generateNewUUID}
@@ -43,7 +44,7 @@ const EditComponent = forwardRef((props: any, ref: React.Ref<HTMLInputElement>) 
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Generate new UUID</p>
+              <p><UiText text={"Generate new UUID"}/></p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { useState, useEffect } from "react";
 import { getRawUrl } from "@/lib/github-image";
 import { useRepo } from "@/contexts/repo-context";
@@ -16,14 +17,15 @@ export function Thumbnail({
   path: string | null;
   className?: string;
 }) {
+  const ui = useUi();
   const [rawUrl, setRawUrl] = useState<string | null>(null);
   const [error, setError] = useState(null);
 
   const { owner, repo, isPrivate } = useRepo();
-  
+
   const { config } = useConfig();
   const branch = config?.branch!;
-  
+
   useEffect(() => {
     const fetchRawUrl = async () => {
       if (path) {
@@ -33,7 +35,7 @@ export function Thumbnail({
           const url = await getRawUrl(owner, repo, branch, name, path, isPrivate);
           setRawUrl(url);
         } catch (error: any) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorMessage = error instanceof Error ? error.message : ui("Unknown error");
           console.warn(errorMessage);
           setError(error.message);
         }
@@ -41,7 +43,7 @@ export function Thumbnail({
     };
 
     fetchRawUrl();
-  }, [path, owner, repo, branch, isPrivate, name, rawUrl]);
+  }, [path, owner, repo, branch, isPrivate, name, rawUrl, ui]);
 
   return (
     <div
@@ -62,10 +64,10 @@ export function Thumbnail({
             ? <div className="flex justify-center items-center absolute inset-0 text-muted-foreground" title={error}>
                 <Ban className="h-4 w-4"/>
               </div>
-            : <div className="flex justify-center items-center absolute inset-0 text-muted-foreground" title="Loading...">
+            : <div className="flex justify-center items-center absolute inset-0 text-muted-foreground" title={ui("Loading...")}>
                 <Loader className="h-4 w-4 animate-spin"/>
               </div>
-        : <div className="flex justify-center items-center absolute inset-0 text-muted-foreground" title="No image">
+        : <div className="flex justify-center items-center absolute inset-0 text-muted-foreground" title={ui("No image")}>
             <ImageOff className="h-4 w-4"/>
           </div>
       }

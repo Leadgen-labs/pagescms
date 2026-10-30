@@ -7,20 +7,21 @@ const mcpUrl = "https://mcp.mobilut.com/mcp";
 const paragraph: React.CSSProperties = { fontSize: "16px", lineHeight: "25px", margin: "16px 0" };
 const linkStyle: React.CSSProperties = { color: "#5b21b6", textDecoration: "underline" };
 
-export const InviteEmailTemplate = ({ repoName, inviteUrl, locale = "cs", accessGranted = false }: {
+export const InviteEmailTemplate = ({ repoName, inviteUrl, locale = "cs", language = locale, accessGranted = false }: {
   email: string;
   repoName: string;
   inviteUrl: string;
   invitedByName?: string;
   invitedByUrl?: string;
   locale?: InvitationLocale;
+  language?: InvitationLocale;
   accessGranted?: boolean;
 }) => {
-  const en = locale === "en";
+  const en = language === "en";
   const baseUrl = getBaseUrl();
   const host = new URL(baseUrl).host;
   return (
-    <Html lang={locale}>
+    <Html lang={language}>
       <Head />
       <Preview>{en ? "Manage your website from your phone or connect it to your AI assistant." : "Upravujte web z mobilu nebo ho propojte se svým AI asistentem."}</Preview>
       <Body style={{ backgroundColor: "#f5f3ff", color: "#18181b", fontFamily: "Arial, sans-serif", margin: "0", padding: "16px 8px" }}>
@@ -70,7 +71,7 @@ export const InviteEmailTemplate = ({ repoName, inviteUrl, locale = "cs", access
           <Text style={paragraph}>{en ? "Sign in with the same email address that received this invitation and enter the verification code sent to your inbox." : "Přihlaste se stejným e-mailem, na který přišla pozvánka, a zadejte ověřovací kód z e-mailu."}</Text>
           <Heading as="h2" style={{ fontSize: "20px", lineHeight: "28px", margin: "28px 0 12px" }}>{en ? "What’s in the admin" : "Co najdete v administraci"}</Heading>
           <Text style={paragraph}>
-            {en ? "Articles, drafts, images and website settings. Use the “Napsat botovi” (Message the bot) button in the bottom right to request changes or ask for help. You’ll find the admin at " : "Články, koncepty, obrázky a nastavení webu. Přes tlačítko „Napsat botovi“ vpravo dole můžete zadávat úpravy nebo požádat o pomoc. Administraci najdete na "}
+            {en ? "Articles, drafts, images and website settings. Use the “Message the bot” button in the bottom right to request changes or ask for help. You’ll find the admin at " : "Články, koncepty, obrázky a nastavení webu. Přes tlačítko „Napsat botovi“ vpravo dole můžete zadávat úpravy nebo požádat o pomoc. Administraci najdete na "}
             <Link href={baseUrl} style={linkStyle}><strong>{host}</strong></Link>.
           </Text>
           <Text style={{ ...paragraph, marginTop: "28px" }}><strong>{en ? "The Mobilut team" : "Tým Mobilut"}</strong></Text>

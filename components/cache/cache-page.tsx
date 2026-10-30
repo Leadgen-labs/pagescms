@@ -1,7 +1,10 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BookText, RefreshCcw, Trash2 } from "lucide-react";
 import { useRepoHeader } from "@/components/repo/repo-header-context";
@@ -32,7 +35,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { requireApiSuccess } from "@/lib/api-client";
 
 type CacheStatusPayload = {
@@ -64,7 +67,7 @@ function formatTimeAgo(value: string | null | undefined) {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return formatDistanceToNow(date, { addSuffix: true });
+  return <RelativeTime date={date}/>;
 }
 
 function fullDate(value: string | null | undefined) {
@@ -152,7 +155,7 @@ function ConfirmActionButton({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
           <AlertDialogAction
             variant={variant === "destructive" ? "destructive" : "default"}
             onClick={() => {
@@ -176,6 +179,7 @@ export function CachePage({
   repo: string;
   branch: string;
 }) {
+  const ui = useUi();
   const [data, setData] = useState<CacheStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -231,7 +235,7 @@ export function CachePage({
     () => (
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-lg">Cache</h1>
+          <h1 className="font-semibold text-lg"><UiText text={"Cache"}/></h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -246,16 +250,16 @@ export function CachePage({
                   rel="noreferrer"
                 >
                   <BookText />
-                  <span className="sr-only">Cache docs</span>
+                  <span className="sr-only"><UiText text={"Cache docs"}/></span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View docs</TooltipContent>
+            <TooltipContent><UiText text={"View docs"} /></TooltipContent>
           </Tooltip>
         </div>
         <ConfirmActionButton
-          label="Clear all cache"
-          title="Clear all cache?"
+          label={ui("Clear all cache")}
+          title={ui("Clear all cache?")}
           description="This will clear file, config, and permission cache for this repository/branch."
           confirmLabel="Clear all"
           variant="default"
@@ -267,7 +271,7 @@ export function CachePage({
         />
       </div>
     ),
-    [actionLoading, loading, runAction],
+    [actionLoading, loading, runAction, ui],
   );
 
   useRepoHeader({ header: headerNode });
@@ -285,39 +289,38 @@ export function CachePage({
         <div className="grid gap-4 lg:grid-cols-2">
           <Card className="h-full">
             <CardHeader>
-              <CardTitle className="text-base">Content</CardTitle>
+              <CardTitle className="text-base"><UiText text={"Content"} /></CardTitle>
               <CardDescription>
-                Cached content (files and collections).
-              </CardDescription>
+                <UiText text={"Cached content (files and collections)."} /> </CardDescription>
             </CardHeader>
             <CardContent className="text-sm flex-1">
               <div className="divide-y rounded-md border">
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Files cached</span>
+                  <span className="text-muted-foreground"><UiText text={"Files cached"} /></span>
                   <Skeleton className="h-4 w-10" />
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Folder caches</span>
+                  <span className="text-muted-foreground"><UiText text={"Folder caches"} /></span>
                   <Skeleton className="h-4 w-10" />
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Cache SHA</span>
+                  <span className="text-muted-foreground"><UiText text={"Cache SHA"}/></span>
                   <Skeleton className="h-4 w-20" />
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Remote SHA</span>
+                  <span className="text-muted-foreground"><UiText text={"Remote SHA"}/></span>
                   <Skeleton className="h-4 w-20" />
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Updated</span>
+                  <span className="text-muted-foreground"><UiText text={"Updated"} /></span>
                   <Skeleton className="h-4 w-20" />
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Status</span>
+                  <span className="text-muted-foreground"><UiText text={"Status"} /></span>
                   <Skeleton className="h-4 w-16" />
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Last checked</span>
+                  <span className="text-muted-foreground"><UiText text={"Last checked"} /></span>
                   <Skeleton className="h-4 w-20" />
                 </div>
               </div>
@@ -347,24 +350,23 @@ export function CachePage({
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Config</CardTitle>
+                <CardTitle className="text-base"><UiText text={"Config"} /></CardTitle>
                 <CardDescription>
-                  Cache of the configuration file (
-                  <code className="text-[13px]">.pages.yml</code>).
+                  <UiText text={"Cache of the configuration file ("}/><code className="text-[13px]">.pages.yml</code>).
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-sm flex-1">
                 <div className="divide-y rounded-md border">
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">Cache SHA</span>
+                    <span className="text-muted-foreground"><UiText text={"Cache SHA"}/></span>
                     <Skeleton className="h-4 w-20" />
                   </div>
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">Version</span>
+                    <span className="text-muted-foreground"><UiText text={"Version"} /></span>
                     <Skeleton className="h-4 w-12" />
                   </div>
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">Last checked</span>
+                    <span className="text-muted-foreground"><UiText text={"Last checked"} /></span>
                     <Skeleton className="h-4 w-20" />
                   </div>
                 </div>
@@ -393,15 +395,14 @@ export function CachePage({
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Permissions</CardTitle>
+                <CardTitle className="text-base"><UiText text={"Permissions"} /></CardTitle>
                 <CardDescription>
-                  Cached repository permission checks.
-                </CardDescription>
+                  <UiText text={"Cached repository permission checks."} /> </CardDescription>
               </CardHeader>
               <CardContent className="text-sm flex-1">
                 <div className="divide-y rounded-md border">
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">Entries</span>
+                    <span className="text-muted-foreground"><UiText text={"Entries"} /></span>
                     <Skeleton className="h-4 w-10" />
                   </div>
                 </div>
@@ -424,65 +425,61 @@ export function CachePage({
         <div className="grid gap-4 lg:grid-cols-2">
           <Card className="h-full">
             <CardHeader>
-              <CardTitle className="text-base">Content</CardTitle>
+              <CardTitle className="text-base"><UiText text={"Content"} /></CardTitle>
               <CardDescription>
-                Cached content (files and collections).
-              </CardDescription>
+                <UiText text={"Cached content (files and collections)."} /> </CardDescription>
             </CardHeader>
             <CardContent className="text-sm flex-1">
               <div className="divide-y rounded-md border">
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Files cached</span>
+                  <span className="text-muted-foreground"><UiText text={"Files cached"} /></span>
                   <span className="font-medium">{data.fileCount}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Folder caches</span>
+                  <span className="text-muted-foreground"><UiText text={"Folder caches"} /></span>
                   <span className="font-medium">{data.folderMeta.length}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Cache SHA</span>
+                  <span className="text-muted-foreground"><UiText text={"Cache SHA"}/></span>
                   <span className="font-mono font-medium">
                     {shortSha(localSha)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Remote SHA</span>
+                  <span className="text-muted-foreground"><UiText text={"Remote SHA"}/></span>
                   <span className="font-mono font-medium">
                     {shortSha(remoteSha)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Updated</span>
+                  <span className="text-muted-foreground"><UiText text={"Updated"} /></span>
                   <TimeWithTooltip value={data.fileMeta?.updatedAt} />
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Status</span>
+                  <span className="text-muted-foreground"><UiText text={"Status"} /></span>
                   <span className="font-medium capitalize">
                     {data.fileMeta?.status || "unknown"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <span className="text-muted-foreground">Last checked</span>
+                  <span className="text-muted-foreground"><UiText text={"Last checked"} /></span>
                   <TimeWithTooltip value={data.fileMeta?.lastCheckedAt} />
                 </div>
               </div>
               {data.fileMeta?.status === "error" && (
                 <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-3 text-sm">
                   <p className="font-medium text-destructive">
-                    Unknown cache error
-                  </p>
+                    <UiText text={"Unknown cache error"} /> </p>
                   <p className="mt-1 text-muted-foreground">
-                    Try refreshing the cache first. If the issue persists, clear
-                    the cache and refresh it again.
-                  </p>
+                    <UiText text={"Try refreshing the cache first. If the issue persists, clear the cache and refresh it again."} /> </p>
                 </div>
               )}
             </CardContent>
             <CardFooter className="flex justify-end">
               <div className="inline-flex items-center">
                 <ConfirmActionButton
-                  label="Refresh cache"
-                  title="Refresh file cache?"
+                  label={ui("Refresh cache")}
+                  title={ui("Refresh file cache?")}
                   description="This will check remote SHA and reconcile file cache if needed."
                   confirmLabel="Refresh"
                   variant="outline"
@@ -497,8 +494,8 @@ export function CachePage({
                   }
                 />
                 <ConfirmActionButton
-                  label="Clear cache"
-                  title="Clear file cache?"
+                  label={ui("Clear cache")}
+                  title={ui("Clear file cache?")}
                   description="This will delete cached file entries and reset file cache metadata."
                   confirmLabel="Clear"
                   variant="outline"
@@ -519,28 +516,27 @@ export function CachePage({
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Config</CardTitle>
+                <CardTitle className="text-base"><UiText text={"Config"} /></CardTitle>
                 <CardDescription>
-                  Cache of the configuration file (
-                  <code className="text-[13px]">.pages.yml</code>).
+                  <UiText text={"Cache of the configuration file ("}/><code className="text-[13px]">.pages.yml</code>).
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-sm flex-1">
                 <div className="divide-y rounded-md border">
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">Cache SHA</span>
+                    <span className="text-muted-foreground"><UiText text={"Cache SHA"}/></span>
                     <span className="font-mono font-medium">
                       {shortSha(data.config?.sha)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">Version</span>
+                    <span className="text-muted-foreground"><UiText text={"Version"} /></span>
                     <span className="font-medium">
                       {data.config?.version || "-"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">Last checked</span>
+                    <span className="text-muted-foreground"><UiText text={"Last checked"} /></span>
                     <TimeWithTooltip value={data.config?.lastCheckedAt} />
                   </div>
                 </div>
@@ -548,8 +544,8 @@ export function CachePage({
               <CardFooter className="flex justify-end">
                 <div className="inline-flex items-center">
                   <ConfirmActionButton
-                    label="Refresh cache"
-                    title="Refresh config cache?"
+                    label={ui("Refresh cache")}
+                    title={ui("Refresh config cache?")}
                     description="This will refetch and revalidate the cached configuration."
                     confirmLabel="Refresh"
                     variant="outline"
@@ -564,8 +560,8 @@ export function CachePage({
                     }
                   />
                   <ConfirmActionButton
-                    label="Clear cache"
-                    title="Clear config cache?"
+                    label={ui("Clear cache")}
+                    title={ui("Clear config cache?")}
                     description="This will remove cached config for this repository/branch."
                     confirmLabel="Clear"
                     variant="outline"
@@ -585,23 +581,22 @@ export function CachePage({
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Permissions</CardTitle>
+                <CardTitle className="text-base"><UiText text={"Permissions"} /></CardTitle>
                 <CardDescription>
-                  Cached repository permission checks.
-                </CardDescription>
+                  <UiText text={"Cached repository permission checks."} /> </CardDescription>
               </CardHeader>
               <CardContent className="text-sm flex-1">
                 <div className="divide-y rounded-md border">
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">Entries</span>
+                    <span className="text-muted-foreground"><UiText text={"Entries"} /></span>
                     <span className="font-medium">{data.permissionCount}</span>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="justify-end">
                 <ConfirmActionButton
-                  label="Clear cache"
-                  title="Clear permission cache?"
+                  label={ui("Clear cache")}
+                  title={ui("Clear permission cache?")}
                   description="This will remove cached permission entries for this repository."
                   confirmLabel="Clear"
                   variant="outline"

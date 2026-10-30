@@ -1,11 +1,17 @@
 "use client";
 
+import { ErrorText } from "@/components/error-text";
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
+import { useLanguage } from "@/contexts/language-context";
+import type { Language } from "@/lib/language";
 import Link from "next/link";
 import { useConfig } from "@/contexts/config-context";
 import { projectName } from "@/lib/project-name";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useActionState } from "react";
 import {
+  handleSetCollaboratorLanguage,
   handleAddCollaborator,
   handleRemoveCollaborator,
   handleResendCollaboratorInvite,
@@ -55,12 +61,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { requireApiSuccess } from "@/lib/api-client";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { BookText, EllipsisVertical, Loader } from "lucide-react";
 
 type Collaborator = {
   id: number;
   email: string;
+  language?: Language;
 };
 
 type AddCollaboratorState = {
@@ -97,6 +104,7 @@ function InviteCollaboratorsDialog({
   triggerVariant?: "default" | "outline";
   triggerSize?: "default" | "sm";
 }) {
+  const { t, language } = useLanguage();
   const parsedInviteEmails = useMemo(() => {
     return Array.from(
       new Set(
@@ -112,15 +120,14 @@ function InviteCollaboratorsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button variant={triggerVariant} size={triggerSize} disabled={disabled}>
-          {triggerLabel || "Pozvat uživatele"}
+          {triggerLabel || t("Pozvat", "Invite")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Pozvat uživatele</DialogTitle>
+          <DialogTitle>{t("Pozvat spolupracovníky", "Invite collaborators")}</DialogTitle>
           <DialogDescription>
-            Zadejte e-mailové adresy oddělené čárkou nebo novým řádkem.
-          </DialogDescription>
+            <UiText text={"Enter one or multiple email addresses, separated by commas or new lines."} /> </DialogDescription>
         </DialogHeader>
         <form action={action} className="space-y-4">
           <input type="hidden" name="owner" value={owner} />
@@ -133,16 +140,13 @@ function InviteCollaboratorsDialog({
             required
             rows={6}
           />
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            Jazyk pozvánky / Invitation language
-            <select name="locale" defaultValue="cs" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="cs">Čeština</option>
-              <option value="en">English</option>
-            </select>
+          <label className="grid gap-2 text-sm">{t("Výchozí jazyk collaboratora", "Collaborator default language")}
+            <select name="language" defaultValue={language} className="h-10 rounded-md border bg-background px-3"><option value="cs">Čeština</option><option value="en">English</option></select>
+            <span className="text-xs text-muted-foreground">{t("Použije se pro administraci i e-maily. U existujícího účtu zachováme jeho uloženou volbu.", "Used for administration and emails. Existing accounts keep their saved preference.")}</span>
           </label>
           {state?.error ? (
             <p className="text-sm font-medium text-destructive">
-              {state.error}
+              <ErrorText text={String(state.error)}/>
             </p>
           ) : null}
           <DialogFooter>
@@ -150,7 +154,7 @@ function InviteCollaboratorsDialog({
               type="submit"
               disabled={parsedInviteEmails.length === 0}
             >
-              Odeslat pozvánku
+              {t("Odeslat pozvánky", "Send invitations")}
             </SubmitButton>
           </DialogFooter>
         </form>
@@ -168,6 +172,9 @@ export function Collaborators({
   repo: string;
   branch?: string;
 }) {
+  const ui = useUi();
+  const { t } = useLanguage();
+  const [savingLanguage, setSavingLanguage] = useState<number | null>(null);
   const { config } = useConfig();
   const displayName = projectName(repo, config?.object);
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
@@ -216,7 +223,7 @@ export function Collaborators({
         if (err instanceof DOMException && err.name === "AbortError") return;
         console.error(err);
         setError(
-          err instanceof Error ? err.message : "Failed to fetch collaborators",
+          err instanceof Error ? err.message : ui("Failed to fetch collaborators"),
         );
       } finally {
         // In React Strict Mode, an aborted first pass can race with the active request.
@@ -230,7 +237,7 @@ export function Collaborators({
     fetchCollaborators();
 
     return () => controller.abort();
-  }, [owner, repo, branch]);
+  }, [owner, repo, branch, ui]);
 
   useEffect(() => {
     if (addCollaboratorState?.message) {
@@ -281,7 +288,7 @@ export function Collaborators({
     }
   };
 
-  const handleResendInvite = async (collaboratorId: number, locale: "cs" | "en" = "cs") => {
+  const handleResendInvite = async (collaboratorId: number) => {
     setResending((prev) => [...prev, collaboratorId]);
 
     try {
@@ -289,7 +296,6 @@ export function Collaborators({
         collaboratorId,
         owner,
         repo,
-        locale,
       );
       if (resent.error) {
         toast.error(resent.error);
@@ -309,7 +315,7 @@ export function Collaborators({
     return (
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-lg">Přístupy k webu {displayName}</h1>
+          <h1 className="font-semibold text-lg"><UiText text={"Přístupy k webu"}/>{displayName}</h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -324,11 +330,11 @@ export function Collaborators({
                   rel="noreferrer"
                 >
                   <BookText />
-                  <span className="sr-only">Nápověda k přístupům</span>
+                  <span className="sr-only"><UiText text={"Nápověda k přístupům"}/></span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Nápověda</TooltipContent>
+            <TooltipContent><UiText text={"Nápověda"}/></TooltipContent>
           </Tooltip>
         </div>
         {showInviteAction ? (
@@ -393,10 +399,9 @@ export function Collaborators({
       <div className="absolute inset-0 p-4 md:p-6 flex items-center justify-center">
         <Empty className="max-w-[420px] flex-none">
           <EmptyHeader>
-            <EmptyTitle>Something went wrong</EmptyTitle>
+            <EmptyTitle>{t("Něco se nepodařilo", "Something went wrong")}</EmptyTitle>
             <EmptyDescription>
-              We couldn&apos;t load the list of collaborators.
-            </EmptyDescription>
+              <UiText text={"We couldn't load the list of collaborators."} /> </EmptyDescription>
           </EmptyHeader>
         </Empty>
       </div>
@@ -435,6 +440,19 @@ export function Collaborators({
                   {collaborator.email}
                 </div>
 
+                <select aria-label={t("Jazyk pro", "Language for") + " " + collaborator.email} className="ml-auto h-9 rounded-md border bg-background px-2 text-xs"
+                  value={collaborator.language ?? "cs"} disabled={savingLanguage === collaborator.id}
+                  onChange={async event => {
+                    const language = event.target.value as Language;
+                    setSavingLanguage(collaborator.id);
+                    try {
+                      const result = await handleSetCollaboratorLanguage(collaborator.id, owner, repo, language);
+                      if (result.error) throw Error(result.error);
+                      setCollaborators(old => old.map(c => c.id === collaborator.id ? {...c, language} : c));
+                      toast.success(t("Jazyk administrace a e-mailů byl uložen.", "Administration and email language saved."));
+                    } catch { toast.error(t("Jazyk se nepodařilo uložit.", "Could not save language.")); }
+                    finally { setSavingLanguage(null); }
+                  }}><option value="cs">Čeština</option><option value="en">English</option></select>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -452,7 +470,7 @@ export function Collaborators({
                       ) : (
                         <EllipsisVertical />
                       )}
-                      <span className="sr-only">Collaborator actions</span>
+                      <span className="sr-only">{t("Akce spolupracovníka", "Collaborator actions")}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -463,13 +481,7 @@ export function Collaborators({
                         resending.includes(collaborator.id)
                       }
                     >
-                      Poslat pozvánku znovu (česky)
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => void handleResendInvite(collaborator.id, "en")}
-                      disabled={removing.includes(collaborator.id) || resending.includes(collaborator.id)}
-                    >
-                      Resend invitation (English)
+                      {t("Poslat pozvánku znovu", "Resend invitation")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -480,7 +492,7 @@ export function Collaborators({
                         resending.includes(collaborator.id)
                       }
                     >
-                      Remove
+                      {t("Odebrat", "Remove")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -496,22 +508,19 @@ export function Collaborators({
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t("Odebrat přístup?", "Are you sure?")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Odeberete přístup k webu {displayName} uživateli
-                  &quot;{collaboratorToRemove?.email}&quot;.
-                </AlertDialogDescription>
+                  <UiText text={"Odeberete přístup k webu"}/>{displayName} <UiText text={"uživateli \""}/>{collaboratorToRemove?.email}<UiText text={"\"."}/></AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Zrušit</AlertDialogCancel>
+                <AlertDialogCancel><UiText text={"Zrušit"}/></AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
                     if (!collaboratorToRemove) return;
                     void handleConfirmRemove(collaboratorToRemove.id);
                   }}
                 >
-                  Odebrat uživatele
-                </AlertDialogAction>
+                  <UiText text={"Odebrat uživatele"}/></AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -520,10 +529,9 @@ export function Collaborators({
         <div className="flex-1 flex items-center">
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>Zatím žádní uživatelé</EmptyTitle>
+              <EmptyTitle><UiText text={"Zatím žádní uživatelé"}/></EmptyTitle>
               <EmptyDescription>
-                Pozvěte uživatele, kteří mají mít přístup ke správě webu.
-              </EmptyDescription>
+                <UiText text={"Pozvěte uživatele, kteří mají mít přístup ke správě webu."}/></EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <InviteCollaboratorsDialog

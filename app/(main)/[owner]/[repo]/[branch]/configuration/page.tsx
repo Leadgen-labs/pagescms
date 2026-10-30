@@ -1,5 +1,7 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
+import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { Entry } from "@/components/entry/entry";
 import {
@@ -24,6 +26,7 @@ import {
 import { BookText } from "lucide-react";
 
 export default function Page() {
+  const ui = useUi();
   const { config, setConfig } = useConfig();
   const { user } = useUser();
 
@@ -35,10 +38,9 @@ export default function Page() {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>
-          <EmptyTitle>Access denied</EmptyTitle>
+          <EmptyTitle><UiText text={"Access denied"} /></EmptyTitle>
           <EmptyDescription>
-            Only GitHub users can manage repository configuration.
-          </EmptyDescription>
+            <UiText text={"Only GitHub users can manage repository configuration."} /> </EmptyDescription>
         </EmptyHeader>
       </Empty>
     );
@@ -59,7 +61,7 @@ export default function Page() {
       <Entry
         path=".pages.yml"
         onSave={handleSave}
-        title="Configuration"
+        title={ui("Configuration")}
         headerMeta={
           <Tooltip>
             <TooltipTrigger asChild>
@@ -75,11 +77,11 @@ export default function Page() {
                   rel="noreferrer"
                 >
                   <BookText />
-                  <span className="sr-only">Configuration docs</span>
+                  <span className="sr-only"><UiText text={"Configuration docs"} /></span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View docs</TooltipContent>
+            <TooltipContent><UiText text={"View docs"} /></TooltipContent>
           </Tooltip>
         }
       />

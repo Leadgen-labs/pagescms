@@ -83,7 +83,7 @@ const schema = (field: Field) => {
       const maxDate = parse(field.options.max as string, inputFormat, new Date());
       return isValid(maxDate) && !isAfter(date, maxDate);
     }, `Date must be before ${field.options?.max}`);
-  
+
   return zodSchema;
 };
 
