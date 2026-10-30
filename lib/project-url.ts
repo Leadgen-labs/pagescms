@@ -2,7 +2,7 @@
 const OWNER = "leadgen-labs";
 const PREFIX = "webs-obsah-";
 const RESERVED = new Set(["api", "admin", "auth", "sign-in", "settings", "_next", OWNER]);
-const SECTIONS = new Set(["prehled", "pristupy", "collection", "file", "media", "configuration", "actions", "cache", "submissions"]);
+const SECTIONS = new Set(["prehled", "pristupy", "collection", "file", "media", "configuration", "actions", "cache", "submissions", "transfer"]);
 const validSlug = (slug: string) => /^[a-z0-9][a-z0-9-]{1,40}$/.test(slug) && !RESERVED.has(slug);
 
 export function publicProjectPath(pathname: string): string {

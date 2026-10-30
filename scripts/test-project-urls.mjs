@@ -64,3 +64,19 @@ test('API origin checks and original API paths remain in effect', () => {
   assert.equal(safe.headers.get('x-middleware-next'),'1');
   assert.equal(safe.headers.get('x-middleware-rewrite'),null);
 });
+
+test('export/import short URLs reach the original authorized project route', () => {
+  for (const slug of ['kesek', 'demo']) {
+    const internal = `/leadgen-labs/webs-obsah-${slug}/main/transfer`;
+    const short = `/${slug}/transfer`;
+    assert.equal(publicProjectPath(internal), short);
+    assert.equal(internalProjectPath(short), internal);
+    assert.equal(internalProjectPath(short + '/'), internal);
+    const redirect = proxy(new NextRequest('https://cms.mobilut.com' + internal + '?tab=content'));
+    assert.equal(redirect.status, 307);
+    assert.equal(redirect.headers.get('location'), 'https://cms.mobilut.com' + short + '?tab=content');
+    const rewritten = proxy(new NextRequest(redirect.headers.get('location')));
+    assert.equal(rewritten.headers.get('x-middleware-rewrite'), 'https://cms.mobilut.com' + internal + '?tab=content');
+    assert.equal(rewritten.headers.get('x-middleware-request-x-return-to'), short + '?tab=content');
+  }
+});

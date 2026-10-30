@@ -60,6 +60,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  ArrowDownUp,
   ArrowLeft,
   ArrowUpRight,
   ChevronRight,
@@ -327,14 +328,19 @@ export function RepoSidebar() {
   const mediaNavigation = useMemo<NavigationNode[]>(() => {
     if (!config?.object) return [];
     const navigation = (config.object as any).navigation?.media;
-    if (Array.isArray(navigation)) return navigation;
-
     const media = (config.object as any).media ?? [];
-    return media.map((item: any) => ({
+    const nodes: NavigationNode[] = Array.isArray(navigation) ? navigation : media.map((item: any) => ({
       type: "media",
       name: item.name || "default",
       label: item.label || item.name || "Media",
     }));
+    if (!config.repo.startsWith("webs-obsah-")) return nodes;
+    // File management is available inside the dedicated Export a import section.
+    const withoutTransfer = (items: NavigationNode[]): NavigationNode[] => items
+      .filter((item) => !(item.type === "media" && item.name === "soubory"))
+      .map((item) => item.items ? { ...item, items: withoutTransfer(item.items) } : item)
+      .filter((item) => item.type !== "group" || item.items?.length);
+    return withoutTransfer(nodes);
   }, [config]);
 
   const adminItems = useMemo<NavItem[]>(() => {
@@ -638,6 +644,14 @@ export function RepoSidebar() {
                     <Link href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`} onClick={handleNavigation}>
                       <LayoutDashboard className="size-4" />
                       <span>Přehled webu</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`}>
+                    <Link href={publicProjectPath(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`)} onClick={handleNavigation}>
+                      <ArrowDownUp className="size-4" />
+                      <span>Export a import</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
