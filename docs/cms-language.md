@@ -16,6 +16,8 @@ The language preference is attached to the normalized collaborator email, so it 
 
 The overview keeps the management guide available during API errors, cancels outdated requests when changing repositories, and includes a bilingual guide with a prominent MCP connection card.
 
+For a single-site overview the CMS signs a `repositoryAccess` claim only after checking the session's access to that exact repository. Invited CMS collaborators, private-repository members and GitHub writers do not also need an entry in the bot's contact list. Reading a public repository alone does not qualify. This claim grants only the redacted client overview; it does not grant agency administration, all-site listings, submission records or bot mutation permissions.
+
 ## Verification
 
 ```sh
