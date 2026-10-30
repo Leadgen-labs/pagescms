@@ -96,7 +96,7 @@ export function FileOptions({
       });
 
       toast.promise(deletePromise, {
-        loading: `Deleting ${path}`,
+        loading: "Mazání…",
         success: (data: any) => {
           if (onDelete) onDelete(path);
           return data.message;

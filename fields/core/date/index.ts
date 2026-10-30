@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Field } from "@/types/field";
 import { EditComponent } from "./edit-component";
 import { ViewComponent } from "./view-component";
-import { parse, format, isValid, isBefore, isAfter } from "date-fns";
+import { parse, parseISO, format, isValid, isBefore, isAfter } from "date-fns";
 
 const defaultValue = (field: Field) => {
   const inputType = field?.options?.time ? "datetime-local" : "date";
@@ -17,7 +17,15 @@ const read = (value: any, field: Field) => {
 
   if (!value) return "";
 
-  const parsedDate = parse(value, saveFormat, new Date());
+  // YAML !!timestamp values are Date objects, while CMS values are strings.
+  // Calling date-fns parse on a Date throws and used to blank the entire row.
+  if (value instanceof Date) return isValid(value) ? format(value, inputFormat) : "";
+  if (typeof value !== "string") return "";
+
+  let parsedDate = parse(value, saveFormat, new Date());
+  if (!isValid(parsedDate) && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+    parsedDate = parseISO(value);
+  }
 
   if (isValid(parsedDate)) {
     return format(parsedDate, inputFormat);
@@ -63,7 +71,7 @@ const schema = (field: Field) => {
       const maxDate = parse(field.options.max as string, inputFormat, new Date());
       return isValid(maxDate) && !isAfter(date, maxDate);
     }, `Date must be before ${field.options?.max}`);
-  
+
   return zodSchema;
 };
 

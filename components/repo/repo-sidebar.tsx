@@ -13,14 +13,17 @@ import {
 import { useLanguage } from "@/contexts/language-context";
 import { LanguageSwitcher } from "@/components/webs/language-switcher";
 import Link from "next/link";
+import { internalProjectPath, publicProjectPath } from "@/lib/project-url";
 import { usePathname, useRouter } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
 import { useRepo } from "@/contexts/repo-context";
 import { useUser } from "@/contexts/user-context";
+import { projectName } from "@/lib/project-name";
 import { hasGithubIdentity } from "@/lib/authz-shared";
 import { isCacheEnabled, isConfigEnabled } from "@/lib/config";
 import { getRootActions } from "@/lib/actions";
 import { getVisits } from "@/lib/tracker";
+import { CreateContent } from "@/components/webs/create-content";
 import { RepoActionButtons } from "@/components/repo/repo-action-buttons";
 import { RepoBranches } from "@/components/repo/repo-branches";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -62,6 +65,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  ArrowDownUp,
   ArrowLeft,
   ArrowUpRight,
   ChevronRight,
@@ -103,7 +107,7 @@ function RepoSwitcher() {
     [branches],
   );
   const [recentRepos, setRecentRepos] = useState<
-    Array<{ owner: string; repo: string; branch: string }>
+    Array<{ owner: string; repo: string; branch: string; displayName?: string }>
   >([]);
   const triggerWrapperRef = useRef<HTMLDivElement | null>(null);
   const [menuWidth, setMenuWidth] = useState<number | null>(null);
@@ -141,6 +145,7 @@ function RepoSwitcher() {
       .map((visit) => ({
         owner: visit.owner,
         repo: visit.repo,
+        displayName: visit.displayName,
         branch: visit.branch,
       }));
     setRecentRepos(visits);
@@ -177,7 +182,7 @@ function RepoSwitcher() {
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{repo}</span>
+                <span className="truncate font-medium">{projectName(repo, config?.object)}</span>
                 <span className="truncate text-xs text-muted-foreground">
                   {currentBranch || owner}
                 </span>
@@ -231,14 +236,14 @@ function RepoSwitcher() {
                     key={`${visit.owner}/${visit.repo}/${visit.branch}`}
                   >
                     <Link
-                      href={`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`}
+                      href={publicProjectPath(`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`)}
                     >
                       <img
                         src={`https://github.com/${visit.owner}.png`}
                         alt={`${visit.owner}'s avatar`}
                         className="size-5 rounded"
                       />
-                      <span className="truncate">{visit.repo}</span>
+                      <span className="truncate">{visit.displayName || projectName(visit.repo)}</span>
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -261,10 +266,25 @@ function RepoSwitcher() {
   );
 }
 
+function RepoHeader() {
+  const { user } = useUser();
+  const { repo } = useRepo();
+  const { config } = useConfig();
+  if (!repo.startsWith("webs-obsah-") && hasGithubIdentity(user)) return <RepoSwitcher />;
+  return (
+    <div className="flex h-16 items-center gap-2 px-2">
+      <LayoutDashboard className="size-8 shrink-0 rounded-md bg-sidebar-accent p-1.5" />
+      <div className="grid min-w-0 text-sm leading-tight">
+        <span className="truncate font-medium">{projectName(repo, config?.object)}</span>
+        <span className="text-xs text-muted-foreground"><UiText text={"Správa webu"}/></span>
+      </div>
+    </div>
+  );
+}
 export function RepoSidebar() {
   const ui = useUi();
   const { t } = useLanguage();
-  const pathname = usePathname();
+  const pathname = internalProjectPath(usePathname());
   const { user } = useUser();
   const { config } = useConfig();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -299,27 +319,36 @@ export function RepoSidebar() {
   const contentNavigation = useMemo<NavigationNode[]>(() => {
     if (!config?.object) return [];
     const navigation = (config.object as any).navigation?.content;
-    if (Array.isArray(navigation)) return navigation;
-
     const content = (config.object as any).content ?? [];
-    return content.map((item: any) => ({
+    const nodes: NavigationNode[] = Array.isArray(navigation) ? navigation : content.map((item: any) => ({
       type: item.type,
       name: item.name,
       label: item.label || item.name,
     }));
+    if (!config.repo.startsWith("webs-obsah-")) return nodes;
+    const withoutReviews = (items: NavigationNode[]): NavigationNode[] => items
+      .filter((item) => !(item.type === "collection" && ["kontrola-importu", "kontrola-presmerovani"].includes(item.name)))
+      .map((item) => item.items ? { ...item, items: withoutReviews(item.items) } : item)
+      .filter((item) => item.type !== "group" || item.items?.length);
+    return withoutReviews(nodes);
   }, [config]);
 
   const mediaNavigation = useMemo<NavigationNode[]>(() => {
     if (!config?.object) return [];
     const navigation = (config.object as any).navigation?.media;
-    if (Array.isArray(navigation)) return navigation;
-
     const media = (config.object as any).media ?? [];
-    return media.map((item: any) => ({
+    const nodes: NavigationNode[] = Array.isArray(navigation) ? navigation : media.map((item: any) => ({
       type: "media",
       name: item.name || "default",
       label: item.label || item.name || "Media",
     }));
+    if (!config.repo.startsWith("webs-obsah-")) return nodes;
+    // File management is available inside the dedicated Export a import section.
+    const withoutTransfer = (items: NavigationNode[]): NavigationNode[] => items
+      .filter((item) => !(item.type === "media" && item.name === "soubory"))
+      .map((item) => item.items ? { ...item, items: withoutTransfer(item.items) } : item)
+      .filter((item) => item.type !== "group" || item.items?.length);
+    return withoutTransfer(nodes);
   }, [config]);
 
   const adminItems = useMemo<NavItem[]>(() => {
@@ -351,7 +380,7 @@ export function RepoSidebar() {
 
       items.push({
         key: "admin-collaborators",
-        label: t("Spolupracovníci", "Collaborators"),
+        label: ui("Uživatelé a přístupy"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collaborators`,
         icon: <Users className="size-4" />,
       });
@@ -369,13 +398,20 @@ export function RepoSidebar() {
     return items;
   }, [config, user, t, ui]);
   const rootActions = useMemo(
-    () => getRootActions(config?.object),
-    [config?.object],
+    () => getRootActions(config?.object).filter((action) =>
+      !config?.repo.startsWith("webs-obsah-") || ![
+        "export", "sablona-importu", "import", "import-potvrdit",
+        "presmerovani-export", "presmerovani-nahled", "presmerovani-potvrdit",
+      ].includes(action.name)),
+    [config?.object, config?.repo],
   );
 
   const getNodeHref = useCallback(
     (node: NavigationNode) => {
       if (!config) return "#";
+      if (node.type === "media" && node.name === "soubory" && config.repo.startsWith("webs-obsah-")) {
+        return `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`;
+      }
       if (node.type === "media") {
         return `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/media/${encodeURIComponent(node.name)}`;
       }
@@ -511,7 +547,7 @@ export function RepoSidebar() {
       return (
         <SidebarMenuSubItem key={key}>
           <SidebarMenuSubButton asChild isActive={isActive}>
-            <Link href={href} onClick={handleNavigation}>
+            <Link href={publicProjectPath(href)} onClick={handleNavigation}>
               {getNodeIcon(node)}
               <span>{node.label || node.name}</span>
             </Link>
@@ -523,7 +559,7 @@ export function RepoSidebar() {
     return (
       <SidebarMenuItem key={key}>
         <SidebarMenuButton asChild isActive={isActive}>
-          <Link href={href} onClick={handleNavigation}>
+          <Link href={publicProjectPath(href)} onClick={handleNavigation}>
             {getNodeIcon(node)}
             <span>{node.label || node.name}</span>
           </Link>
@@ -561,7 +597,7 @@ export function RepoSidebar() {
               return (
                 <SidebarMenuItem key={item.key}>
                   <SidebarMenuButton asChild isActive={isActive}>
-                    <Link href={item.href} onClick={handleNavigation}>
+                    <Link href={publicProjectPath(item.href)} onClick={handleNavigation}>
                       {item.icon}
                       <span>{item.label}</span>
                     </Link>
@@ -577,7 +613,7 @@ export function RepoSidebar() {
 
   const groups = [
     renderNavigationGroup(t("Obsah", "Content"), contentNavigation),
-    renderNavigationGroup(t("Média", "Media"), mediaNavigation),
+    renderNavigationGroup(t("Soubory", "Files"), mediaNavigation),
     rootActions.length > 0 && config
       ? (
         <SidebarGroup key="Actions">
@@ -603,11 +639,36 @@ export function RepoSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <RepoSwitcher />
+            <RepoHeader />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        {config?.repo.startsWith("webs-obsah-") && <SidebarGroup><CreateContent /></SidebarGroup>}
+        {config?.repo.startsWith("webs-obsah-") && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`}>
+                    <Link href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`} onClick={handleNavigation}>
+                      <LayoutDashboard className="size-4" />
+                      <span><UiText text="Website overview" /></span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer` || ["kontrola-importu", "kontrola-presmerovani"].some((name) => pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}` || pathname.startsWith(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}/`))}>
+                    <Link href={publicProjectPath(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`)} onClick={handleNavigation}>
+                      <ArrowDownUp className="size-4" />
+                      <span><UiText text={"Export a import"}/></span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         {groups.map((group, index) => (
           <Fragment key={index}>{group}</Fragment>
         ))}

@@ -3,6 +3,7 @@
 import { ui, useUi } from "@/components/use-ui";
 import { useMemo } from "react";
 import Link from "next/link";
+import { internalProjectPath, publicProjectPath } from "@/lib/project-url";
 import { usePathname } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
 import { useUser } from "@/contexts/user-context";
@@ -29,7 +30,7 @@ const RepoNavItem = ({
       active ? "bg-accent" : "hover:bg-accent",
       "flex items-center rounded-lg px-3 py-2 font-medium focus:bg-accent outline-none"
     )}
-    href={href}
+    href={publicProjectPath(href)}
     onClick={onClick}
   >
     {icon}
@@ -45,7 +46,7 @@ const RepoNav = ({
   const ui = useUi();
   const { config } = useConfig();
   const { user } = useUser();
-  const pathname = usePathname();
+  const pathname = internalProjectPath(usePathname());
 
   const items = useMemo(() => {
     if (!config || !config.object) return [];
@@ -83,7 +84,7 @@ const RepoNav = ({
         key: "collaborators",
         icon: <Users className="h-5 w-5 mr-2" />,
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collaborators`,
-        label: ui("Collaborators")
+        label: ui("Uživatelé a přístupy")
       }
       : null;
 
@@ -103,7 +104,7 @@ const RepoNav = ({
         <RepoNavItem
           key={item.key}
           icon={item.icon}
-          href={item.href}
+          href={publicProjectPath(item.href)}
           active={pathname === item.href || pathname.startsWith(`${item.href}/`)}
           onClick={onClick}
         >

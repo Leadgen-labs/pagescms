@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { Config } from "@/types/config";
 
 interface ConfigContextType {
@@ -9,6 +9,8 @@ interface ConfigContextType {
 }
 
 const ConfigContext = createContext<ConfigContextType | null>(null);
+
+export const useOptionalConfig = () => useContext(ConfigContext);
 
 export const useConfig = () => {
   const context = useContext(ConfigContext);
@@ -27,8 +29,18 @@ export const ConfigProvider = ({
 }) => {
   const [config, setConfig] = useState<Config | null>(value);
 
+  const displayConfig = useMemo(() => {
+    if (!config?.repo.startsWith("webs-obsah-")) return config;
+    const rename = (items: any[]): any[] => items.map((item) => ({
+      ...item,
+      ...(item.type === "collection" && item.name === "kontrola-presmerovani" ? { label: "Kontrola přesměrování" } : {}),
+      ...(Array.isArray(item.items) ? { items: rename(item.items) } : {}),
+    }));
+    return { ...config, object: { ...config.object, content: rename(config.object.content ?? []) } };
+  }, [config]);
+
   return (
-    <ConfigContext.Provider value={{ config, setConfig }}>
+    <ConfigContext.Provider value={{ config: displayConfig, setConfig }}>
       {children}
     </ConfigContext.Provider>
   );

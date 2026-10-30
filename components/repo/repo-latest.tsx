@@ -2,11 +2,14 @@
 
 import { RelativeTime } from "@/components/relative-time";
 import { UiText } from "@/components/ui-text";
+import { publicProjectPath } from "@/lib/project-url";
+
 import { useState, useEffect } from "react";
 
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { projectName } from "@/lib/project-name";
 import { getVisits } from "@/lib/tracker";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -62,12 +65,12 @@ export function RepoLatest() {
           <img src={`https://github.com/${visit.owner}.png`} alt={visit.owner} className="h-6 w-6 rounded" />
           <Link
             className="truncate font-medium hover:underline"
-            href={`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`}
-          >{visit.repo}</Link>
+            href={publicProjectPath(`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`)}
+          >{visit.displayName || projectName(visit.repo)}</Link>
           <div className="text-muted-foreground truncate"><RelativeTime date={visit.timestamp * 1000}/></div>
           <Link
             className={cn("ml-auto", buttonVariants({ variant: "outline", size: "xs"}))}
-            href={`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`}
+            href={publicProjectPath(`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`)}
           >
             <UiText text={"Open"} /> </Link>
         </li>

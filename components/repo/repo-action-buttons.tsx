@@ -60,6 +60,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Keep existing content repositories readable before their config is regenerated.
+const contentActionLabels: Record<string, string> = {
+  publikovat: "Publikovat znovu",
+  export: "Export obsahu",
+  "sablona-importu": "Šablona importu",
+  import: "Náhled importu",
+  "import-potvrdit": "Potvrdit import",
+  "presmerovani-export": "Export přesměrování",
+  "presmerovani-nahled": "Náhled přesměrování",
+  "presmerovani-potvrdit": "Použít přesměrování",
+};
+const contentActionDescriptions: Record<string, string> = {
+  "presmerovani-export": "Připraví CSV se současnými pravidly a šablonu pro import. Soubory najdete v sekci Export a import. Web se nezmění.",
+  "presmerovani-nahled": "Načte nahraný CSV nebo JSON soubor a připraví pravidla ke kontrole. Web se zatím nezmění.",
+};
+
 type RepoActionButtonsProps = {
   actions: RepoActionConfig[];
   owner: string;
@@ -131,7 +147,7 @@ const isFieldValueValid = (field: RepoActionField, value: string | number | bool
 };
 
 export function RepoActionButtons({
-  actions,
+  actions: configuredActions,
   owner,
   repo,
   refName,
@@ -142,6 +158,15 @@ export function RepoActionButtons({
   layout = "header",
 }: RepoActionButtonsProps) {
   const ui = useUi();
+  const actions = useMemo(() => repo.startsWith("webs-obsah-")
+    ? configuredActions.map((action) => ({
+        ...action,
+        label: ui(contentActionLabels[action.name] ?? action.label),
+        confirm: action.confirm ?? (contentActionDescriptions[action.name]
+          ? { message: ui(contentActionDescriptions[action.name]) }
+          : undefined),
+      }))
+    : configuredActions, [configuredActions, repo, ui]);
   const { user } = useUser();
   const { trackActionRun } = useActionToasts();
   const isGithubUser = hasGithubIdentity(user);
@@ -457,7 +482,8 @@ export function RepoActionButtons({
                 onClick={() => handleActionClick(action)}
                 disabled={isBusy}
                 isActive={isBusy}
-                className="pr-8"
+                className="h-auto min-h-8 items-start pr-8 [&>span:last-child]:whitespace-normal [&>span:last-child]:overflow-visible [&>svg]:mt-0.5"
+                title={typeof action.confirm === "object" ? action.confirm.message : action.label}
               >
                 {getPrimaryIcon(isBusy)}
                 <span>{action.label}</span>

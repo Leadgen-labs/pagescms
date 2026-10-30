@@ -6,6 +6,8 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
 import { useRepo } from "@/contexts/repo-context";
+import { useUser } from "@/contexts/user-context";
+import { hasGithubIdentity } from "@/lib/authz-shared";
 import { RepoBranches } from "./repo-branches";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +36,7 @@ export function RepoDropdown({
 }) {
   const ui = useUi();
   const router = useRouter();
+  const { user } = useUser();
   const { owner, repo, branches, defaultBranch } = useRepo();
   const{ config } = useConfig();
 
@@ -61,6 +64,8 @@ export function RepoDropdown({
   const handleBranchChange = (branch: string) => {
     router.push(`/${owner}/${repo}/${encodeURIComponent(branch)}`);
   };
+
+  if (repo.startsWith("webs-obsah-") || !hasGithubIdentity(user)) return null;
 
   return (
     <Dialog>

@@ -12,9 +12,9 @@ import { createHttpError, toErrorResponse } from "@/lib/api-error";
 /**
  * Fetches and parses collection contents from GitHub repositories
  * (for collection views and searches)
- * 
+ *
  * GET /api/[owner]/[repo]/[branch]/collections/[name]
- * 
+ *
  * Requires authentication. If type is set to "search", we filter the contents
  * based on the query and fields parameters.
  */
@@ -43,8 +43,11 @@ export async function GET(
       if (normalizedPath !== schema.path) throw createHttpError(`Invalid path "${path}" for collection "${params.name}".`, 400);
     }
 
-    let entries = await getCollectionCache(params.owner, params.repo, params.branch, normalizedPath, token, schema.view?.node?.filename);
-    
+    let entries = await getCollectionCache(params.owner, params.repo, params.branch, normalizedPath, token, schema.view?.node?.filename, {
+      // Editorial lists must reflect commits made outside this CMS as well.
+      force: (params.repo.startsWith("webs-obsah-") && params.name.startsWith("blog-")) || searchParams.get("refresh") === "1",
+    });
+
     let data: {
       contents: Record<string, any>[],
       errors: string[]
@@ -73,15 +76,15 @@ export async function GET(
         );
       }
     }
-    
+
     if (entries) {
       data = parseContents(entries, schema, config, fields);
-      
+
       // If this is a search request, filter the contents
       if (type === "search" && query) {
         const searchQuery = query.toLowerCase();
         const searchFields = Array.isArray(fields) ? fields : fields ? [fields] : [];
-        
+
         data.contents = data.contents.filter(item => {
           if (searchFields.length === 0) {
             if (
@@ -93,19 +96,19 @@ export async function GET(
 
             return item.content && item.content.toLowerCase().includes(searchQuery);
           }
-          
+
           return searchFields.some(field => {
             if (field === 'name' || field === 'path') {
               const value = item[field];
               return value && String(value).toLowerCase().includes(searchQuery);
             }
-            
+
             if (field.startsWith('fields.')) {
               const fieldPath = field.replace('fields.', '');
               const value = safeAccess(item.fields, fieldPath);
               return value && String(value).toLowerCase().includes(searchQuery);
             }
-            
+
             return false;
           });
         });
@@ -143,7 +146,7 @@ const parseContents = (
     // If it's a file and it matches the schema extension
     if (item.type === "file" && (extension === "" || item.path.endsWith(`.${extension}`)) && !excludedFiles.includes(item.name)) {
       let contentObject: Record<string, any> = {};
-      
+
       if (serializedTypes.includes(schema.format) && schema.fields) {
         // If we are dealing with a serialized format and we have fields defined
         try {
@@ -173,17 +176,17 @@ const parseContents = (
         // If we don't have fields defined, we just add the name for display
         contentObject.name = item.name;
       }
-      
+
       // TODO: make this configurable
       // TODO: support other date formats
-      if (!contentObject.date && schema.filename.startsWith("{year}-{month}-{day}")) {
+      if (!contentObject.date && typeof schema.filename === "string" && schema.filename.startsWith("{year}-{month}-{day}")) {
         // If we couldn"t get a date from the content and filenames have a date, we extract it
         const filenameDate = getDateFromFilename(item.name);
         if (filenameDate) {
           contentObject.date = filenameDate.string;
         }
       }
-      
+
       // TODO: handle proper returns
       return {
         sha: item.sha,

@@ -6,6 +6,8 @@ import { UiText } from "@/components/ui-text";
 import { useLanguage } from "@/contexts/language-context";
 import type { Language } from "@/lib/language";
 import Link from "next/link";
+import { useConfig } from "@/contexts/config-context";
+import { projectName } from "@/lib/project-name";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useActionState } from "react";
 import {
@@ -173,6 +175,8 @@ export function Collaborators({
   const ui = useUi();
   const { t } = useLanguage();
   const [savingLanguage, setSavingLanguage] = useState<number | null>(null);
+  const { config } = useConfig();
+  const displayName = projectName(repo, config?.object);
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [addCollaboratorState, addCollaboratorAction] = useActionState<
     AddCollaboratorState,
@@ -311,7 +315,7 @@ export function Collaborators({
     return (
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-lg"><UiText text={"Collaborators"} /></h1>
+          <h1 className="font-semibold text-lg"><UiText text={"Přístupy k webu"}/>{displayName}</h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -326,11 +330,11 @@ export function Collaborators({
                   rel="noreferrer"
                 >
                   <BookText />
-                  <span className="sr-only"><UiText text={"Collaborators docs"} /></span>
+                  <span className="sr-only"><UiText text={"Nápověda k přístupům"}/></span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent><UiText text={"View docs"} /></TooltipContent>
+            <TooltipContent><UiText text={"Nápověda"}/></TooltipContent>
           </Tooltip>
         </div>
         {showInviteAction ? (
@@ -354,6 +358,7 @@ export function Collaborators({
     addCollaboratorAction,
     addCollaboratorState,
     collaborators.length,
+    displayName,
     emails,
     error,
     inviteDialogOpen,
@@ -505,17 +510,17 @@ export function Collaborators({
               <AlertDialogHeader>
                 <AlertDialogTitle>{t("Odebrat přístup?", "Are you sure?")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  <UiText text={"This will remove access to \""}/>{owner}/{repo}<UiText text={"\" for \""}/>{collaboratorToRemove?.email}<UiText text={"\"."}/></AlertDialogDescription>
+                  <UiText text={"Odeberete přístup k webu"}/>{displayName} <UiText text={"uživateli \""}/>{collaboratorToRemove?.email}<UiText text={"\"."}/></AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>{t("Zrušit", "Cancel")}</AlertDialogCancel>
+                <AlertDialogCancel><UiText text={"Zrušit"}/></AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
                     if (!collaboratorToRemove) return;
                     void handleConfirmRemove(collaboratorToRemove.id);
                   }}
                 >
-                  <UiText text={"Remove collaborator"} /> </AlertDialogAction>
+                  <UiText text={"Odebrat uživatele"}/></AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -524,9 +529,9 @@ export function Collaborators({
         <div className="flex-1 flex items-center">
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>{t("Žádní spolupracovníci", "No collaborators")}</EmptyTitle>
+              <EmptyTitle><UiText text={"Zatím žádní uživatelé"}/></EmptyTitle>
               <EmptyDescription>
-                <UiText text={"Invite collaborators to give them access to this repository."} /> </EmptyDescription>
+                <UiText text={"Pozvěte uživatele, kteří mají mít přístup ke správě webu."}/></EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <InviteCollaboratorsDialog
@@ -539,7 +544,7 @@ export function Collaborators({
                 value={emails}
                 onValueChange={setEmails}
                 disabled={isLoading}
-                triggerLabel="Invite a collaborator"
+                triggerLabel="Pozvat uživatele"
                 triggerVariant="default"
                 triggerSize="default"
               />

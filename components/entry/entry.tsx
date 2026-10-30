@@ -324,7 +324,7 @@ export function Entry({
         const normalizedFilename = normalizePath(trimmedFilename).split("/").pop() || "";
 
         if (showFilenameField && !normalizedFilename) {
-          throw new Error("Filename is required.");
+          throw new Error("Vyplňte název souboru.");
         }
 
         if (!savePath) {

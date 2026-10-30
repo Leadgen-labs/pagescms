@@ -26,7 +26,7 @@ export default function Page() {
   return (
     <div className="max-w-screen-sm mx-auto flex-1 flex flex-col h-full">
       <DocumentTitle
-        title={formatRepoBranchTitle("Collaborators", config.owner, config.repo, config.branch)}
+        title={formatRepoBranchTitle("Uživatelé a přístupy", config.owner, config.repo, config.branch)}
       />
       <div className="flex flex-col relative flex-1">
         <Collaborators owner={config.owner} repo={config.repo} branch={config?.branch}/>

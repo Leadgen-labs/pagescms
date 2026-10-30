@@ -8,7 +8,9 @@ import { getInstallationRepos, getInstallations } from "@/lib/github-app";
 import { requireGithubRepoWriteAccess } from "@/lib/authz-server";
 import { InviteEmailTemplate } from "@/components/email/invite";
 import { CollaboratorAddedEmailTemplate } from "@/components/email/collaborator-added";
-import { render } from "@react-email/render";
+import { render, toPlainText } from "@react-email/render";
+import { invitationLocale, invitationSubject } from "@/lib/invitation-email";
+import { projectName } from "@/lib/project-name";
 import { sendEmail } from "@/lib/mailer";
 import { getBaseUrl } from "@/lib/base-url";
 import { db } from "@/db";
@@ -17,6 +19,17 @@ import { collaboratorInviteTable, collaboratorTable } from "@/db/schema";
 import { z } from "zod";
 import { randomBytes } from "crypto";
 import { findVerifiedUserByEmail, normalizeEmail } from "@/lib/collaborator-access";
+
+// Resolve display metadata only after the caller has verified repository access.
+const invitationSiteName = async (owner: string, repo: string) => {
+  try {
+    const cached = await db.query.configTable.findFirst({
+      where: (table, { sql }) => sql`lower(${table.owner}) = lower(${owner}) and lower(${table.repo}) = lower(${repo})`,
+    });
+    if (cached) return projectName(repo, JSON.parse(cached.object));
+  } catch { /* Optional metadata must not prevent an invitation. */ }
+  return projectName(repo);
+};
 
 const parseInviteEmails = (raw: FormDataEntryValue | null) => {
   const value = typeof raw === "string" ? raw : "";
@@ -141,6 +154,8 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
 
     const { repoAccess, installation } = await assertRepoInInstallation(user, owner, repo);
 
+    const siteName = await invitationSiteName(owner, repo);
+
 		const baseUrl = getBaseUrl();
     const repoUrl = new URL(`/${owner}/${repo}`, baseUrl).toString();
     const createdCollaborators: (typeof collaboratorTable.$inferSelect)[] = [];
@@ -185,8 +200,8 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
           const html = await render(
             InviteEmailTemplate({
               inviteUrl,
-              repoName: `${formData.get("owner")}/${formData.get("repo")}`,
-              language,
+              repoName: siteName,
+              locale: language,
               email: normalizedEmail,
               invitedByName: user.name || user.githubUsername || user.email,
               invitedByUrl: `https://github.com/${user.githubUsername}`,
@@ -194,8 +209,9 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
           );
           await sendEmail({
             to: normalizedEmail,
-            subject: emailSubject("invite", language, `${owner}/${repo}`),
+            subject: invitationSubject(baseUrl, siteName, language),
             html,
+            text: toPlainText(html),
           });
         } catch (error: any) {
           console.error(`Failed to send invitation email to ${normalizedEmail}:`, error.message);
@@ -208,7 +224,7 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
             CollaboratorAddedEmailTemplate({
               language,
               email: normalizedEmail,
-              repoName: `${formData.get("owner")}/${formData.get("repo")}`,
+              repoName: siteName,
               repoUrl,
               invitedByName: user.name || user.githubUsername || user.email,
               invitedByUrl: `https://github.com/${user.githubUsername}`,
@@ -216,8 +232,9 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
           );
           await sendEmail({
             to: normalizedEmail,
-            subject: emailSubject("added", language, `${owner}/${repo}`),
+            subject: invitationSubject(baseUrl, siteName, language),
             html,
+            text: toPlainText(html),
           });
         } catch (error: any) {
           console.error(`Failed to send collaborator notification email to ${normalizedEmail}:`, error.message);
@@ -318,6 +335,8 @@ const handleResendCollaboratorInvite = async (collaboratorId: number, owner: str
     if (!user) throw new Error("You must be signed in with GitHub to resend collaborator invites.");
     await assertRepoInInstallation(user, owner, repo);
 
+    const siteName = await invitationSiteName(owner, repo);
+
     const collaborator = await db.query.collaboratorTable.findFirst({ where: eq(collaboratorTable.id, collaboratorId) });
     if (!collaborator) throw new Error("Collaborator not found");
 
@@ -337,8 +356,8 @@ const handleResendCollaboratorInvite = async (collaboratorId: number, owner: str
     const html = await render(
       InviteEmailTemplate({
         inviteUrl,
-        language,
-        repoName: `${owner}/${repo}`,
+        repoName: siteName,
+        locale: language,
         email: collaborator.email,
         invitedByName: user.name || user.githubUsername || user.email,
         invitedByUrl: `https://github.com/${user.githubUsername}`,
@@ -347,8 +366,9 @@ const handleResendCollaboratorInvite = async (collaboratorId: number, owner: str
 
     await sendEmail({
       to: collaborator.email,
-      subject: emailSubject("invite", language, `${owner}/${repo}`),
+      subject: invitationSubject(baseUrl, siteName, language),
       html,
+      text: toPlainText(html),
     });
 
     return { message: `Invitation email resent to ${collaborator.email}.` };

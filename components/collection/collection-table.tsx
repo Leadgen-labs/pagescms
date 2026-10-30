@@ -319,7 +319,7 @@ export function CollectionTable<TData extends TableData>({
           ) : (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={columns.length} className="text-center text-muted-foreground text-sm p-6">
-                <span><UiText text={"No entries"} /></span>
+                <span>{search ? ui("Nic neodpovídá hledání. Zkuste změnit hledaný text.") : ui("Zatím tu nejsou žádné záznamy. Použijte tlačítko pro vytvoření nebo obnovte seznam.")}</span>
               </TableCell>
             </TableRow>
           )}

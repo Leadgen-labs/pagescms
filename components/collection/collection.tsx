@@ -110,6 +110,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
   onSearchChange: (value: string) => void;
 }) {
   const ui = useUi();
+  const createLabel = name.startsWith("blog-") ? ui("Nový článek") : name.startsWith("kategorie-") ? ui("Nová kategorie") : ui("Přidat záznam");
   const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
@@ -126,7 +127,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
           className="pl-9"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder={ui("Search entries...")}
+          placeholder={ui("Hledat v seznamu…")}
         />
       </div>
       {showFolderCreate && (
@@ -150,21 +151,16 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
               </FolderCreate>
             </div>
           </TooltipTrigger>
-          <TooltipContent><UiText text={"Create folder"} /></TooltipContent>
+          <TooltipContent><UiText text={"Vytvořit složku"}/></TooltipContent>
         </Tooltip>
       )}
       {showAddEntry && (
         <>
           <Link
-            className={cn(buttonVariants(), "hidden sm:flex")}
+            className={cn(buttonVariants(), "shrink-0")}
             href={addEntryHref}
           >
-            <UiText text={"Add an entry"} /> </Link>
-          <Link
-            className={cn(buttonVariants({ size: "icon" }), "sm:hidden shrink-0")}
-            href={addEntryHref}
-          >
-            <Plus className="size-4" />
+            {createLabel}
           </Link>
         </>
       )}
@@ -279,7 +275,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
 
   const fetchCollectionByUrl = useCallback(
     async (apiUrl: string): Promise<Record<string, any>[]> => {
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, { cache: "no-store" });
       const result = await requireApiSuccess<any>(response, "Fetch failed");
 
       if (result.data.errors?.length) {
@@ -306,7 +302,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     [buildCollectionApiUrl, collectionPath],
   );
 
-  const { data: swrCollectionData, error: swrCollectionError } = useSWR<
+  const { data: swrCollectionData, error: swrCollectionError, mutate: refreshCollection, isValidating } = useSWR<
     Record<string, any>[]
   >(rootCollectionKey, fetchCollectionByUrl, {
     revalidateOnFocus: true,
@@ -541,7 +537,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
 
     tableColumns.push({
       accessorKey: "actions",
-      header: ui("Actions"),
+      header: ui("Akce"),
       cell: ({ row }: { row: any }) => (
         <div className="flex gap-1 justify-end">
           {row.original.type === "file" && (
@@ -983,12 +979,12 @@ export function Collection({ name, path }: { name: string; path?: string }) {
         <EmptyHeader>
           <EmptyTitle>
             {error === "Not found"
-              ? ui("Folder not found")
-              : ui("Something went wrong")}
+              ? ui("Složka ještě neexistuje")
+              : ui("Seznam se nepodařilo načíst")}
           </EmptyTitle>
           <EmptyDescription>
             {error === "Not found"
-              ? `The collection folder "${schema.path}" does not exist yet.`
+              ? ui("Tady zatím není žádný obsah. Vytvořte první záznam.")
               : error}
           </EmptyDescription>
         </EmptyHeader>
@@ -996,14 +992,14 @@ export function Collection({ name, path }: { name: string; path?: string }) {
           {error === "Not found" ? (
             canCreate ? (
               <EmptyCreate type="content" name={schema.name}>
-                <UiText text={"Create folder"} /> </EmptyCreate>
+                <UiText text={"Vytvořit složku"}/></EmptyCreate>
             ) : null
           ) : (
             <Link
               className={buttonVariants({ variant: "default" })}
               href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/settings`}
             >
-              <UiText text={"Go to settings"} /> </Link>
+              <UiText text={"Nastavení"}/></Link>
           )}
         </EmptyContent>
       </Empty>
@@ -1023,5 +1019,11 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     />
   );
 
-  return <div className="min-w-0 flex flex-col space-y-6">{contentNode}</div>;
+  return <div className="min-w-0 flex flex-col space-y-6">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <p className="text-sm text-muted-foreground">{name.startsWith("blog-") ? ui("Články a koncepty. Nový článek se nejdřív uloží jako koncept; zveřejnění zvolíte v poli Stav.") : ui("Vyberte záznam, který chcete upravit.")}</p>
+      <Button variant="outline" disabled={isValidating} onClick={() => void refreshCollection()}>{isValidating ? ui("Načítání…") : ui("Obnovit seznam")}</Button>
+    </div>
+    {contentNode}
+  </div>;
 }

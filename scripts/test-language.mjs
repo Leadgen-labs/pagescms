@@ -22,7 +22,7 @@ for(const [file,component] of [['login','LoginEmailTemplate'],['invite','InviteE
   const html=await render(template({language,email:'test@example.com',otp:'123456',repoName:'Demo <script>alert(1)</script>',inviteUrl:'https://cms.example/sign-in?token=safe',repoUrl:'https://cms.example/demo',invitedByName:'Team <script>',invitedByUrl:'https://example.com'}));
   assert.ok(html.includes(`lang="${language}"`));assert.ok(!html.includes('<script>'));
   if(file==='login'){assert.ok(html.includes('123456'));assert.ok(html.includes(language==='cs'?'Kód platí 5 minut.':'This code will expire in 5 minutes.'));}
-  else assert.ok(html.includes(language==='cs'?'správě webu':'Pages CMS'));
+  else { assert.ok(html.includes(language==='cs'?'Upravujte web':'Manage your website')); assert.ok(html.includes(file==='invite'?'https://cms.example/sign-in?token=safe':'https://cms.example/demo')); assert.ok(html.includes('https://mcp.mobilut.com/mcp')); }
  });
 }
 test('email subjects and locale validation',()=>{

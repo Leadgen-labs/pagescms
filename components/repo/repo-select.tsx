@@ -3,6 +3,8 @@
 import { RelativeTime } from "@/components/relative-time";
 import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
+import { publicProjectPath } from "@/lib/project-url";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -55,7 +57,7 @@ export function RepoSelect({
   const searchResults = useMemo(() => {
     if (!results) return [];
     if (selectedAccount?.repositorySelection !== "all") {
-      return results.filter((result: any) => result.repo.toLowerCase().includes(keyword.toLowerCase()));
+      return results.filter((result: any) => [result.repo, result.displayName].some(value => value?.toLowerCase().includes(keyword.toLowerCase())));
     }
     return results;
   }, [results, keyword, selectedAccount]);
@@ -197,15 +199,15 @@ export function RepoSelect({
                 <li key={`${result.owner}/${result.repo}`} className="flex gap-x-2 items-center border border-b-0 last:border-b first:rounded-t-md last:rounded-b-md px-3 py-2 text-sm">
                   <Link
                     className="truncate font-medium hover:underline"
-                    href={`/${result.owner}/${result.repo}/${result.defaultBranch ? encodeURIComponent(result.defaultBranch) : ""}`}
-                  >{result.repo}</Link>
+                    href={publicProjectPath(`/${result.owner}/${result.repo}/${result.defaultBranch ? encodeURIComponent(result.defaultBranch) : ""}`)}
+                  >{result.displayName || result.repo}</Link>
                   {result.private && <LockKeyhole className="h-3 w-3 opacity-50"/>}
                   {result.updatedAt &&
                     <div className="text-muted-foreground truncate"><RelativeTime date={result.updatedAt}/></div>
                   }
                   <Link
                     className={cn("ml-auto", buttonVariants({ variant: "outline", size: "xs"}))}
-                    href={`/${result.owner}/${result.repo}/${result.defaultBranch ? encodeURIComponent(result.defaultBranch) : ""}`}
+                    href={publicProjectPath(`/${result.owner}/${result.repo}/${result.defaultBranch ? encodeURIComponent(result.defaultBranch) : ""}`)}
                   >
                     <UiText text={"Open"} /> </Link>
                 </li>
