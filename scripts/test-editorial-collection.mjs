@@ -3,14 +3,20 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import ts from 'typescript';
 import YAML from 'yaml';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const dateModule={exports:{}};
+const dateSource=ts.transpileModule(fs.readFileSync(new URL('../fields/core/date/index.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+new Function('require','module','exports',dateSource)(name=>name.startsWith('./')?{}:require(name),dateModule,dateModule.exports);
+const readDate=dateModule.exports.read;
 
 const path = '../app/api/[owner]/[repo]/[branch]/collections/[name]/route.ts';
 const source = ts.transpileModule(fs.readFileSync(new URL(path, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
-function harness({ denied = false, filename = '{title}.md' } = {}) {
-  const schema = { path: 'blog/cs', extension: 'md', format: 'yaml-frontmatter', filename, fields: [{name:'title',type:'string'},{name:'status',type:'string'}] };
+export function harness({ denied = false, filename = '{title}.md', content = '---\ntitle: Existující článek\nstatus: published\n---\nText' } = {}) {
+  const schema = { path: 'blog/cs', extension: 'md', format: 'yaml-frontmatter', filename, fields: [{name:'title',type:'string'},{name:'status',type:'string'},{name:'published_at',type:'date',options:{time:true,format:"yyyy-MM-dd'T'HH:mm"}}] };
   const calls = [];
   const deps = {
-    '@/fields/registry': { readFns: {} },
+    '@/fields/registry': { readFns: {date:readDate} },
     '@/lib/serialization': { parse: text => YAML.parse(text.split('---')[1]) },
     '@/lib/schema': {
       getSchemaByName: () => schema,
@@ -22,7 +28,7 @@ function harness({ denied = false, filename = '{title}.md' } = {}) {
     '@/lib/github-cache-file': { getCollectionCache: async (...args) => {
       calls.push(args);
       // Simulate stale cache containing only a placeholder, despite an external article commit.
-      return args[6]?.force ? [{type:'file',name:'clanek.md',path:'blog/cs/clanek.md',content:'---\ntitle: Existující článek\nstatus: published\n---\nText',sha:'article'}] : [{type:'file',name:'.gitkeep',path:'blog/cs/.gitkeep',content:''}];
+      return args[6]?.force ? [{type:'file',name:'clanek.md',path:'blog/cs/clanek.md',content,sha:'article'}] : [{type:'file',name:'.gitkeep',path:'blog/cs/.gitkeep',content:''}];
     } },
     '@/lib/api-error': { createHttpError:(message,status)=>Object.assign(new Error(message),{status}),toErrorResponse: error => Response.json({error:error.message},{status:error.status??500}) },
   };
@@ -74,4 +80,21 @@ test('forced folder refresh replaces an otherwise valid but stale snapshot', asy
   assert.equal(cached[0].name,'.gitkeep');assert.equal(reads,0);
   const refreshed=await get('leadgen-labs','webs-obsah-kesek','main','blog/cs','test',undefined,{force:true});
   assert.equal(refreshed[0].name,'clanek.md');assert.equal(reads,1);assert.equal(replacements,1);
+});
+
+
+test('actual date reader handles tagged YAML timestamps without blanking article fields',async()=>{
+ const h=harness({content:'---\ntitle: Viditelný článek\nstatus: published\npublished_at: !!timestamp 2026-10-29T15:27:35.561Z\n---\nText'});
+ const response=await h.get({nextUrl:new URL('https://cms.example/api?path=blog/cs&fields=title,status,published_at')},context('webs-obsah-kesek'));
+ const body=await response.json();assert.deepEqual(body.data.errors,[]);assert.equal(body.data.contents[0].fields.title,'Viditelný článek');assert.equal(body.data.contents[0].fields.status,'published');assert.match(body.data.contents[0].fields.published_at,/^2026-10-29T\d{2}:27$/);
+});
+
+
+test('date reader supports ISO strings and custom formats and rejects invalid input without throwing',()=>{
+ const field={name:'published_at',type:'date',options:{time:true,format:"yyyy-MM-dd'T'HH:mm"}};
+ assert.match(readDate('2026-10-29T15:27:35.561Z',field),/^2026-10-29T\d{2}:27$/);
+ assert.equal(readDate('29.10.2026',{name:'date',options:{format:'dd.MM.yyyy'}}),'2026-10-29');
+ for(const value of [null,undefined,42,{},[],new Date(NaN)]) assert.equal(readDate(value,field),'');
+ const raw=YAML.parse('published_at: !!timestamp 2026-10-29T15:27:35.561Z');
+ readDate(raw.published_at,field);assert.equal(raw.published_at.toISOString(),'2026-10-29T15:27:35.561Z');
 });
