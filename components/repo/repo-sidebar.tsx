@@ -262,6 +262,21 @@ function RepoSwitcher() {
   );
 }
 
+function RepoHeader() {
+  const { user } = useUser();
+  const { repo } = useRepo();
+  const { config } = useConfig();
+  if (!repo.startsWith("webs-obsah-") && hasGithubIdentity(user)) return <RepoSwitcher />;
+  return (
+    <div className="flex h-16 items-center gap-2 px-2">
+      <LayoutDashboard className="size-8 shrink-0 rounded-md bg-sidebar-accent p-1.5" />
+      <div className="grid min-w-0 text-sm leading-tight">
+        <span className="truncate font-medium">{projectName(repo, config?.object)}</span>
+        <span className="text-xs text-muted-foreground">Správa webu</span>
+      </div>
+    </div>
+  );
+}
 export function RepoSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
@@ -326,7 +341,6 @@ export function RepoSidebar() {
     const canManageRepo = hasGithubIdentity(user);
 
     const items: NavItem[] = [];
-    if (config.repo.startsWith("webs-obsah-")) items.push({key:"prehled",label:"Přehled webu",href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`,icon:<LayoutDashboard className="size-4"/>});
     if (config.repo.startsWith("webs-obsah-")) items.push({key:"submissions",label:"Formuláře a poptávky",href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/submissions`,icon:<Database className="size-4"/>});
 
     const configObject = (config.object as any) ?? {};
@@ -368,13 +382,20 @@ export function RepoSidebar() {
     return items;
   }, [config, user]);
   const rootActions = useMemo(
-    () => getRootActions(config?.object),
-    [config?.object],
+    () => getRootActions(config?.object).filter((action) =>
+      !config?.repo.startsWith("webs-obsah-") || ![
+        "export", "sablona-importu", "import", "import-potvrdit",
+        "presmerovani-export", "presmerovani-nahled", "presmerovani-potvrdit",
+      ].includes(action.name)),
+    [config?.object, config?.repo],
   );
 
   const getNodeHref = useCallback(
     (node: NavigationNode) => {
       if (!config) return "#";
+      if (node.type === "media" && node.name === "soubory" && config.repo.startsWith("webs-obsah-")) {
+        return `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`;
+      }
       if (node.type === "media") {
         return `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/media/${encodeURIComponent(node.name)}`;
       }
@@ -580,7 +601,7 @@ export function RepoSidebar() {
     rootActions.length > 0 && config
       ? (
         <SidebarGroup key="Actions">
-          <SidebarGroupLabel>Actions</SidebarGroupLabel>
+          <SidebarGroupLabel>Akce</SidebarGroupLabel>
           <SidebarGroupContent>
             <RepoActionButtons
               actions={rootActions}
@@ -602,11 +623,27 @@ export function RepoSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <RepoSwitcher />
+            <RepoHeader />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        {config?.repo.startsWith("webs-obsah-") && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`}>
+                    <Link href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`} onClick={handleNavigation}>
+                      <LayoutDashboard className="size-4" />
+                      <span>Přehled webu</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         {groups.map((group, index) => (
           <Fragment key={index}>{group}</Fragment>
         ))}
