@@ -2,6 +2,7 @@ import { type NextRequest } from "next/server";
 import { createOctokitInstance } from "@/lib/utils/octokit";
 import { getInstallations, getInstallationRepos } from "@/lib/github-app";
 import { db } from "@/db";
+import { projectName } from "@/lib/project-name";
 import { and, sql } from "drizzle-orm";
 import { collaboratorTable } from "@/db/schema";
 import { getGithubAccount } from "@/lib/github-account";
@@ -92,6 +93,19 @@ export async function GET(
     }
 
     const repos = Array.from(reposByKey.values());
+    for (const repo of repos) repo.displayName = projectName(repo.repo);
+    // Optional display metadata, after the existing authorization checks.
+    try {
+      const configs = await db.query.configTable.findMany({
+        where: (table, { sql }) => sql`lower(${table.owner}) = lower(${params.owner})`,
+      });
+      for (const repo of repos) {
+        const cached = configs.find(c => c.repo.toLowerCase() === repo.repo.toLowerCase() && c.branch === (repo.defaultBranch || "main"));
+        if (cached) {
+          try { repo.displayName = projectName(repo.repo, JSON.parse(cached.object)); } catch { /* Keep fallback label. */ }
+        }
+      }
+    } catch { /* Optional labels must not prevent listing authorized projects. */ }
 
     return Response.json({
       status: "success",
