@@ -1,4 +1,4 @@
-import {createHmac} from 'node:crypto';
+import {callWebsBot} from '@/lib/webs/bot';
 import {getToken} from '@/lib/token';
 import {createHttpError,toErrorResponse} from '@/lib/api-error';
 import {requireApiUserSession} from '@/lib/session-server';
@@ -19,10 +19,7 @@ export async function POST(request:Request,context:{params:Promise<{owner:string
   if(!['forms','list','detail','stats','enable','status','settings','access'].includes(input.op))throw createHttpError('Neplatná operace.',400);
   const body=JSON.stringify({repo:`${params.owner}/${params.repo}`,email:session.user.email,op:input.op,args:input.args??{}});
   if(body.length>30000)throw createHttpError('Požadavek je příliš velký.',413);
-  const timestamp=String(Math.floor(Date.now()/1000));
-  const signature=createHmac('sha256',secret).update(`${timestamp}.${body}`).digest('hex');
-  const response=await fetch(`${bot}/cms/submissions`,{method:'POST',headers:{'content-type':'application/json','x-webs-timestamp':timestamp,'x-webs-signature':signature},body,cache:'no-store',signal:AbortSignal.timeout(25000),redirect:'error'});
-  const result=await response.json();
-  return Response.json(result,{status:response.status,headers:{'cache-control':'no-store'}});
+  const response=await callWebsBot('/cms/submissions',JSON.parse(body));
+  return Response.json(response.data,{status:response.status,headers:{'cache-control':'no-store'}});
  }catch(error){return toErrorResponse(error);}
 }
