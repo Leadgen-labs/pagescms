@@ -12,11 +12,11 @@ const readDate=dateModule.exports.read;
 
 const path = '../app/api/[owner]/[repo]/[branch]/collections/[name]/route.ts';
 const source = ts.transpileModule(fs.readFileSync(new URL(path, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
-export function harness({ denied = false, filename = '{title}.md', content = '---\ntitle: Existující článek\nstatus: published\n---\nText' } = {}) {
+export function harness({ denied = false, filename = '{title}.md', dateReader = readDate, content = '---\ntitle: Existující článek\nstatus: published\n---\nText' } = {}) {
   const schema = { path: 'blog/cs', extension: 'md', format: 'yaml-frontmatter', filename, fields: [{name:'title',type:'string'},{name:'status',type:'string'},{name:'published_at',type:'date',options:{time:true,format:"yyyy-MM-dd'T'HH:mm"}}] };
   const calls = [];
   const deps = {
-    '@/fields/registry': { readFns: {date:readDate} },
+    '@/fields/registry': { readFns: {date:dateReader} },
     '@/lib/serialization': { parse: text => YAML.parse(text.split('---')[1]) },
     '@/lib/schema': {
       getSchemaByName: () => schema,
@@ -32,9 +32,9 @@ export function harness({ denied = false, filename = '{title}.md', content = '--
     } },
     '@/lib/api-error': { createHttpError:(message,status)=>Object.assign(new Error(message),{status}),toErrorResponse: error => Response.json({error:error.message},{status:error.status??500}) },
   };
-  const testModule = { exports:{} };
-  new Function('require','module','exports',source)(name => { if (!(name in deps)) throw Error(name); return deps[name]; },testModule,testModule.exports);
-  return { get: testModule.exports.GET,calls };
+  const compiledModule = { exports:{} };
+  new Function('require','module','exports',source)(name => { if (!(name in deps)) throw Error(name); return deps[name]; },compiledModule,compiledModule.exports);
+  return { get: compiledModule.exports.GET,calls };
 }
 const request = (query='') => ({nextUrl:new URL('https://cms.example/api?path=blog/cs&fields=title,status'+query)});
 const context = repo => ({params:Promise.resolve({owner:'leadgen-labs',repo,branch:'main',name:'blog-cs'})});
@@ -73,9 +73,9 @@ test('forced folder refresh replaces an otherwise valid but stale snapshot', asy
     fetchCollectionDirectoryEntries:async()=>{reads++;return [{name:'clanek.md',path:'blog/cs/clanek.md',type:'blob',object:{text:'content',oid:'sha',byteSize:7}}];},
     replaceFolderCache:async()=>{replacements++;},markFolderScopeError:async()=>{},
   };
-  const testModule={exports:{}};
-  new Function(...Object.keys(dependencies),'module',compiled)(...Object.values(dependencies),testModule);
-  const get=testModule.exports;
+  const compiledModule = {exports:{}};
+  new Function(...Object.keys(dependencies),'module',compiled)(...Object.values(dependencies),compiledModule);
+  const get=compiledModule.exports;
   const cached=await get('leadgen-labs','webs-obsah-kesek','main','blog/cs','test');
   assert.equal(cached[0].name,'.gitkeep');assert.equal(reads,0);
   const refreshed=await get('leadgen-labs','webs-obsah-kesek','main','blog/cs','test',undefined,{force:true});
@@ -97,4 +97,11 @@ test('date reader supports ISO strings and custom formats and rejects invalid in
  for(const value of [null,undefined,42,{},[],new Date(NaN)]) assert.equal(readDate(value,field),'');
  const raw=YAML.parse('published_at: !!timestamp 2026-10-29T15:27:35.561Z');
  readDate(raw.published_at,field);assert.equal(raw.published_at.toISOString(),'2026-10-29T15:27:35.561Z');
+});
+
+
+test('one broken field reports its error without blanking title and status',async()=>{
+ const h=harness({content:'---\ntitle: Viditelný titulek\nstatus: published\npublished_at: broken\n---\nText',dateReader:()=>{throw Error('Invalid field');}});
+ const response=await h.get({nextUrl:new URL('https://cms.test/api?path=blog/cs&fields=title,status,published_at')},context('webs-obsah-kesek'));
+ const body=await response.json();assert.equal(body.data.contents[0].fields.title,'Viditelný titulek');assert.equal(body.data.contents[0].fields.status,'published');assert.equal(body.data.errors.length,1);assert.match(body.data.errors[0],/published_at/);
 });

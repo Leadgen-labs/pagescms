@@ -10,7 +10,7 @@ import { ConfigSchema } from "@/lib/config-schema";
 import { z } from "zod";
 import mergeWith from "lodash.mergewith";
 
-const configVersion = "3.0";
+const configVersion = "3.1";
 
 type NavigationNode = {
   type: "group" | "file" | "collection" | "media";
@@ -315,6 +315,14 @@ const normalizeContentEntry = (
     } else if (item.extension === "csv") {
       item.format = "datagrid";
     }
+  }
+  if (item.view?.order) {
+    item.view.default = {
+      sort: item.view.sort?.[0],
+      order: item.view.order,
+      ...item.view.default,
+    };
+    delete item.view.order;
   }
   if (item.view?.node && typeof item.view.node === "string") {
     item.view.node = {

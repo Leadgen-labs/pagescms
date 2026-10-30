@@ -1,7 +1,8 @@
 import { type NextRequest } from "next/server";
 import { createOctokitInstance } from "@/lib/utils/octokit";
 import { isContentOperationAllowed } from "@/lib/operations";
-import { writeFns } from "@/fields/registry";
+import { preserveUnchangedDateFields } from "@/lib/preserve-date-fields";
+import { readFns, writeFns } from "@/fields/registry";
 import { configVersion, parseConfig, normalizeConfig } from "@/lib/config";
 import { stringify, parse } from "@/lib/serialization";
 import { deepMap, generateZodSchema, getSchemaByName, sanitizeObject } from "@/lib/schema";
@@ -140,7 +141,11 @@ export async function POST(
               const existingContent = Buffer.from(response.data.content, "base64").toString();
               const existingContentObject = parse(existingContent, { format: schema.format, delimiters: schema.delimiters });
 
-              finalContentObject = mergeWith({}, existingContentObject, unwrappedContentObject, (objValue: any, srcValue: any) => {
+              const contentWithDates = preserveUnchangedDateFields(
+                existingContentObject, data.content, unwrappedContentObject, schema.fields ?? [],
+                (value, field) => readFns.date(value, field, config),
+              );
+              finalContentObject = mergeWith({}, existingContentObject, contentWithDates, (objValue: any, srcValue: any) => {
                 if (Array.isArray(srcValue)) {
                   return srcValue;
                 }

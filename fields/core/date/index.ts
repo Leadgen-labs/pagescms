@@ -10,21 +10,31 @@ const defaultValue = (field: Field) => {
   return format(new Date(), inputFormat);
 };
 
-const read = (value: any, field: Field) => {
+const read = (value: any, field: Field, config?: { repo?: string }) => {
   const inputType = field?.options?.time ? "datetime-local" : "date";
   const inputFormat = inputType === "datetime-local" ? "yyyy-MM-dd'T'HH:mm" : "yyyy-MM-dd";
   const saveFormat = field?.options?.format as string || inputFormat;
 
   if (!value) return "";
 
+  const display = (date: Date) => {
+    if (!config?.repo?.startsWith("webs-obsah-")) return format(date, inputFormat);
+    // Editorial publication dates are Prague wall times, independent of the server TZ.
+    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Prague", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(date);
+    const part = (type: string) => parts.find((entry) => entry.type === type)?.value;
+    const day = part("year") + "-" + part("month") + "-" + part("day");
+    return inputType === "datetime-local" ? day + "T" + part("hour") + ":" + part("minute") : day;
+  };
+
   // YAML !!timestamp values are Date objects, while CMS values are strings.
   // Calling date-fns parse on a Date throws and used to blank the entire row.
-  if (value instanceof Date) return isValid(value) ? format(value, inputFormat) : "";
+  if (value instanceof Date) return isValid(value) ? display(value) : "";
   if (typeof value !== "string") return "";
 
   let parsedDate = parse(value, saveFormat, new Date());
   if (!isValid(parsedDate) && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
     parsedDate = parseISO(value);
+    return isValid(parsedDate) ? display(parsedDate) : "";
   }
 
   if (isValid(parsedDate)) {
@@ -40,6 +50,8 @@ const write = (value: any, field: Field) => {
   const inputFormat = inputType === "datetime-local" ? "yyyy-MM-dd'T'HH:mm" : "yyyy-MM-dd";
   const saveFormat = field?.options?.format as string || inputFormat;
 
+  if (value == null || value === "") return "";
+  if (typeof value !== "string") return "";
   const parsedDate = parse(value, inputFormat, new Date(0, 0));
 
   if (isValid(parsedDate)) {

@@ -155,7 +155,7 @@ const parseContents = (
             const requestedFieldPaths = selectedFields
               .filter((fieldPath) => fieldPath !== "path")
               .map((fieldPath) => fieldPath.startsWith("fields.") ? fieldPath.replace(/^fields\./, "") : fieldPath);
-            contentObject = pickAndTransformFields(parsedObject, schema.fields, requestedFieldPaths, config);
+            contentObject = pickAndTransformFields(parsedObject, schema.fields, requestedFieldPaths, config, (message) => parsedErrors.push(item.path + ": " + message));
           } else {
             // TODO: review if this works for blocks
             contentObject = deepMap(parsedObject, schema.fields, (value, field) => {
@@ -219,6 +219,7 @@ const pickAndTransformFields = (
   schemaFields: any[],
   fieldPaths: string[],
   config: Record<string, any>,
+  onError?: (message: string) => void,
 ) => {
   const output: Record<string, any> = {};
   const dedupedPaths = Array.from(new Set(fieldPaths));
@@ -227,10 +228,15 @@ const pickAndTransformFields = (
     const field = getFieldByPath(schemaFields, fieldPath);
     if (!field) return;
 
-    let value = safeAccess(parsedObject, fieldPath);
+    let value: unknown = safeAccess(parsedObject, fieldPath);
     if (typeof field.type === "string" && readFns[field.type]) {
-      const transformedValue = readFns[field.type](value, field, config);
-      if (transformedValue !== undefined) value = transformedValue;
+      try {
+        const transformedValue = readFns[field.type](value, field, config);
+        if (transformedValue !== undefined) value = transformedValue;
+      } catch (error) {
+        onError?.(fieldPath + ": " + (error instanceof Error ? error.message : String(error)));
+        value = undefined;
+      }
     }
     setByPath(output, fieldPath, value);
   });

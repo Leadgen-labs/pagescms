@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { normalizeActionFieldType } from "@/lib/actions";
 import { fieldTypes } from "@/fields/registry";
 
 const ActionSchema = z
@@ -66,9 +67,9 @@ const ActionSchema = z
           required_error: "'fields[].label' is required.",
           invalid_type_error: "'fields[].label' must be a string.",
         }),
-        type: z.enum(["text", "textarea", "select", "checkbox", "number"], {
+        type: z.preprocess(normalizeActionFieldType, z.enum(["text", "textarea", "select", "checkbox", "number"], {
           message: "'fields[].type' must be 'text', 'textarea', 'select', 'checkbox', or 'number'.",
-        }),
+        })),
         required: z.boolean().optional(),
         default: z.union([z.string(), z.number(), z.boolean()]).optional(),
         options: z.array(z.object({
@@ -615,6 +616,7 @@ const ContentLeafSchema = z
               },
             )
             .optional(),
+          order: z.enum(["asc", "desc"]).optional(),
           search: z
             .array(
               z.string({
