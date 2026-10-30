@@ -166,7 +166,17 @@ export function BotChat() {
     }
   };
 
-  if (!enabledRepo || !available) return null;
+  useEffect(() => {
+    const openDraft = (event: Event) => {
+      const detail = (event as CustomEvent<{text?: string}>).detail;
+      if (typeof detail?.text === "string") setText(detail.text);
+      setOpen(true);
+    };
+    window.addEventListener("webs-open-chat", openDraft);
+    return () => window.removeEventListener("webs-open-chat", openDraft);
+  }, []);
+
+  if (!enabledRepo || (!available && !open)) return null;
 
   return (
     <>
@@ -189,6 +199,7 @@ export function BotChat() {
             </SheetDescription>
           </SheetHeader>
 
+          {available === false && <p role="alert" className="border-b p-4 text-sm text-destructive">Chat pro tento web momentálně není dostupný. Zadání níže zůstává zachované; zkuste ho prosím odeslat později.</p>}
           {requests.length > 0 && (
             <div className="space-y-1 border-b bg-muted/50 px-4 py-2 text-xs">
               {requests.map((r) => (

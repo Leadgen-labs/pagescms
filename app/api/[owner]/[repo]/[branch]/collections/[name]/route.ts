@@ -43,7 +43,10 @@ export async function GET(
       if (normalizedPath !== schema.path) throw createHttpError(`Invalid path "${path}" for collection "${params.name}".`, 400);
     }
 
-    let entries = await getCollectionCache(params.owner, params.repo, params.branch, normalizedPath, token, schema.view?.node?.filename);
+    let entries = await getCollectionCache(params.owner, params.repo, params.branch, normalizedPath, token, schema.view?.node?.filename, {
+      // Editorial lists must reflect commits made outside this CMS as well.
+      force: (params.repo.startsWith("webs-obsah-") && params.name.startsWith("blog-")) || searchParams.get("refresh") === "1",
+    });
     
     let data: {
       contents: Record<string, any>[],
@@ -176,7 +179,7 @@ const parseContents = (
       
       // TODO: make this configurable
       // TODO: support other date formats
-      if (!contentObject.date && schema.filename.startsWith("{year}-{month}-{day}")) {
+      if (!contentObject.date && typeof schema.filename === "string" && schema.filename.startsWith("{year}-{month}-{day}")) {
         // If we couldn"t get a date from the content and filenames have a date, we extract it
         const filenameDate = getDateFromFilename(item.name);
         if (filenameDate) {

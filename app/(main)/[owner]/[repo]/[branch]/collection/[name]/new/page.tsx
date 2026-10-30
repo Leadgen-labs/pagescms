@@ -27,12 +27,14 @@ export default function Page({
   const schema = getSchemaByName(config.object, schemaName);
   const displayName = schema?.label || schema?.name || schemaName;
 
+  const title = schemaName.startsWith("blog-") ? "Nový článek" : schemaName.startsWith("kategorie-") ? "Nová kategorie" : "Nový záznam";
+
   return (
     <>
       <DocumentTitle
-        title={formatRepoBranchTitle(`New entry | ${displayName}`, config.owner, config.repo, config.branch)}
+        title={formatRepoBranchTitle(`${title} | ${displayName}`, config.owner, config.repo, config.branch)}
       />
-      <Entry name={schemaName} title="New entry" parent={parent}/>
+      <Entry name={schemaName} title={title} parent={parent}/>
     </>
   );
 }

@@ -19,6 +19,7 @@ import { hasGithubIdentity } from "@/lib/authz-shared";
 import { isCacheEnabled, isConfigEnabled } from "@/lib/config";
 import { getRootActions } from "@/lib/actions";
 import { getVisits } from "@/lib/tracker";
+import { CreateContent } from "@/components/webs/create-content";
 import { RepoActionButtons } from "@/components/repo/repo-action-buttons";
 import { RepoBranches } from "@/components/repo/repo-branches";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -607,8 +608,8 @@ export function RepoSidebar() {
   };
 
   const groups = [
-    renderNavigationGroup("Content", contentNavigation),
-    renderNavigationGroup("Media", mediaNavigation),
+    renderNavigationGroup("Obsah", contentNavigation),
+    renderNavigationGroup("Soubory", mediaNavigation),
     rootActions.length > 0 && config
       ? (
         <SidebarGroup key="Actions">
@@ -639,6 +640,7 @@ export function RepoSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        {config?.repo.startsWith("webs-obsah-") && <SidebarGroup><CreateContent /></SidebarGroup>}
         {config?.repo.startsWith("webs-obsah-") && (
           <SidebarGroup>
             <SidebarGroupContent>

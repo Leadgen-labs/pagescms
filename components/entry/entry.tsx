@@ -158,7 +158,7 @@ export function Entry({
       ? [{
           name: "body",
           type: "code",
-          label: showFilenameField ? "Content" : false,
+          label: showFilenameField ? "Obsah" : false,
           options: {
             format: schema?.extension || (entry?.name && getFileExtension(entry.name)) || "markdown",
             lintFn: path === ".pages.yml"
@@ -320,7 +320,7 @@ export function Entry({
         const normalizedFilename = normalizePath(trimmedFilename).split("/").pop() || "";
 
         if (showFilenameField && !normalizedFilename) {
-          throw new Error("Filename is required.");
+          throw new Error("Vyplňte název souboru.");
         }
 
         if (!savePath) {
@@ -699,10 +699,10 @@ export function Entry({
                 )
               )
             }
-            aria-label="Save"
+            aria-label="Uložit"
           >
             <Save className="size-4 sm:hidden" />
-            <span className="hidden sm:inline">Save</span>
+            <span className="hidden sm:inline">Uložit</span>
           </Button>
           {path && (
             <ButtonGroup>
@@ -819,9 +819,9 @@ export function Entry({
       <div className="absolute inset-0 p-4 md:p-6 flex items-center justify-center">
         <Empty className="max-w-[420px] flex-none">
           <EmptyHeader>
-            <EmptyTitle>Creating entries is disabled</EmptyTitle>
+            <EmptyTitle>Vytváření záznamů je vypnuté</EmptyTitle>
             <EmptyDescription>
-              New entries are not allowed for this collection.
+              V této sekci nelze přidávat nové záznamy.
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
@@ -829,7 +829,7 @@ export function Entry({
               className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
               href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${encodeURIComponent(name)}`}
             >
-              Back to collection
+              Zpět na seznam
             </Link>
           </EmptyContent>
         </Empty>
@@ -850,9 +850,9 @@ export function Entry({
                 <InputGroupInput
                   value={filenameValue}
                   onChange={(event) => setFilenameValue(event.target.value)}
-                  placeholder="Filename"
+                  placeholder="Název souboru"
                   disabled={path ? !isFilenameUnlocked : false}
-                  aria-label="Filename"
+                  aria-label="Název souboru"
                 />
                 {path && filenameFieldMode === "enabled" && canRename && (
                   <InputGroupAddon align="inline-end">
@@ -863,7 +863,7 @@ export function Entry({
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => setIsFilenameUnlocked((prev) => !prev)}
-                          aria-label={isFilenameUnlocked ? "Lock filename" : "Unlock filename"}
+                          aria-label={isFilenameUnlocked ? "Zamknout název" : "Upravit název"}
                         >
                           {isFilenameUnlocked
                             ? <LockOpen className="size-3.5" />
@@ -871,7 +871,7 @@ export function Entry({
                         </InputGroupButton>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {isFilenameUnlocked ? "Lock filename" : "Unlock to edit"}
+                        {isFilenameUnlocked ? "Zamknout název" : "Upravit název"}
                       </TooltipContent>
                     </Tooltip>
                   </InputGroupAddon>

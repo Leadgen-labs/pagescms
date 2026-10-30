@@ -802,7 +802,8 @@ const getCollectionCache = async (
   branch: string,
   dirPath : string,
   token: string,
-  nodeEntryFilename?: string
+  nodeEntryFilename?: string,
+  options?: { force?: boolean },
 ) => {
   void ensureFileCacheFreshness(owner, repo, branch, token).catch(() => {});
   const scope = getFolderScope("collection", dirPath);
@@ -855,6 +856,7 @@ const getCollectionCache = async (
   }
 
   const shouldRefetch =
+    options?.force ||
     stableMeta?.status === "syncing" ||
     stableMeta?.status === "error" ||
     !hasVerifiedSnapshot ||

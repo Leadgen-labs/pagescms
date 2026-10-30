@@ -202,9 +202,9 @@ export function CollectionTable<TData extends TableData>({
                     title={
                       header.column.getCanSort()
                         ? header.column.getNextSortingOrder() === 'asc'
-                          ? 'Sort ascending'
+                          ? 'Seřadit vzestupně'
                           : header.column.getNextSortingOrder() === 'desc'
-                            ? 'Sort descending'
+                            ? 'Seřadit sestupně'
                             : 'Clear sort'
                         : undefined
                     }
@@ -316,7 +316,7 @@ export function CollectionTable<TData extends TableData>({
           ) : (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={columns.length} className="text-center text-muted-foreground text-sm p-6">
-                <span>No entries</span>
+                <span>{search ? "Nic neodpovídá hledání. Zkuste změnit hledaný text." : "Zatím tu nejsou žádné záznamy. Použijte tlačítko pro vytvoření nebo obnovte seznam."}</span>
               </TableCell>
             </TableRow>
           )}

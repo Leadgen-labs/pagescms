@@ -95,7 +95,7 @@ export function FileOptions({
       });
 
       toast.promise(deletePromise, {
-        loading: `Deleting ${path}`,
+        loading: "Mazání…",
         success: (data: any) => {
           if (onDelete) onDelete(path);
           return data.message;
@@ -117,7 +117,7 @@ export function FileOptions({
           <DropdownMenuContent align="end" portalProps={portalProps}>
             <DropdownMenuItem asChild>
               <a href={`https://github.com/${config.owner}/${config.repo}/blob/${encodeURIComponent(config.branch)}/${path}`} target="_blank">
-                View on GitHub
+                Zobrazit na GitHubu
                 <ArrowUpRight className="size-3 text-muted-foreground ml-auto" />
               </a>
             </DropdownMenuItem>
@@ -126,13 +126,13 @@ export function FileOptions({
                   <DropdownMenuSeparator />
                   {showRename &&
                     <DropdownMenuItem onSelect={() => setIsRenameOpen(true)}>
-                      Rename
+                      Přejmenovat
                     </DropdownMenuItem>
                   }
                   {showDelete && (
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem variant="destructive">
-                        Delete
+                        Smazat
                       </DropdownMenuItem>
                     </AlertDialogTrigger>
                   )}
@@ -142,12 +142,12 @@ export function FileOptions({
           </DropdownMenuContent>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to delete this file?</AlertDialogTitle>
-              <AlertDialogDescription>This will premanently delete &quot;{path}&quot;.</AlertDialogDescription>
+              <AlertDialogTitle>Opravdu chcete soubor smazat?</AlertDialogTitle>
+              <AlertDialogDescription>Soubor &quot;{path}&quot; bude smazán.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+              <AlertDialogCancel>Zrušit</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete}>Smazat</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </DropdownMenu>
