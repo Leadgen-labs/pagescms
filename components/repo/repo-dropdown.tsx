@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -31,6 +32,7 @@ export function RepoDropdown({
 }: {
   onClick?: () => void;
 }) {
+  const ui = useUi();
   const router = useRouter();
   const { owner, repo, branches, defaultBranch } = useRepo();
   const{ config } = useConfig();
@@ -65,7 +67,7 @@ export function RepoDropdown({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="w-full h-15 justify-start px-3">
-            <img className="h-10 w-10 rounded-lg" src={`https://github.com/${owner}.png`} alt="Picture of the author" />
+            <img className="h-10 w-10 rounded-lg" src={`https://github.com/${owner}.png`} alt={ui("Picture of the author")} />
             <div className="text-left overflow-hidden ml-3">
               <div className="font-medium truncate">{repo}</div>
               <div className="text-xs text-muted-foreground truncate">{config?.branch}</div>

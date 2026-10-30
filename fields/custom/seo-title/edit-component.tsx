@@ -1,5 +1,7 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
+import { ui, useUi } from "@/components/use-ui";
 import { forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -7,6 +9,7 @@ import { Counter, effectiveTitle, SERP, textWidth, useHydrated, useSibling, useT
 
 /** SEO titulek: výchozí „Nadpis | brand“ jako placeholder, šířka v px a počet znaků. */
 const EditComponent = forwardRef((props: any, ref: React.Ref<HTMLInputElement>) => {
+  const ui = useUi();
   const { field, ...restProps } = props;
   const options = (field?.options ?? {}) as SeoOptions;
   const own = typeof restProps.value === "string" ? restProps.value : "";
@@ -30,10 +33,10 @@ const EditComponent = forwardRef((props: any, ref: React.Ref<HTMLInputElement>) 
       {hydrated && title.text ? (
         <Counter tone={fits ? (title.isDefault ? "muted" : "ok") : "warn"}>
           <span>
-            {title.text.length} znaků, {width} z {SERP.titlePx} px
-            {title.isDefault ? " (výchozí titulek)" : ""}
+            {title.text.length} <UiText text={"znaků,"}/>{width} <UiText text={"z"}/>{SERP.titlePx} px
+            {title.isDefault ? ui(" (výchozí titulek)") : ""}
           </span>
-          {!fits && <span>Google titulek nejspíš zkrátí, důležité slovo dejte na začátek.</span>}
+          {!fits && <span><UiText text={"Google titulek nejspíš zkrátí, důležité slovo dejte na začátek."}/></span>}
         </Counter>
       ) : null}
     </div>

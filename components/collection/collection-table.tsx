@@ -1,5 +1,6 @@
 "use client"
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
@@ -88,6 +89,7 @@ export function CollectionTable<TData extends TableData>({
   isTree?: boolean,
   primaryField?: string
 }) {
+  const ui = useUi();
   const [expanded, setExpanded] = useState<ExpandedState>({});
 
   const [loadingRows, setLoadingRows] = useState<Record<string, boolean>>({});
@@ -203,10 +205,10 @@ export function CollectionTable<TData extends TableData>({
                     title={
                       header.column.getCanSort()
                         ? header.column.getNextSortingOrder() === 'asc'
-                          ? 'Sort ascending'
+                          ? ui("Sort ascending")
                           : header.column.getNextSortingOrder() === 'desc'
-                            ? 'Sort descending'
-                            : 'Clear sort'
+                            ? ui("Sort descending")
+                            : ui("Clear sort")
                         : undefined
                     }
                   >
@@ -304,7 +306,7 @@ export function CollectionTable<TData extends TableData>({
                                   disabled={row.getIsExpanded() && Array.isArray(row.original.subRows) && row.original.subRows.length === 0}
                                 >
                                   {row.getIsExpanded() ? <CircleMinus className="text-muted-foreground hover:text-foreground h-4 w-4" /> : <CirclePlus className="text-muted-foreground hover:text-foreground h-4 w-4" />}
-                                  <span className="sr-only">{row.getIsExpanded() ? 'Collapse row' : 'Expand row'}</span>
+                                  <span className="sr-only">{row.getIsExpanded() ? ui("Collapse row") : ui("Expand row")}</span>
                                 </Button>
                           )}
 

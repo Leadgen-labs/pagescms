@@ -1,10 +1,11 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useRef, cloneElement, useMemo, useCallback, createContext, useContext, useState } from "react";
 import { useConfig } from "@/contexts/config-context";
 import { getUploadFileName, joinPathSegments } from "@/lib/utils/file";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { getSchemaByName } from "@/lib/schema";
 import { cn } from "@/lib/utils";
 import { requireApiSuccess } from "@/lib/api-client";
@@ -40,6 +41,7 @@ interface MediaUploadDropZoneProps {
 }
 
 function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple, rename, disabled = false }: MediaUploadProps) {
+  const ui = useUi();
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
 
@@ -108,13 +110,13 @@ function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple
             onUpload?.(savedEntry);
             return `Uploaded ${file.name}`;
           },
-          error: (error: unknown) => error instanceof Error ? error.message : "Upload failed",
+          error: (error: unknown) => error instanceof Error ? error.message : ui("Upload failed"),
         });
       }
     } catch (error) {
       console.error(error);
     }
-  }, [config, path, configMedia?.name, configMedia?.rename, onUpload, rename]);
+  }, [config, path, configMedia?.name, configMedia?.rename, onUpload, rename, ui]);
 
   const contextValue = useMemo(() => ({
     handleFiles,
@@ -131,6 +133,7 @@ function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple
 }
 
 function MediaUploadTrigger({ children }: MediaUploadTriggerProps) {
+  const ui = useUi();
   const context = useContext(MediaUploadContext);
   if (!context) throw new Error("MediaUploadTrigger must be used within a MediaUpload component");
 
@@ -146,16 +149,16 @@ function MediaUploadTrigger({ children }: MediaUploadTriggerProps) {
     });
 
     if (validFiles.length === 0) {
-      toast.error(`Invalid file type. Allowed: ${context.accept}`);
+      toast.error(ui("Invalid file type. Allowed: {0}", context.accept));
       return [];
     }
 
     if (validFiles.length !== files.length) {
-      toast.error(`Some files were skipped. Allowed: ${context.accept}`);
+      toast.error(ui("Some files were skipped. Allowed: {0}", context.accept));
     }
 
     return validFiles;
-  }, [context.accept]);
+  }, [context.accept, ui]);
 
   const handleClick = useCallback(() => {
     if (context.disabled) return;
@@ -189,6 +192,7 @@ function MediaUploadTrigger({ children }: MediaUploadTriggerProps) {
 }
 
 function MediaUploadDropZone({ children, className }: MediaUploadDropZoneProps) {
+  const ui = useUi();
   const context = useContext(MediaUploadContext);
   if (!context) throw new Error("MediaUploadDropZone must be used within a MediaUpload component");
 
@@ -204,16 +208,16 @@ function MediaUploadDropZone({ children, className }: MediaUploadDropZoneProps) 
     });
 
     if (validFiles.length === 0) {
-      toast.error(`Invalid file type. Allowed: ${context.accept}`);
+      toast.error(ui("Invalid file type. Allowed: {0}", context.accept));
       return [];
     }
 
     if (validFiles.length !== files.length) {
-      toast.error(`Some files were skipped. Allowed: ${context.accept}`);
+      toast.error(ui("Some files were skipped. Allowed: {0}", context.accept));
     }
 
     return validFiles;
-  }, [context.accept]);
+  }, [context.accept, ui]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     if (context.disabled) return;

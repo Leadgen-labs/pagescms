@@ -4,6 +4,7 @@
 // ve WhatsAppu nebo Slacku: úpravy vzhledu, nové stránky, dotazy. Zprávy jdou
 // přes /api/[owner]/[repo]/[branch]/webs-bot, historie zůstává v prohlížeči.
 
+import { ErrorText } from "@/components/error-text";
 import { UiText } from "@/components/ui-text";
 import { useLanguage } from "@/contexts/language-context";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -198,10 +199,10 @@ export function BotChat() {
                 <div key={r.id} className="flex flex-wrap items-center gap-x-2">
                   <span className="font-medium">{r.kind}:</span>
                   <span className="text-muted-foreground">{r.state_label}</span>
-                  {r.channel !== "administrace" && <span className="text-muted-foreground">(kanál {r.channel})</span>}
+                  {r.channel !== "administrace" && <span className="text-muted-foreground"><UiText text={"(kanál"}/>{r.channel})</span>}
                   {r.preview_url && (
                     <a href={r.preview_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline">
-                      náhled <ExternalLink className="size-3" />
+                      <UiText text={"náhled"}/><ExternalLink className="size-3" />
                     </a>
                   )}
                 </div>
@@ -264,7 +265,7 @@ export function BotChat() {
           >
             {error && (
               <p className="text-sm text-destructive" role="alert">
-                {error}
+                <ErrorText text={String(error)}/>
               </p>
             )}
             <label htmlFor="webs-bot-message" className="sr-only">

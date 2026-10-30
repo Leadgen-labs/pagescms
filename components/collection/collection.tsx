@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import {
   Fragment,
@@ -68,7 +69,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { cn } from "@/lib/utils";
 import useSWR, { useSWRConfig } from "swr";
 import {
@@ -108,6 +109,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
   onFolderCreate: (entry: any) => void;
   onSearchChange: (value: string) => void;
 }) {
+  const ui = useUi();
   const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
@@ -124,7 +126,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
           className="pl-9"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search entries..."
+          placeholder={ui("Search entries...")}
         />
       </div>
       {showFolderCreate && (
@@ -171,6 +173,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
 });
 
 export function Collection({ name, path }: { name: string; path?: string }) {
+  const ui = useUi();
   const [tableSearch, setTableSearch] = useState("");
   const [data, setData] = useState<Record<string, any>[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -217,7 +220,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       pathAndFieldArray.push({
         path: "name",
         field: {
-          label: "Name",
+          label: ui("Name"),
           name: "name",
           type: "string",
         },
@@ -235,7 +238,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       pathAndFieldArray.push({
         path: "date",
         field: {
-          label: "Date",
+          label: ui("Date"),
           name: "date",
           type: "date",
         },
@@ -243,7 +246,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     }
 
     return pathAndFieldArray;
-  }, [schema]);
+  }, [schema, ui]);
 
   const primaryField = useMemo(
     () => getPrimaryField(schema) ?? "name",
@@ -327,9 +330,9 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     setError(
       swrCollectionError instanceof Error
         ? swrCollectionError.message
-        : "Fetch failed",
+        : ui("Fetch failed"),
     );
-  }, [swrCollectionError]);
+  }, [swrCollectionError, ui]);
 
   const fetchCollectionData = useCallback(
     async (fetchPath: string): Promise<Record<string, any>[] | undefined> => {
@@ -349,7 +352,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
           setError(err.message);
         } else {
           toast.error(
-            `Could not load items inside ${getFileName(fetchPath)}: ${err.message}`,
+            ui("Could not load items inside {0}: {1}", getFileName(fetchPath), err.message),
           );
         }
         return undefined;
@@ -361,8 +364,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       fetchCollectionByUrl,
       mutate,
       path,
-      schema.path,
-    ],
+      schema.path, ui],
   );
 
   const handleDelete = useCallback((path: string) => {
@@ -539,7 +541,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
 
     tableColumns.push({
       accessorKey: "actions",
-      header: "Actions",
+      header: ui("Actions"),
       cell: ({ row }: { row: any }) => (
         <div className="flex gap-1 justify-end">
           {row.original.type === "file" && (
@@ -595,14 +597,11 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                   <AlertDialogHeader>
                     <AlertDialogTitle><UiText text={"Rename this file first?"} /></AlertDialogTitle>
                     <AlertDialogDescription>
-                      Before adding children to this file, you must rename it
-                      from &quot;{row.original.path}&quot; to &quot;
-                      {row.original.path.replace(
+                      <UiText text={"Before adding children to this file, you must rename it from \""}/>{row.original.path}<UiText text={"\" to \""}/>{row.original.path.replace(
                         `.${schema.extension}`,
                         `/${schema.view?.node?.filename}`,
                       )}
-                      &quot;.
-                    </AlertDialogDescription>
+                      <UiText text={"\"."}/></AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
@@ -666,8 +665,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     handleConfirmRenameNode,
     canCreate,
     canDelete,
-    canRename,
-  ]);
+    canRename, ui]);
 
   const initialState = useMemo(() => {
     const sortId =
@@ -985,8 +983,8 @@ export function Collection({ name, path }: { name: string; path?: string }) {
         <EmptyHeader>
           <EmptyTitle>
             {error === "Not found"
-              ? "Folder not found"
-              : "Something went wrong"}
+              ? ui("Folder not found")
+              : ui("Something went wrong")}
           </EmptyTitle>
           <EmptyDescription>
             {error === "Not found"

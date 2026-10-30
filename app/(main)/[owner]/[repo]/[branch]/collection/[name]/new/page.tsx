@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { use } from "react";
 import { useSearchParams } from "next/navigation";
 import { DocumentTitle, formatRepoBranchTitle } from "@/components/document-title";
@@ -18,6 +19,7 @@ export default function Page({
     path: string;
   }>
 }) {
+  const ui = useUi();
   const resolvedParams = use(params);
   const { config } = useConfig();
   if (!config) throw new Error("Configuration not found.");
@@ -32,7 +34,7 @@ export default function Page({
       <DocumentTitle
         title={formatRepoBranchTitle(`New entry | ${displayName}`, config.owner, config.repo, config.branch)}
       />
-      <Entry name={schemaName} title="New entry" parent={parent}/>
+      <Entry name={schemaName} title={ui("New entry")} parent={parent}/>
     </>
   );
 }

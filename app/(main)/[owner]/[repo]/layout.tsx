@@ -42,7 +42,7 @@ export default async function Layout({
         <Empty className="absolute inset-0 border-0 rounded-none">
           <EmptyHeader>
             <EmptyTitle><UiText text={"Empty repository"} /></EmptyTitle>
-            <EmptyDescription>Create a branch and add a &quot;.pages.yml&quot; file to configure this repository.</EmptyDescription>
+            <EmptyDescription><UiText text={"Create a branch and add a \".pages.yml\" file to configure this repository."}/></EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Link className={buttonVariants({ variant: "default" })} href="/">

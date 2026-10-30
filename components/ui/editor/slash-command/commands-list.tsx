@@ -1,3 +1,4 @@
+import { ui } from "@/components/use-ui";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import type { Editor } from "@tiptap/core";
 import type { LucideIcon } from "lucide-react";
@@ -74,7 +75,7 @@ const CommandsList = forwardRef<CommandsListHandle, CommandsListProps>(({ items,
       ) : (
         <div className="text-muted-foreground flex items-center px-2 py-1.5 text-sm">
           <Ban className="mr-2 size-4" />
-          No results
+          {ui("No results")}
         </div>
       )}
     </div>

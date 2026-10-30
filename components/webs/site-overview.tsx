@@ -1,4 +1,5 @@
 "use client";
+import { ui, useUi } from "@/components/use-ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useConfig } from "@/contexts/config-context";
@@ -10,6 +11,7 @@ import { formatDate, requestLabel, SiteChecklist, SiteLinks, statusLabel, type S
 
 const englishStates: Record<string, string> = {live:"Live",draft:"Draft",paused:"Paused",collecting:"collecting requirements",queued:"queued",running:"in progress",preview:"preview awaiting your approval",awaiting_admin:"awaiting our team",deploying:"deploying",failed:"needs attention"};
 export function SiteOverview() {
+  const ui = useUi();
   const { config } = useConfig();
   const { language, t } = useLanguage();
   const [site, setSite] = useState<SiteOverviewData | null>(null);
@@ -27,11 +29,11 @@ export function SiteOverview() {
       const res = await fetch(`/api${base}/webs-overview`, { method: "POST", cache: "no-store", signal: pending.signal });
       const data = await res.json();
       if (!res.ok) throw Error(data.error || data.message || "Přehled se nepodařilo načíst.");
-      if (!data.site?.checks || !data.site?.leads || !data.site?.measurement || !data.site?.links) throw Error("Server vrátil neúplná data.");
+      if (!data.site?.checks || !data.site?.leads || !data.site?.measurement || !data.site?.links) throw Error(ui("Server vrátil neúplná data."));
       if (!pending.signal.aborted) setSite(data.site);
     } catch (e) { if (!pending.signal.aborted) setError((e as Error).message); }
     finally { if (!pending.signal.aborted) setBusy(false); }
-  }, [base]);
+  }, [base, ui]);
   useEffect(() => { setSite(null); void load(); return () => controller.current?.abort(); }, [load]);
   return <section lang={language} className="mx-auto max-w-5xl space-y-6 p-4 pb-24 md:p-6 md:pb-24">
     <div className="flex flex-wrap items-start justify-between gap-4">

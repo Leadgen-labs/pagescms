@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import {
   memo,
@@ -87,7 +88,7 @@ import {
   ChevronsUpDown,
   ChevronRight,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { interpolate } from "@/lib/schema";
 
 type BeforeSubmitHook = () => void | Promise<void>;
@@ -311,6 +312,7 @@ const ListField = ({
   registerBeforeSubmitHook?: RegisterBeforeSubmitHook;
   runBeforeSubmitHooks?: () => Promise<void>;
 }) => {
+  const ui = useUi();
   const supportsItemCollapse =
     field.type === "object" || field.type === "block";
   const isCollapsible = !!(
@@ -495,7 +497,7 @@ const ListField = ({
                       onClick={() => toggleAll(isAllExpanded)}
                     >
                       {isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
-                      {isAllExpanded ? "Collapse all" : "Expand all"}
+                      {isAllExpanded ? ui("Collapse all") : ui("Expand all")}
                     </Button>
                   );
                 })()}
@@ -1031,6 +1033,7 @@ const EntryForm = ({
   onDirtyChange?: (isDirty: boolean) => void;
   onChangeRegistered?: () => void;
 }) => {
+  const ui = useUi();
   const zodSchema = useMemo(() => {
     return generateZodSchema(fields);
   }, [fields]);
@@ -1134,9 +1137,9 @@ const EntryForm = ({
     [form, onSubmit],
   );
 
-  const handleError = () => {
-    toast.error("Please fix the errors before saving.", { duration: 5000 });
-  };
+  const handleError = useCallback(() => {
+    toast.error(ui("Please fix the errors before saving."), { duration: 5000 });
+  }, [ui]);
 
   const handleFormSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -1144,7 +1147,7 @@ const EntryForm = ({
       await runBeforeValidationHooks();
       await form.handleSubmit(handleSubmit, handleError)(event);
     },
-    [form, handleSubmit, runBeforeValidationHooks],
+    [form, handleSubmit, handleError, runBeforeValidationHooks],
   );
 
   return (

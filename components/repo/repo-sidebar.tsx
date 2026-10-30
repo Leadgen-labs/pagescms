@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import {
   Fragment,
@@ -261,6 +262,7 @@ function RepoSwitcher() {
 }
 
 export function RepoSidebar() {
+  const ui = useUi();
   const { t } = useLanguage();
   const pathname = usePathname();
   const { user } = useUser();
@@ -333,7 +335,7 @@ export function RepoSidebar() {
     if (canManageRepo && isCacheEnabled(configObject)) {
       items.push({
         key: "admin-cache",
-        label: "Cache",
+        label: ui("Cache"),
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/cache`,
         icon: <Database className="size-4" />,
       });
@@ -365,7 +367,7 @@ export function RepoSidebar() {
     }
 
     return items;
-  }, [config, user, t]);
+  }, [config, user, t, ui]);
   const rootActions = useMemo(
     () => getRootActions(config?.object),
     [config?.object],

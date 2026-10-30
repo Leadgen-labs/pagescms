@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { LanguageSwitcher } from "@/components/webs/language-switcher";
 import { useLanguage } from "@/contexts/language-context";
@@ -10,10 +11,11 @@ import { getAuthCallbackURL, getSafeRedirect } from "@/lib/auth-redirect";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { OtpVerificationForm } from "@/components/otp-verification-form";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { Loader } from "lucide-react";
 
 export function SignIn() {
+  const ui = useUi();
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -71,7 +73,7 @@ export function SignIn() {
       }
 
       setSubmittingMethod(null);
-      toast.error("Could not start GitHub sign-in. Please try again.");
+      toast.error(ui("Could not start GitHub sign-in. Please try again."));
     } catch (error: any) {
       toast.error(error?.message || "Could not start GitHub sign-in.");
       setSubmittingMethod(null);
@@ -221,7 +223,7 @@ export function SignIn() {
               <Input
                 type="email"
                 name="email"
-                placeholder="Email"
+                placeholder={ui("Email")}
                 required
                 disabled={isSubmitting}
                 value={email}

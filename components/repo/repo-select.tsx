@@ -1,9 +1,11 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { formatDistanceToNow } from "date-fns";
+
 import Link from "next/link";
 import { useUser } from "@/contexts/user-context";
 import { getGithubInstallationUrl } from "@/lib/github-app";
@@ -30,6 +32,7 @@ export function RepoSelect({
 }: {
   onAccountSelect?: (account: any) => void
 }) {
+  const ui = useUi();
   const { user } = useUser();
   const isGithubUser = hasGithubIdentity(user);
 
@@ -178,7 +181,7 @@ export function RepoSelect({
         </ButtonGroup>
         <div className="relative flex-1">
           <Input
-            placeholder="Search repositories by name"
+            placeholder={ui("Search repositories by name")}
             className="pl-9"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -198,7 +201,7 @@ export function RepoSelect({
                   >{result.repo}</Link>
                   {result.private && <LockKeyhole className="h-3 w-3 opacity-50"/>}
                   {result.updatedAt &&
-                    <div className="text-muted-foreground truncate">{formatDistanceToNow(new Date(result.updatedAt))} ago</div>
+                    <div className="text-muted-foreground truncate"><RelativeTime date={result.updatedAt}/></div>
                   }
                   <Link
                     className={cn("ml-auto", buttonVariants({ variant: "outline", size: "xs"}))}

@@ -1,5 +1,7 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
+import { ui, useUi } from "@/components/use-ui";
 import { forwardRef, useImperativeHandle, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -9,6 +11,7 @@ const plain = (text: string) => text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " 
 
 /** SEO popis: výchozí perex jako placeholder, počet znaků a živý náhled v Googlu. */
 const EditComponent = forwardRef((props: any, ref) => {
+  const ui = useUi();
   const { field, ...restProps } = props;
   const options = (field?.options ?? {}) as SeoOptions;
   const internalRef = useRef<HTMLTextAreaElement | null>(null);
@@ -36,15 +39,14 @@ const EditComponent = forwardRef((props: any, ref) => {
       {!hydrated ? null : description ? (
         <Counter tone={tooShort || !fits ? "warn" : isDefault ? "muted" : "ok"}>
           <span>
-            {description.length} znaků, doporučeno zhruba 120 až 160
-            {isDefault ? " (výchozí popis)" : ""}
+            {description.length} <UiText text={"znaků, doporučeno zhruba 120 až 160"}/>{isDefault ? ui(" (výchozí popis)") : ""}
           </span>
-          {tooShort && <span>Popis je krátký, Google ho nejspíš nahradí úryvkem z textu.</span>}
-          {!fits && <span>Google popis nejspíš zkrátí.</span>}
+          {tooShort && <span><UiText text={"Popis je krátký, Google ho nejspíš nahradí úryvkem z textu."}/></span>}
+          {!fits && <span><UiText text={"Google popis nejspíš zkrátí."}/></span>}
         </Counter>
       ) : (
         <Counter tone="muted">
-          <span>Bez popisu Google vybere úryvek z textu sám.</span>
+          <span><UiText text={"Bez popisu Google vybere úryvek z textu sám."}/></span>
         </Counter>
       )}
       {hydrated && preview && <GooglePreview {...preview} />}

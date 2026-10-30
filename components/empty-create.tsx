@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,7 +10,7 @@ import { normalizePath } from "@/lib/utils/file";
 import { getSchemaByName, initializeState } from "@/lib/schema";
 import { requireApiSuccess } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 
 const EmptyCreate = ({
   children,
@@ -22,6 +23,7 @@ const EmptyCreate = ({
   name?: string;
   onCreate?: (path: string) => void;
 }) => {
+  const ui = useUi();
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
 
@@ -93,7 +95,7 @@ const EmptyCreate = ({
       // Navigate immediately so destination route can render its loading skeleton.
       router.push(`${redirectTo}?empty-created`);
       router.refresh();
-      toast.success(`Created ${toCreate}. Opening...`, { id: toastId });
+      toast.success(ui("Created {0}. Opening...", toCreate), { id: toastId });
     } catch (error) {
       setIsCreating(false);
       toast.error(error instanceof Error ? error.message : `Failed to create ${toCreate}.`, {

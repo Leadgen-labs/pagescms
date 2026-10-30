@@ -1,10 +1,11 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { useConfig } from "@/contexts/config-context";
 import { joinPathSegments, normalizePath } from "@/lib/utils/file";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import {
   Dialog,
   DialogClose,
@@ -36,6 +37,7 @@ const FolderCreate = ({
   name?: string;
   onCreate?: (entry: FolderCreateResult) => void;
 }) => {
+  const ui = useUi();
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
 
@@ -46,7 +48,7 @@ const FolderCreate = ({
   const handleCreate = async () => {
     const normalizedFolderInput = normalizePath(folderPath.trim());
     if (!normalizedFolderInput) {
-      toast.error("Folder name is required.");
+      toast.error(ui("Folder name is required."));
       return;
     }
 

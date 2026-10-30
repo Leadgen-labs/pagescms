@@ -1,3 +1,5 @@
+"use client";
+import { useUi, ui as currentUi } from "@/components/use-ui";
 import { type HTMLAttributes, useEffect, useRef, useState } from "react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
@@ -259,6 +261,7 @@ export function Editor({
   editorClassName,
   ...props
 }: EditorProps) {
+  const ui = useUi();
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [showTableActions, setShowTableActions] = useState(false);
   const [showAltInput, setShowAltInput] = useState(false);
@@ -308,7 +311,7 @@ export function Editor({
           node.type.name === "paragraph" &&
           !currentEditor.isActive("tableCell") &&
           !currentEditor.isActive("tableHeader")
-            ? "Press '/' for commands"
+            ? currentUi("Press '/' for commands")
             : "",
         showOnlyCurrent: true,
         includeChildren: true,
@@ -554,7 +557,7 @@ export function Editor({
   const fileToDataUrl = (file: File): Promise<string> =>
     new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
-      reader.onerror = () => reject(new Error("Failed to read image file."));
+      reader.onerror = () => reject(new Error(ui("Failed to read image file.")));
       reader.onload = () => resolve(String(reader.result ?? ""));
       reader.readAsDataURL(file);
     });
@@ -910,10 +913,10 @@ export function Editor({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-label={label}
+      aria-label={ui(label)}
       aria-pressed={toggle ? pressed : undefined}
       className={`${toggle ? toolbarToggleButtonClass : toolbarButtonClass}${className ? ` ${className}` : ""}`}
-      title={label}
+      title={ui(label)}
     >
       <Icon className="size-4" />
     </button>
@@ -947,12 +950,12 @@ export function Editor({
                   value={activeState.blockType}
                   onChange={(event) => setBlockType(event.target.value as BlockType)}
                   disabled={disabled}
-                  aria-label="Block style"
+                  aria-label={ui("Block style")}
                   className="h-7 w-full appearance-none rounded-md border border-transparent bg-transparent px-2 pr-5.5 text-sm shadow-none outline-none hover:bg-accent focus-visible:outline-none focus-visible:ring-0 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {blockOptions.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {ui(option.label)}
                     </option>
                   ))}
                 </select>
@@ -983,8 +986,8 @@ export function Editor({
             {isOnImage ? (
               <button
                 type="button"
-                aria-label="Image alt text"
-                title="Image alt text"
+                aria-label={ui("Image alt text")}
+                title={ui("Image alt text")}
                 aria-pressed={showAltInput}
                 onClick={toggleAltInput}
                 disabled={disabled}
@@ -1049,7 +1052,7 @@ export function Editor({
               <input
                 id="image-alt"
                 type="text"
-                placeholder="Describe image"
+                placeholder={ui("Describe image")}
                 value={imageAltText}
                 onChange={(event) => setImageAltText(event.target.value)}
                 onKeyDown={(event) => {
@@ -1082,7 +1085,7 @@ export function Editor({
               data-state="open"
               className="border-border bg-popover data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 inline-flex w-fit flex-nowrap items-center gap-1 overflow-x-auto self-end rounded-md border p-1 shadow-sm duration-200 whitespace-nowrap"
             >
-              <span className="text-sm ml-1 text-muted-foreground">Rows:</span>
+              <span className="text-sm ml-1 text-muted-foreground">{ui("Rows:")}</span>
               {renderIconButton({
                 label: "Add row",
                 icon: Plus,
@@ -1096,7 +1099,7 @@ export function Editor({
                 disabled,
               })}
               <span className="bg-border mx-0.5 h-4 w-px" aria-hidden="true" />
-              <span className="text-sm text-muted-foreground">Columns:</span>
+              <span className="text-sm text-muted-foreground">{ui("Columns:")}</span>
               {renderIconButton({
                 label: "Add column",
                 icon: Plus,

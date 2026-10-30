@@ -1,3 +1,4 @@
+import { ui } from "@/lib/ui-source";
 import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -40,7 +41,7 @@ export default async function Page() {
 
   return (
     <MainRootLayout>
-      <DocumentTitle title="Settings" />
+      <DocumentTitle title={ui("Settings")} />
       <div className="max-w-screen-sm mx-auto p-4 md:p-6 space-y-6">
         <Link
           className={cn(

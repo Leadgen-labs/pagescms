@@ -1,9 +1,11 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
-import { formatDistanceToNowStrict } from "date-fns";
+
 import {
   ArrowUpRight,
   BookText,
@@ -13,7 +15,7 @@ import {
   Funnel,
   Loader,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { useRepoHeader } from "@/components/repo/repo-header-context";
 import { useActionToasts } from "@/contexts/action-toast-context";
 import { getInitialsFromName } from "@/lib/utils/avatar";
@@ -120,9 +122,9 @@ const formatContext = (
 };
 
 const formatDetails = (run: ActionRunSummary) => [
-  { label: "Surface", value: run.contextType ?? "-" },
-  { label: "Name", value: run.contextName ?? "-" },
-  { label: "Path", value: run.contextPath ?? "-" },
+  { label: ui("Surface"), value: run.contextType ?? "-" },
+  { label: ui("Name"), value: run.contextName ?? "-" },
+  { label: ui("Path"), value: run.contextPath ?? "-" },
 ];
 
 const getShaUrl = (owner: string, repo: string, sha: string | null) => {
@@ -314,6 +316,7 @@ export function ActionsPage({
   actionLabels = {},
   contextLabels = {},
 }: ActionsPageProps) {
+  const ui = useUi();
   const { trackActionRun } = useActionToasts();
   const [runs, setRuns] = useState<ActionRunSummary[] | null>(null);
   const [search, setSearch] = useState("");
@@ -363,14 +366,14 @@ export function ActionsPage({
           toastId,
         });
       } else if (intent === "cancel") {
-        toast.success("Run cancelled.");
+        toast.success(ui("Run cancelled."));
       }
 
       await loadRuns();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Action failed.");
+      toast.error(error instanceof Error ? error.message : ui("Action failed."));
     }
-  }, [actionLabels, branch, loadRuns, owner, repo, trackActionRun]);
+  }, [actionLabels, branch, loadRuns, owner, repo, trackActionRun, ui]);
 
   useEffect(() => {
     void loadRuns();
@@ -514,7 +517,7 @@ export function ActionsPage({
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search"
+              placeholder={ui("Search")}
               className="w-44"
             />
             <Popover>
@@ -533,7 +536,7 @@ export function ActionsPage({
                 <div className="grid gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Status" />
+                      <SelectValue placeholder={ui("Status")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all"><UiText text={"All statuses"} /></SelectItem>
@@ -544,7 +547,7 @@ export function ActionsPage({
                   </Select>
                   <Select value={actionFilter} onValueChange={setActionFilter}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Action" />
+                      <SelectValue placeholder={ui("Action")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all"><UiText text={"All actions"} /></SelectItem>
@@ -560,7 +563,7 @@ export function ActionsPage({
                     onValueChange={setTriggeredByFilter}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Triggered by" />
+                      <SelectValue placeholder={ui("Triggered by")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all"><UiText text={"Anyone"} /></SelectItem>
@@ -606,8 +609,7 @@ export function ActionsPage({
       search,
       statusFilter,
       triggeredByFilter,
-      triggeredByOptions,
-    ],
+      triggeredByOptions, ui],
   );
 
   useRepoHeader({ header: headerNode });
@@ -637,7 +639,7 @@ export function ActionsPage({
                 colSpan={7}
                 className="py-8 text-center text-muted-foreground"
               >
-                {runs.length === 0 ? "No actions yet." : "No matching actions."}
+                {runs.length === 0 ? ui("No actions yet.") : ui("No matching actions.")}
               </TableCell>
             </TableRow>
           ) : (
@@ -673,9 +675,7 @@ export function ActionsPage({
                 </TableCell>
                 <TableCell>
                   {run.createdAt
-                    ? formatDistanceToNowStrict(new Date(run.createdAt), {
-                        addSuffix: true,
-                      })
+                    ? <RelativeTime date={run.createdAt}/>
                     : "-"}
                 </TableCell>
                 <TableCell>

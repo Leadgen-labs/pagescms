@@ -1,9 +1,11 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { formatDistanceToNowStrict } from "date-fns";
+
 import {
   CircleCheck,
   CirclePlay,
@@ -11,7 +13,7 @@ import {
   EllipsisVertical,
   Loader,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { useActionToasts } from "@/contexts/action-toast-context";
 import { useUser } from "@/contexts/user-context";
 import { hasGithubIdentity } from "@/lib/authz-shared";
@@ -98,7 +100,7 @@ const formatRunLine = (run: ActionRunSummary) => {
     );
   }
 
-  const relative = formatDistanceToNowStrict(createdAt, { addSuffix: true });
+  const relative = <RelativeTime date={createdAt}/>;
 
   return (
     <span className="flex min-w-0 flex-col">
@@ -139,6 +141,7 @@ export function RepoActionButtons({
   contextData = {},
   layout = "header",
 }: RepoActionButtonsProps) {
+  const ui = useUi();
   const { user } = useUser();
   const { trackActionRun } = useActionToasts();
   const isGithubUser = hasGithubIdentity(user);
@@ -188,13 +191,13 @@ export function RepoActionButtons({
       } catch (error) {
         console.error(error);
         if (refreshErrorToastIdRef.current == null) {
-          refreshErrorToastIdRef.current = toast.error("Couldn’t refresh action status. Retrying…");
+          refreshErrorToastIdRef.current = toast.error(ui("Couldn’t refresh action status. Retrying…"));
         }
       }
     }, 4000);
 
     return () => window.clearInterval(interval);
-  }, [actions, loadRuns]);
+  }, [actions, loadRuns, ui]);
 
   const dispatchAction = useCallback(async (
     action: RepoActionConfig,
@@ -232,11 +235,11 @@ export function RepoActionButtons({
         toastId,
       });
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to dispatch action.", { id: toastId });
+        toast.error(error instanceof Error ? error.message : ui("Failed to dispatch action."), { id: toastId });
       } finally {
         setDispatching((current) => ({ ...current, [action.name]: false }));
       }
-  }, [contextData, contextName, contextPath, contextType, owner, refName, repo, trackActionRun]);
+  }, [contextData, contextName, contextPath, contextType, owner, refName, repo, trackActionRun, ui]);
 
   const handleActionClick = useCallback((action: RepoActionConfig) => {
     const shouldConfirm = action.confirm !== false;
@@ -406,7 +409,7 @@ export function RepoActionButtons({
           <DialogDescription>
             {typeof dialogAction?.confirm === "object" && dialogAction.confirm.message
               ? dialogAction.confirm.message
-              : "This will trigger a GitHub Action."}
+              : ui("This will trigger a GitHub Action.")}
           </DialogDescription>
         </DialogHeader>
         {dialogAction?.fields?.length ? (

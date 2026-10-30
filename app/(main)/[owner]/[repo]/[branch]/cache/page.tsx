@@ -31,7 +31,7 @@ export default function Page() {
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>
           <EmptyTitle><UiText text={"Cache disabled"} /></EmptyTitle>
-          <EmptyDescription>Enable the cache in &quot;.pages.yml&quot; by setting &quot;settings.cache: true&quot;.</EmptyDescription>
+          <EmptyDescription><UiText text={"Enable the cache in \".pages.yml\" by setting \"settings.cache: true\"."}/></EmptyDescription>
         </EmptyHeader>
       </Empty>
     );

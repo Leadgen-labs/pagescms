@@ -1,8 +1,9 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
 import { UiText } from "@/components/ui-text";
 import { useState, useEffect } from "react";
-import { formatDistanceToNow } from "date-fns";
+
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -63,7 +64,7 @@ export function RepoLatest() {
             className="truncate font-medium hover:underline"
             href={`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`}
           >{visit.repo}</Link>
-          <div className="text-muted-foreground truncate">{formatDistanceToNow(new Date(visit.timestamp * 1000))} ago</div>
+          <div className="text-muted-foreground truncate"><RelativeTime date={visit.timestamp * 1000}/></div>
           <Link
             className={cn("ml-auto", buttonVariants({ variant: "outline", size: "xs"}))}
             href={`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`}

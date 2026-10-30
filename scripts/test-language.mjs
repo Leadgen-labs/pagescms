@@ -58,3 +58,37 @@ test('invitation language becomes the normalized account default and existing ch
  assert.equal(await preferenceStore.getPreferredLanguage('new@example.com'),'cs');assert.equal(preferences.size,1);
  await assert.rejects(preferenceStore.setPreferredLanguage('new@example.com','de'));
 });
+const uiModule=load('lib/ui-translations.ts');
+test('UI labels and dynamic server messages switch both ways without translating user values',()=>{
+ assert.equal(uiModule.translateUiText('Save','cs'),'Uložit');assert.equal(uiModule.translateUiText('Uložit','en'),'Save');
+ assert.equal(uiModule.translateUiText('Web','en'),'Website');assert.equal(uiModule.translateUiText('Website','en'),'Website');
+ assert.equal(uiModule.translateUiText('File "Moje česká firma.md" already exists.','cs'),'Soubor "Moje česká firma.md" již existuje.');
+ assert.equal(uiModule.translateUiText('Pozvánka byla znovu odeslána na test@example.com.','en'),'Invitation email resent to test@example.com.');
+ assert.equal(uiModule.translateUiText('Custom customer content','cs'),'Custom customer content');
+ assert.equal(uiModule.formatUi('File "{0}" already exists.','cs',['my {0} file.md']),'Soubor "my {0} file.md" již existuje.');
+});
+const internal=load('app/api/internal/language/route.ts',{'@/lib/language-server':mockPreferences});
+const {createHmac}=require('node:crypto');
+test('internal bot lookup requires a fresh signature over the entire body; verified changes may update preference',async()=>{
+ const previous=process.env.WEBS_BOT_SECRET;process.env.WEBS_BOT_SECRET='internal-test';saved.length=0;
+ const make=(payload,stamp=String(Math.floor(Date.now()/1000)),signature)=>{
+  const body=typeof payload==='string'?payload:JSON.stringify(payload);
+  return new Request('https://cms.example/api/internal/language',{method:'POST',headers:{'content-type':'application/json','x-webs-timestamp':stamp,'x-webs-signature':signature??createHmac('sha256','internal-test').update(`${stamp}.${body}`).digest('hex')},body});
+ };
+ try {
+  assert.equal((await internal.POST(make({email:'me@example.com'}))).status,200);
+  assert.equal((await internal.POST(make({email:'me@example.com'},'1000000000'))).status,401);
+  assert.equal((await internal.POST(make({email:'me@example.com'},undefined,'0'.repeat(64)))).status,401);
+  assert.equal((await internal.POST(make('{'))).status,400);
+  assert.equal((await internal.POST(make({email:'me@example.com',language:'de'}))).status,400);
+  assert.equal((await internal.POST(make({email:'me@example.com',language:'en'}))).status,200);
+  assert.deepEqual(saved,[{email:'me@example.com',language:'en'}]);
+ } finally { if(previous===undefined)delete process.env.WEBS_BOT_SECRET;else process.env.WEBS_BOT_SECRET=previous; }
+});
+test('internal signed lookup reaches its route without Origin while browser mutations remain protected',()=>{
+ const {NextRequest}=require('next/server');const {proxy}=load('proxy.ts');
+ const internalRequest=new NextRequest('https://cms.example/api/internal/language',{method:'POST',body:'{}'});
+ const browserRequest=new NextRequest('https://cms.example/api/preferences/language',{method:'PATCH',body:'{}'});
+ assert.equal(proxy(internalRequest).headers.get('x-middleware-next'),'1');
+ assert.equal(proxy(browserRequest).status,403);
+});

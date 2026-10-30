@@ -7,7 +7,7 @@ import type { Language } from "@/lib/language";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Loader } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { authClient } from "@/lib/auth-client";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { OtpVerificationForm } from "@/components/otp-verification-form";

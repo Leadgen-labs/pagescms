@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { ArrowUpRight } from "lucide-react";
 import { FileRename } from "@/components/file/file-rename";
 
@@ -141,7 +141,7 @@ export function FileOptions({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle><UiText text={"Are you sure you want to delete this file?"} /></AlertDialogTitle>
-              <AlertDialogDescription>This will premanently delete &quot;{path}&quot;.</AlertDialogDescription>
+              <AlertDialogDescription><UiText text={"This will premanently delete \""}/>{path}<UiText text={"\"."}/></AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>

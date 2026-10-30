@@ -1,3 +1,4 @@
+import { ui } from "@/lib/ui-source";
 import { z } from "zod";
 import { Field } from "@/types/field";
 import { EditComponent } from "./edit-component";
@@ -15,7 +16,7 @@ const schema = (field: Field) => {
 
   const optionSchema = z.string().refine(
     (value) => normalizedValues.includes(value),
-    { message: normalizedValues.length === 0 ? "This select field requires options.values" : "Invalid option" }
+    { message: normalizedValues.length === 0 ? ui("This select field requires options.values") : ui("Invalid option") }
   );
 
   if (field.options?.multiple) {

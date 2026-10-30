@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorText } from "@/components/error-text";
 import { UiText } from "@/components/ui-text";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useActionState } from "react";
@@ -27,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { ChevronsUpDown, ArrowUpRight } from "lucide-react";
 
 export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
@@ -227,7 +228,7 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
                         />
                         {copyTemplateState?.error && (
                           <div className="text-sm font-medium text-destructive mt-2 ">
-                            {copyTemplateState.error}
+                            <ErrorText text={String(copyTemplateState.error)}/>
                           </div>
                         )}
                         {!isValidName && (

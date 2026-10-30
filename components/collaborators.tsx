@@ -1,5 +1,7 @@
 "use client";
 
+import { ErrorText } from "@/components/error-text";
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useLanguage } from "@/contexts/language-context";
 import type { Language } from "@/lib/language";
@@ -57,7 +59,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { requireApiSuccess } from "@/lib/api-client";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { BookText, EllipsisVertical, Loader } from "lucide-react";
 
 type Collaborator = {
@@ -142,7 +144,7 @@ function InviteCollaboratorsDialog({
           </label>
           {state?.error ? (
             <p className="text-sm font-medium text-destructive">
-              {state.error}
+              <ErrorText text={String(state.error)}/>
             </p>
           ) : null}
           <DialogFooter>
@@ -168,6 +170,7 @@ export function Collaborators({
   repo: string;
   branch?: string;
 }) {
+  const ui = useUi();
   const { t } = useLanguage();
   const [savingLanguage, setSavingLanguage] = useState<number | null>(null);
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
@@ -216,7 +219,7 @@ export function Collaborators({
         if (err instanceof DOMException && err.name === "AbortError") return;
         console.error(err);
         setError(
-          err instanceof Error ? err.message : "Failed to fetch collaborators",
+          err instanceof Error ? err.message : ui("Failed to fetch collaborators"),
         );
       } finally {
         // In React Strict Mode, an aborted first pass can race with the active request.
@@ -230,7 +233,7 @@ export function Collaborators({
     fetchCollaborators();
 
     return () => controller.abort();
-  }, [owner, repo, branch]);
+  }, [owner, repo, branch, ui]);
 
   useEffect(() => {
     if (addCollaboratorState?.message) {
@@ -502,9 +505,7 @@ export function Collaborators({
               <AlertDialogHeader>
                 <AlertDialogTitle>{t("Odebrat přístup?", "Are you sure?")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will remove access to &quot;{owner}/{repo}&quot; for
-                  &quot;{collaboratorToRemove?.email}&quot;.
-                </AlertDialogDescription>
+                  <UiText text={"This will remove access to \""}/>{owner}/{repo}<UiText text={"\" for \""}/>{collaboratorToRemove?.email}<UiText text={"\"."}/></AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>{t("Zrušit", "Cancel")}</AlertDialogCancel>

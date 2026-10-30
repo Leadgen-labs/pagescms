@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -135,7 +136,7 @@ const EditComponent = (props: any) => {
             </ComboboxValue>
           </ComboboxChips>
           <ComboboxContent anchor={anchor}>
-            <ComboboxEmpty>No options found.</ComboboxEmpty>
+            <ComboboxEmpty><UiText text={"No options found."}/></ComboboxEmpty>
             <ComboboxList>
               {(option: Option) => (
                 <ComboboxItem key={option.value} value={option}>
@@ -154,7 +155,7 @@ const EditComponent = (props: any) => {
             readOnly={isReadonly}
           />
           <ComboboxContent>
-            <ComboboxEmpty>No options found.</ComboboxEmpty>
+            <ComboboxEmpty><UiText text={"No options found."}/></ComboboxEmpty>
             <ComboboxList>
               {(option: Option) => (
                 <ComboboxItem key={option.value} value={option}>

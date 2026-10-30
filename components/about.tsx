@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -32,6 +33,7 @@ const version =
 const UPDATE_DOCS_URL = "https://pagescms.org/docs";
 
 export function About() {
+  const ui = useUi();
   const [open, setOpen] = useState(false);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
 
@@ -113,7 +115,7 @@ export function About() {
 
         <div className="rounded-lg border">
           <Row
-            label="Version"
+            label={ui("Version")}
             value={
               <div className="flex items-center gap-2">
                 <span className="text-sm">{version}</span>
@@ -128,7 +130,7 @@ export function About() {
                       variant="secondary"
                       className="bg-primary/10 font-medium text-primary"
                     >
-                      Update to {latestVersion}
+                      <UiText text={"Update to"}/>{latestVersion}
                       <ArrowUpRight className="ml-1 size-3" />
                     </Badge>
                   </a>
@@ -137,7 +139,7 @@ export function About() {
             }
           />
           <Row
-            label="Website"
+            label={ui("Website")}
             value={
               <ExternalLink href="https://pagescms.org">
                 pagescms.org
@@ -145,7 +147,7 @@ export function About() {
             }
           />
           <Row
-            label="Docs"
+            label={ui("Docs")}
             value={
               <ExternalLink href="https://pagescms.org/docs">
                 pagescms.org/docs

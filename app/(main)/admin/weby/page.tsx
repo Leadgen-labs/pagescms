@@ -1,3 +1,5 @@
+import { ErrorText } from "@/components/error-text";
+import { ui } from "@/lib/ui-source";
 import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -38,26 +40,23 @@ export default async function Page() {
 
   return (
     <MainRootLayout>
-      <DocumentTitle title="Weby" />
+      <DocumentTitle title={ui("Weby")} />
       <div className="max-w-screen-xl mx-auto p-4 md:p-6 space-y-6">
         <Link className={cn(buttonVariants({ variant: "outline", size: "xs" }), "inline-flex")} href="/admin">
           <ArrowLeft />
-          Admin
-        </Link>
+          <UiText text={"Admin"}/></Link>
         <header>
-          <h1 className="font-semibold tracking-tight text-lg md:text-2xl">Weby</h1>
+          <h1 className="font-semibold tracking-tight text-lg md:text-2xl"><UiText text={"Weby"}/></h1>
           <p className="text-sm text-muted-foreground">
-            Stav všech webů z bota: doména, měření, poslední nasazení a poptávky (bez náhledů). Dostupnost,
-            robots.txt a nasazení se kontrolují nejvýš jednou za {Math.round(checkedFor / 60) || 5} minut.
-          </p>
+            <UiText text={"Stav všech webů z bota: doména, měření, poslední nasazení a poptávky (bez náhledů). Dostupnost, robots.txt a nasazení se kontrolují nejvýš jednou za"}/>{Math.round(checkedFor / 60) || 5} <UiText text={"minut."}/></p>
         </header>
         {error && (
           <div role="alert" className="rounded-lg border border-red-300 p-4 text-sm text-red-700">
-            {error}
+            <ErrorText text={String(error)}/>
           </div>
         )}
         {!error && (
-          <section aria-label="Co řešit" className="space-y-2">
+          <section aria-label={ui("Co řešit")} className="space-y-2">
             {alerts.length ? (
               alerts.map((a, i) => (
                 <div
@@ -72,7 +71,7 @@ export default async function Page() {
                 </div>
               ))
             ) : (
-              <p className="rounded-lg border p-3 text-sm text-emerald-700">Nic k řešení: poptávky se doručují, spuštěné weby odpovídají a měří.</p>
+              <p className="rounded-lg border p-3 text-sm text-emerald-700"><UiText text={"Nic k řešení: poptávky se doručují, spuštěné weby odpovídají a měří."}/></p>
             )}
           </section>
         )}
@@ -80,14 +79,14 @@ export default async function Page() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Web</TableHead>
+                <TableHead><UiText text={"Web"}/></TableHead>
                 <TableHead><UiText text={"Stav"} /></TableHead>
-                <TableHead>Měření</TableHead>
-                <TableHead>Nasazeno</TableHead>
-                <TableHead className="text-right">Leady 7 / 30 dní</TableHead>
-                <TableHead className="text-right">Nedoručeno</TableHead>
-                <TableHead className="text-right">AI tento měsíc</TableHead>
-                <TableHead>Co chybí</TableHead>
+                <TableHead><UiText text={"Měření"}/></TableHead>
+                <TableHead><UiText text={"Nasazeno"}/></TableHead>
+                <TableHead className="text-right"><UiText text={"Leady 7 / 30 dní"}/></TableHead>
+                <TableHead className="text-right"><UiText text={"Nedoručeno"}/></TableHead>
+                <TableHead className="text-right"><UiText text={"AI tento měsíc"}/></TableHead>
+                <TableHead><UiText text={"Co chybí"}/></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -103,15 +102,15 @@ export default async function Page() {
                   <TableCell>
                     {statusLabel[s.status] ?? s.status}
                     <div className="text-xs text-muted-foreground">
-                      {s.status === "live" && s.reachable === false ? "doména neodpovídá" : s.domainActive ? "doména aktivní" : "bez domény"} ·{" "}
-                      {s.indexable ? "indexace povolená" : "robots zakazuje"}
+                      {s.status === "live" && s.reachable === false ? ui("doména neodpovídá") : s.domainActive ? ui("doména aktivní") : ui("bez domény")} ·{" "}
+                      {s.indexable ? ui("indexace povolená") : ui("robots zakazuje")}
                     </div>
                   </TableCell>
                   <TableCell className="text-xs">
-                    {s.measurement.gtm ? "GTM" : "bez GTM"} · {s.measurement.ga4 ? "GA4" : "bez GA4"} · {s.measurement.gsc ? "GSC" : "bez GSC"}
+                    {s.measurement.gtm ? "GTM" : ui("bez GTM")} · {s.measurement.ga4 ? "GA4" : ui("bez GA4")} · {s.measurement.gsc ? "GSC" : ui("bez GSC")}
                     <div className="text-muted-foreground">
-                      přístupy: {s.measurement.clientAccess}
-                      {s.measurement.gtmOwner === "client" ? " · GTM klienta" : ""}
+                      <UiText text={"přístupy:"}/>{s.measurement.clientAccess}
+                      {s.measurement.gtmOwner === "client" ? ui(" · GTM klienta") : ""}
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-nowrap">{formatDate(s.lastDeployAt)}</TableCell>
@@ -121,13 +120,13 @@ export default async function Page() {
                   <TableCell className={cn("text-right", s.leads.failed30 && "font-semibold text-red-600")}>{s.leads.failed30}</TableCell>
                   <TableCell className="text-right whitespace-nowrap">{s.aiSpendMonthUsd != null ? `${s.aiSpendMonthUsd.toFixed(2)} USD` : "-"}</TableCell>
                   <TableCell className="min-w-64">
-                    {todo(s) ? <SiteChecklist compact checks={s.checks.filter((c) => c.state === "todo")} /> : <span className="text-xs text-emerald-700">vše hotovo</span>}
+                    {todo(s) ? <SiteChecklist compact checks={s.checks.filter((c) => c.state === "todo")} /> : <span className="text-xs text-emerald-700"><UiText text={"vše hotovo"}/></span>}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          {!sites.length && !error && <p className="p-8 text-center text-muted-foreground">Žádné weby.</p>}
+          {!sites.length && !error && <p className="p-8 text-center text-muted-foreground"><UiText text={"Žádné weby."}/></p>}
         </div>
       </div>
     </MainRootLayout>

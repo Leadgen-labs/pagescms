@@ -1,5 +1,6 @@
 "use client";
 
+import { UiText } from "@/components/ui-text";
 import { useEffect, useMemo, useState } from "react";
 import { Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -279,12 +280,11 @@ const EditComponent = (props: any) => {
             </ComboboxValue>
           </ComboboxChips>
           <ComboboxContent anchor={anchor}>
-            {!isLoading && <ComboboxEmpty>No options found.</ComboboxEmpty>}
+            {!isLoading && <ComboboxEmpty><UiText text={"No options found."}/></ComboboxEmpty>}
             {isLoading && (
               <div className="flex items-center justify-center gap-2 py-2 text-center text-sm text-muted-foreground">
                 <Loader className="h-4 w-4 animate-spin" />
-                Loading options...
-              </div>
+                <UiText text={"Loading options..."}/></div>
             )}
             <ComboboxList>
               {(option: Option) => (
@@ -305,12 +305,11 @@ const EditComponent = (props: any) => {
             readOnly={isReadonly}
           />
           <ComboboxContent>
-            {!isLoading && <ComboboxEmpty>No options found.</ComboboxEmpty>}
+            {!isLoading && <ComboboxEmpty><UiText text={"No options found."}/></ComboboxEmpty>}
             {isLoading && (
               <div className="flex items-center justify-center gap-2 py-2 text-center text-sm text-muted-foreground">
                 <Loader className="h-4 w-4 animate-spin" />
-                Loading options...
-              </div>
+                <UiText text={"Loading options..."}/></div>
             )}
             <ComboboxList>
               {(option: Option) => (

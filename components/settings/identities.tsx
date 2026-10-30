@@ -1,10 +1,11 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,6 +36,7 @@ export function Identities({
   githubUsername,
   githubManageUrl,
 }: IdentitiesProps) {
+  const ui = useUi();
   const router = useRouter();
   const [pendingAction, setPendingAction] = useState<
     "connect" | "disconnect" | null
@@ -70,13 +72,13 @@ export function Identities({
         throw new Error(message);
       }
 
-      toast.success("GitHub account disconnected.");
+      toast.success(ui("GitHub account disconnected."));
       router.refresh();
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Failed to disconnect GitHub account.";
+          : ui("Failed to disconnect GitHub account.");
       toast.error(message);
     } finally {
       setPendingAction(null);
@@ -104,7 +106,7 @@ export function Identities({
         </div>
         {githubConnected && (
           <div className="ml-2 truncate text-muted-foreground">
-            {githubUsername ? `@${githubUsername}` : "Connected"}
+            {githubUsername ? `@${githubUsername}` : ui("Connected")}
           </div>
         )}
         {!githubConnected ? (

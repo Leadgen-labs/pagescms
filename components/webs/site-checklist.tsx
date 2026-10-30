@@ -1,3 +1,4 @@
+import { ui } from "@/lib/ui-source";
 import { CheckCircle2, Circle, MinusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +30,7 @@ export type SiteAlert = { slug: string; name: string; level: "error" | "warning"
 export function SiteLinks({ links, className, language = "cs" }: { links: SiteOverviewData["links"]; className?: string; language?: "cs" | "en" }) {
   const items: [string, string | null | undefined][] = [
     ["Web", links.site],
-    [language === "en" ? "Preview" : "Náhled", links.preview],
+    [language === "en" ? ui("Preview") : ui("Náhled"), links.preview],
     ["GA4", links.ga4],
     ["GTM", links.gtm],
     ["Search Console", links.gsc],
@@ -78,7 +79,7 @@ export function SiteChecklist({ checks, compact = false, language = "cs" }: { ch
           <li key={check.id} className="flex items-start gap-2">
             <Icon aria-hidden className={cn("mt-0.5 shrink-0", compact ? "size-3.5" : "size-4", tone[check.state])} />
             <span>
-              <span className="sr-only">{language === "en" ? ({done:"Done: ",todo:"Missing: ",na:"Not applicable: "}[check.state]) : check.state === "done" ? "Hotovo: " : check.state === "todo" ? "Chybí: " : "Netýká se: "}</span>
+              <span className="sr-only">{language === "en" ? ({done:"Done: ",todo:"Missing: ",na:"Not applicable: "}[check.state]) : check.state === "done" ? ui("Hotovo: ") : check.state === "todo" ? ui("Chybí: ") : ui("Netýká se: ")}</span>
               {language === "en" ? englishChecks[check.id] ?? check.label : check.label}
               {check.detail && <span className="text-muted-foreground"> ({language === "en" && check.id === "forms" ? check.detail.replace(/× nedoručeno za 30 dní/, " undelivered in 30 days") : check.detail})</span>}
             </span>

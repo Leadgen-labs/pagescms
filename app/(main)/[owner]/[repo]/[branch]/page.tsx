@@ -38,7 +38,7 @@ export default function Page() {
         ? <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
               <EmptyTitle><UiText text={"Configuration unavailable"} /></EmptyTitle>
-              <EmptyDescription>This repository is not configured, and configuration access is disabled here. Edit &quot;.pages.yml&quot; on GitHub if you think this is a mistake.</EmptyDescription>
+              <EmptyDescription><UiText text={"This repository is not configured, and configuration access is disabled here. Edit \".pages.yml\" on GitHub if you think this is a mistake."}/></EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Link

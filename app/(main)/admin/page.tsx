@@ -1,3 +1,4 @@
+import { ui } from "@/lib/ui-source";
 import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { desc, eq, or, sql } from "drizzle-orm";
@@ -176,7 +177,7 @@ export default async function Page({
 
   return (
     <MainRootLayout>
-      <DocumentTitle title="Admin" />
+      <DocumentTitle title={ui("Admin")} />
       <div className="max-w-screen-lg mx-auto p-4 md:p-6 space-y-6">
         <Link
           className={cn(
@@ -190,11 +191,9 @@ export default async function Page({
 
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-semibold tracking-tight text-lg md:text-2xl">
-            Admin
-          </h1>
+            <UiText text={"Admin"}/></h1>
           <Link className={buttonVariants({ variant: "default", size: "sm" })} href="/admin/weby">
-            Přehled webů
-          </Link>
+            <UiText text={"Přehled webů"}/></Link>
         </header>
 
         <div className="space-y-6">
@@ -236,8 +235,8 @@ export default async function Page({
                 <AdminUserSearch initialQuery={query} />
                 <AdminConfirmActionButton
                   action={logoutAllUsers}
-                  label="Log out all users"
-                  title="Log out all users?"
+                  label={ui("Log out all users")}
+                  title={ui("Log out all users?")}
                   description="This will revoke every active session and redirect everyone to sign in again."
                   confirmLabel="Log out all"
                   variant="outline"
@@ -323,8 +322,7 @@ export default async function Page({
               </Table>
               <div className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
                 <div>
-                  Showing {users.length} of {filteredUserCount?.count ?? 0} users
-                </div>
+                  <UiText text={"Showing"}/>{users.length} <UiText text={"of"}/>{filteredUserCount?.count ?? 0} <UiText text={"users"}/></div>
                 <Pagination className="mx-0 w-auto justify-end">
                   <PaginationContent>
                     <PaginationItem>
@@ -337,7 +335,7 @@ export default async function Page({
                     </PaginationItem>
                     <PaginationItem>
                       <span className="px-2 text-xs">
-                        Page {safeCurrentPage} of {totalUserPages}
+                        <UiText text={"Page"}/>{safeCurrentPage} <UiText text={"of"}/>{totalUserPages}
                       </span>
                     </PaginationItem>
                     <PaginationItem>
@@ -356,7 +354,7 @@ export default async function Page({
 
           <Card>
             <CardHeader>
-              <CardTitle>Cache</CardTitle>
+              <CardTitle><UiText text={"Cache"}/></CardTitle>
               <CardDescription>
                 <UiText text={"Global cache state across files, config, metadata, and permission checks."} /> </CardDescription>
             </CardHeader>
@@ -391,8 +389,8 @@ export default async function Page({
             <CardFooter className="flex justify-end">
               <AdminConfirmActionButton
                 action={resetGlobalCache}
-                label="Reset cache"
-                title="Reset cache?"
+                label={ui("Reset cache")}
+                title={ui("Reset cache?")}
                 description="This will clear cached files, cached config, cache metadata, and permission cache."
                 confirmLabel="Reset"
                 variant="outline"

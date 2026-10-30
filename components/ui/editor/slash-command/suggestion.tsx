@@ -1,3 +1,4 @@
+import { ui } from "@/components/use-ui";
 import { ReactRenderer } from "@tiptap/react";
 import type { Editor } from "@tiptap/core";
 import tippy, { type Instance as TippyInstance } from "tippy.js";
@@ -60,7 +61,7 @@ const requestImageAndInsert = async ({
   if (onRequestImage) {
     result = await onRequestImage({ editor, range });
   } else if (imageSlashFallback === "prompt-url") {
-    const src = window.prompt("Image URL")?.trim();
+    const src = window.prompt(ui("Image URL"))?.trim();
     result = src ? { kind: "url", src } : null;
   }
 
@@ -164,7 +165,8 @@ const createSuggestion = (options: SuggestionOptions = {}): SlashSuggestion => (
     return getAllItems(options)
       .filter((item) => !isInTableCell || TABLE_SAFE_COMMANDS.has(item.title))
       .filter((item) => options.enableImages !== false || item.title !== "Image")
-      .filter((item) => item.title.toLowerCase().includes(query.toLowerCase()))
+      .filter((item) => [item.title, ui(item.title)].some((title) => title.toLocaleLowerCase().includes(query.toLocaleLowerCase())))
+      .map((item) => ({ ...item, title: ui(item.title) }))
       .slice(0, 10);
   },
 

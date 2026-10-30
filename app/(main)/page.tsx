@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -20,6 +21,7 @@ import { MainRootLayout } from "./main-root-layout";
 import { getVisits } from "@/lib/tracker";
 
 export default function Page() {
+  const ui = useUi();
   const [defaultAccount, setDefaultAccount] = useState<any>(null);
   const [hasRecentVisits, setHasRecentVisits] = useState(false);
   const { user } = useUser();
@@ -34,7 +36,7 @@ export default function Page() {
 
   return (
     <MainRootLayout>
-      <DocumentTitle title="Projects" />
+      <DocumentTitle title={ui("Projects")} />
       <div className="max-w-screen-sm mx-auto p-4 md:p-6 space-y-8">
         {user.accounts.length > 0 ? (
           <div className="min-h-[calc(100vh-12rem)] flex flex-col justify-center space-y-8">

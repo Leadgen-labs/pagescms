@@ -1,7 +1,9 @@
 "use client";
 
+import { RelativeTime } from "@/components/relative-time";
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
-import { formatDistanceToNow } from "date-fns";
+
 import { getInitialsFromName } from "@/lib/utils/avatar";
 import { useConfig } from "@/contexts/config-context";
 import type { EntryHistoryItem } from "@/types/api";
@@ -27,6 +29,7 @@ function HistoryItemContent({
   item: EntryHistoryItem;
   compact?: boolean;
 }) {
+  const ui = useUi();
   const authorName = item.commit.author?.name || item.author?.login || "Unknown author";
   const authorDate = item.commit.author?.date ? new Date(item.commit.author.date) : null;
 
@@ -39,7 +42,7 @@ function HistoryItemContent({
       <div className={compact ? "text-left overflow-hidden" : "text-left overflow-hidden ml-3"}>
         <div className={compact ? "truncate" : "text-sm font-medium truncate"}>{authorName}</div>
         <div className="text-xs text-muted-foreground truncate">
-          {authorDate ? `${formatDistanceToNow(authorDate)} ago` : "Unknown date"}
+          {authorDate ? <RelativeTime date={authorDate}/> : ui("Unknown date")}
         </div>
       </div>
     </>

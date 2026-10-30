@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Check, Loader } from "lucide-react";
 
 export function RepoBranches() {
+  const ui = useUi();
   const { owner, repo, branches, setBranches } = useRepo();
   const { config } = useConfig();
 
@@ -73,7 +75,7 @@ export function RepoBranches() {
     <div className="flex flex-col gap-y-2">
       <header className="flex gap-x-2">
         <Input
-          placeholder="Search branches by name"
+          placeholder={ui("Search branches by name")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />

@@ -1,5 +1,7 @@
 "use client";
 
+import { ErrorText } from "@/components/error-text";
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import { Fragment, memo, type ReactNode, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -211,6 +213,7 @@ const MediaView = ({
   extensions?: string[],
   usePageHeader?: boolean,
 }) => {
+  const ui = useUi();
   const { config } = useConfig();
   if (!config) throw new Error(`Configuration not found.`);
   const { mutate } = useSWRConfig();
@@ -321,9 +324,9 @@ const MediaView = ({
 
   useEffect(() => {
     if (!swrMediaError) return;
-    const message = swrMediaError instanceof Error ? swrMediaError.message : "Failed to fetch media.";
+    const message = swrMediaError instanceof Error ? swrMediaError.message : ui("Failed to fetch media.");
     setError(message);
-  }, [swrMediaError]);
+  }, [swrMediaError, ui]);
 
   const isLoading = swrMediaLoading && !data;
 
@@ -653,7 +656,7 @@ const MediaView = ({
         <Empty className="absolute inset-0 border-0 rounded-none">
           <EmptyHeader>
             <EmptyTitle><UiText text={"Something went wrong"} /></EmptyTitle>
-            <EmptyDescription>{error}</EmptyDescription>
+            <EmptyDescription><ErrorText text={String(error)}/></EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Button onClick={() => handleNavigate(mediaConfig.input)}><UiText text={"Open media root"} /></Button>

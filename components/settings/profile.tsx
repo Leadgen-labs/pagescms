@@ -1,11 +1,12 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { LanguageSwitcher } from "@/components/webs/language-switcher";
 import { useLanguage } from "@/contexts/language-context";
 import { UiText } from "@/components/ui-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/components/localized-toast";
 import { getInitialsFromName } from "@/lib/utils/avatar";
 import {
   Avatar,
@@ -32,6 +33,7 @@ type ProfileProps = {
 };
 
 export function Profile({ name, email, githubUsername }: ProfileProps) {
+  const ui = useUi();
   const { t } = useLanguage();
   const router = useRouter();
   const [displayName, setDisplayName] = useState(name?.trim() || "");
@@ -57,10 +59,10 @@ export function Profile({ name, email, githubUsername }: ProfileProps) {
         throw new Error(payload?.message || "Failed to update profile.");
       }
 
-      toast.success("Profile updated.");
+      toast.success(ui("Profile updated."));
       router.refresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update profile.";
+      const message = error instanceof Error ? error.message : ui("Failed to update profile.");
       toast.error(message);
     } finally {
       setIsSaving(false);

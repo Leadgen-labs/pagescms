@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
@@ -16,6 +17,7 @@ export function AdminUserSearch({
 }: {
   initialQuery: string;
 }) {
+  const ui = useUi();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -56,7 +58,7 @@ export function AdminUserSearch({
         type="search"
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        placeholder="Search users"
+        placeholder={ui("Search users")}
         className="h-8"
       />
     </InputGroup>

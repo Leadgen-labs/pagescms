@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -41,6 +42,7 @@ const RepoNav = ({
 }: {
   onClick?: () => void;
 }) => {
+  const ui = useUi();
   const { config } = useConfig();
   const { user } = useUser();
   const pathname = usePathname();
@@ -72,7 +74,7 @@ const RepoNav = ({
         key: "configuration",
         icon: <Settings className="h-5 w-5 mr-2" />,
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/configuration`,
-        label: "Configuration"
+        label: ui("Configuration")
       }
       : null;
 
@@ -81,7 +83,7 @@ const RepoNav = ({
         key: "collaborators",
         icon: <Users className="h-5 w-5 mr-2" />,
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collaborators`,
-        label: "Collaborators"
+        label: ui("Collaborators")
       }
       : null;
 
@@ -91,7 +93,7 @@ const RepoNav = ({
       settingsItem,
       collaboratorsItem
     ].filter(Boolean);
-  }, [config, user]);
+  }, [config, user, ui]);
 
   if (!items.length) return null;
 

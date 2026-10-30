@@ -1,5 +1,6 @@
 "use client";
 
+import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
 import Link from "next/link";
 import { Entry } from "@/components/entry/entry";
@@ -25,6 +26,7 @@ import {
 import { BookText } from "lucide-react";
 
 export default function Page() {
+  const ui = useUi();
   const { config, setConfig } = useConfig();
   const { user } = useUser();
 
@@ -59,7 +61,7 @@ export default function Page() {
       <Entry
         path=".pages.yml"
         onSave={handleSave}
-        title="Configuration"
+        title={ui("Configuration")}
         headerMeta={
           <Tooltip>
             <TooltipTrigger asChild>
