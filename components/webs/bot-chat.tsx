@@ -140,12 +140,12 @@ export function BotChat() {
     setSending(true);
     setError(null);
     append([{ kind: "client", key: `client-${Date.now()}`, text: message, at: now() }]);
-    setText("");
     try {
-      await call({ op: "send", text: message });
+      const response = await call({ op: "send", text: message });
+      if (!response) throw new Error("Zprávu se nepodařilo odeslat. Chat pro tento web není dostupný; zadání zůstalo zachované.");
+      setText((current) => current.trim() === message ? "" : current);
     } catch (err: any) {
       setError(err?.message ?? String(err));
-      setText(message);
     } finally {
       setSending(false);
     }
@@ -160,9 +160,11 @@ export function BotChat() {
     });
     append([{ kind: "client", key: `client-${Date.now()}`, text: action.label, at: now() }]);
     try {
-      await call({ op: "action", action: action.action, value: action.value });
+      const response = await call({ op: "action", action: action.action, value: action.value });
+      if (!response) throw new Error("Akci se nepodařilo odeslat. Zkuste to znovu.");
     } catch (err: any) {
       setError(err?.message ?? String(err));
+      setItems((prev) => prev.map((message) => message.key === item.key ? { ...message, used: false } : message));
     }
   };
 

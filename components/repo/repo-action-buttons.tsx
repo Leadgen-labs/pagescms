@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   formatActionRunState,
+  normalizeRepoAction,
   isActionRunActive,
   type RepoActionField,
   type ActionRunSummary,
@@ -155,14 +156,14 @@ export function RepoActionButtons({
   layout = "header",
 }: RepoActionButtonsProps) {
   const actions = useMemo(() => repo.startsWith("webs-obsah-")
-    ? configuredActions.map((action) => ({
+    ? configuredActions.map(normalizeRepoAction).map((action) => ({
         ...action,
         label: contentActionLabels[action.name] ?? action.label,
         confirm: action.confirm ?? (contentActionDescriptions[action.name]
           ? { message: contentActionDescriptions[action.name] }
           : undefined),
       }))
-    : configuredActions, [configuredActions, repo]);
+    : configuredActions.map(normalizeRepoAction), [configuredActions, repo]);
   const { user } = useUser();
   const { trackActionRun } = useActionToasts();
   const isGithubUser = hasGithubIdentity(user);

@@ -167,6 +167,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
 
 export function Collection({ name, path }: { name: string; path?: string }) {
   const [tableSearch, setTableSearch] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [data, setData] = useState<Record<string, any>[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { cache, mutate } = useSWRConfig();
@@ -305,6 +306,19 @@ export function Collection({ name, path }: { name: string; path?: string }) {
     revalidateOnReconnect: true,
     dedupingInterval: 2000,
   });
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const rows = await fetchCollectionByUrl(rootCollectionKey + "&refresh=1");
+      await refreshCollection(rows, { revalidate: false });
+      setError(null);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Seznam se nepodařilo obnovit.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchCollectionByUrl, rootCollectionKey, refreshCollection]);
 
   useEffect(() => {
     setData([]);
@@ -519,7 +533,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                     className="font-medium truncate"
                     href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${encodeURIComponent(name)}/edit/${encodeURIComponent(row.original.path)}`}
                   >
-                    {CellView}
+                    {cellValue == null || cellValue === "" ? row.original.name : CellView}
                   </Link>
                 );
               }
@@ -545,7 +559,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                 )}
                 href={`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}/edit/${encodeURIComponent(row.original.path)}`}
               >
-                Edit
+                Upravit
               </Link>
               <FileOptions
                 path={row.original.path}
@@ -765,7 +779,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                 <div className="flex gap-1 justify-end">
                   <ButtonGroup>
                     <Button variant="outline" size="sm" disabled>
-                      Edit
+                      Upravit
                     </Button>
                     <Button variant="outline" size="icon-sm" disabled>
                       <EllipsisVertical className="size-4" />
@@ -1028,7 +1042,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
   return <div className="min-w-0 flex flex-col space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <p className="text-sm text-muted-foreground">{name.startsWith("blog-") ? "Články a koncepty. Nový článek se nejdřív uloží jako koncept; zveřejnění zvolíte v poli Stav." : "Vyberte záznam, který chcete upravit."}</p>
-      <Button variant="outline" disabled={isValidating} onClick={() => void refreshCollection()}>{isValidating ? "Načítání…" : "Obnovit seznam"}</Button>
+      <Button variant="outline" disabled={isValidating || isRefreshing} onClick={() => void handleRefresh()}>{isValidating || isRefreshing ? "Načítání…" : "Obnovit seznam"}</Button>
     </div>
     {contentNode}
   </div>;

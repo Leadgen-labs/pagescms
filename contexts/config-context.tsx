@@ -34,6 +34,7 @@ export const ConfigProvider = ({
     const rename = (items: any[]): any[] => items.map((item) => ({
       ...item,
       ...(item.type === "collection" && item.name === "kontrola-presmerovani" ? { label: "Kontrola přesměrování" } : {}),
+      ...(item.type === "collection" && item.name.startsWith("blog-") && Array.isArray(item.fields) ? { fields: item.fields.map((field: any) => field.name === "published_at" ? { ...field, label: "Datum vydání", description: field.description || "Pražský čas. Prázdné datum znamená vydat hned, budoucí datum naplánuje zveřejnění." } : field) } : {}),
       ...(Array.isArray(item.items) ? { items: rename(item.items) } : {}),
     }));
     return { ...config, object: { ...config.object, content: rename(config.object.content ?? []) } };

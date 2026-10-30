@@ -17,7 +17,7 @@ const ViewComponent = ({
   if (firstValue == null) return null;
   const extraValuesCount = Array.isArray(value) ? value.length - 1 : 0;
   const inputFormat = field.options?.time ? "yyyy-MM-dd'T'HH:mm" : "yyyy-MM-dd";
-  const outputFormat = field.options?.time ? "MMM d, yyyy - HH:mm" : "MMM d, yyyy";
+  const outputFormat = field.options?.time ? "d. M. yyyy HH:mm" : "d. M. yyyy";
 
   const formatDate = (date: string) => {
     const parsedDate = parse(date, inputFormat, new Date());

@@ -54,15 +54,22 @@ export const resolveActionRef = (
   currentRef: string,
 ) => (!ref || ref === "current" ? currentRef : ref);
 
+export const normalizeActionFieldType = (type: unknown) => type === "boolean" ? "checkbox" : type === "string" ? "text" : type;
+
+export const normalizeRepoAction = (action: RepoActionConfig): RepoActionConfig => ({
+  ...action,
+  fields: action.fields?.map((field) => ({ ...field, type: normalizeActionFieldType(field.type) as RepoActionField["type"] })),
+});
+
 export const getRootActions = (configObject: any): RepoActionConfig[] => {
-  return Array.isArray(configObject?.actions) ? configObject.actions : [];
+  return Array.isArray(configObject?.actions) ? configObject.actions.map(normalizeRepoAction) : [];
 };
 
 export const getSchemaActions = (
   schema: any,
   scope?: "collection" | "entry",
 ): RepoActionConfig[] => {
-  const actions: RepoActionConfig[] = Array.isArray(schema?.actions) ? schema.actions : [];
+  const actions: RepoActionConfig[] = Array.isArray(schema?.actions) ? schema.actions.map(normalizeRepoAction) : [];
   if (scope == null) {
     return actions.filter((action) => action.scope == null);
   }
