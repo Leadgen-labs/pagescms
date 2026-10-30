@@ -81,7 +81,7 @@ const RepoNav = ({
         key: "collaborators",
         icon: <Users className="h-5 w-5 mr-2" />,
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collaborators`,
-        label: "Collaborators"
+        label: "Uživatelé a přístupy"
       }
       : null;
 

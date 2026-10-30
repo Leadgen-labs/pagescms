@@ -10,6 +10,8 @@ interface ConfigContextType {
 
 const ConfigContext = createContext<ConfigContextType | null>(null);
 
+export const useOptionalConfig = () => useContext(ConfigContext);
+
 export const useConfig = () => {
   const context = useContext(ConfigContext);
   if (!context) {

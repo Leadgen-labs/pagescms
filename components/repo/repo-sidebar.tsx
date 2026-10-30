@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
 import { useRepo } from "@/contexts/repo-context";
 import { useUser } from "@/contexts/user-context";
+import { projectName } from "@/lib/project-name";
 import { hasGithubIdentity } from "@/lib/authz-shared";
 import { isCacheEnabled, isConfigEnabled } from "@/lib/config";
 import { getRootActions } from "@/lib/actions";
@@ -99,7 +100,7 @@ function RepoSwitcher() {
     [branches],
   );
   const [recentRepos, setRecentRepos] = useState<
-    Array<{ owner: string; repo: string; branch: string }>
+    Array<{ owner: string; repo: string; branch: string; displayName?: string }>
   >([]);
   const triggerWrapperRef = useRef<HTMLDivElement | null>(null);
   const [menuWidth, setMenuWidth] = useState<number | null>(null);
@@ -137,6 +138,7 @@ function RepoSwitcher() {
       .map((visit) => ({
         owner: visit.owner,
         repo: visit.repo,
+        displayName: visit.displayName,
         branch: visit.branch,
       }));
     setRecentRepos(visits);
@@ -173,7 +175,7 @@ function RepoSwitcher() {
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{repo}</span>
+                <span className="truncate font-medium">{projectName(repo, config?.object)}</span>
                 <span className="truncate text-xs text-muted-foreground">
                   {currentBranch || owner}
                 </span>
@@ -237,7 +239,7 @@ function RepoSwitcher() {
                         alt={`${visit.owner}'s avatar`}
                         className="size-5 rounded"
                       />
-                      <span className="truncate">{visit.repo}</span>
+                      <span className="truncate">{visit.displayName || projectName(visit.repo)}</span>
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -348,7 +350,7 @@ export function RepoSidebar() {
 
       items.push({
         key: "admin-collaborators",
-        label: "Collaborators",
+        label: "Uživatelé a přístupy",
         href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collaborators`,
         icon: <Users className="size-4" />,
       });

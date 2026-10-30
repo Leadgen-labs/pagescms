@@ -51,7 +51,7 @@ export function RepoSelect({
   const searchResults = useMemo(() => {
     if (!results) return [];
     if (selectedAccount?.repositorySelection !== "all") {
-      return results.filter((result: any) => result.repo.toLowerCase().includes(keyword.toLowerCase()));
+      return results.filter((result: any) => [result.repo, result.displayName].some(value => value?.toLowerCase().includes(keyword.toLowerCase())));
     }
     return results;
   }, [results, keyword, selectedAccount]);
@@ -195,7 +195,7 @@ export function RepoSelect({
                   <Link
                     className="truncate font-medium hover:underline"
                     href={`/${result.owner}/${result.repo}/${result.defaultBranch ? encodeURIComponent(result.defaultBranch) : ""}`}
-                  >{result.repo}</Link>
+                  >{result.displayName || result.repo}</Link>
                   {result.private && <LockKeyhole className="h-3 w-3 opacity-50"/>}
                   {result.updatedAt &&
                     <div className="text-muted-foreground truncate">{formatDistanceToNow(new Date(result.updatedAt))} ago</div>

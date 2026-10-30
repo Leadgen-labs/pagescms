@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { projectName } from "@/lib/project-name";
 import { getVisits } from "@/lib/tracker";
 import { Skeleton } from "@/components/ui/skeleton";
   
@@ -61,7 +62,7 @@ export function RepoLatest() {
           <Link
             className="truncate font-medium hover:underline"
             href={`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`}
-          >{visit.repo}</Link>
+          >{visit.displayName || projectName(visit.repo)}</Link>
           <div className="text-muted-foreground truncate">{formatDistanceToNow(new Date(visit.timestamp * 1000))} ago</div>
           <Link
             className={cn("ml-auto", buttonVariants({ variant: "outline", size: "xs"}))}

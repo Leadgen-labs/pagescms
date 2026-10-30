@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useConfig } from "@/contexts/config-context";
+import { projectName } from "@/lib/project-name";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useActionState } from "react";
 import {
@@ -110,15 +112,14 @@ function InviteCollaboratorsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button variant={triggerVariant} size={triggerSize} disabled={disabled}>
-          {triggerLabel || "Invite"}
+          {triggerLabel || "Pozvat uživatele"}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite collaborators</DialogTitle>
+          <DialogTitle>Pozvat uživatele</DialogTitle>
           <DialogDescription>
-            Enter one or multiple email addresses, separated by commas or new
-            lines.
+            Zadejte e-mailové adresy oddělené čárkou nebo novým řádkem.
           </DialogDescription>
         </DialogHeader>
         <form action={action} className="space-y-4">
@@ -142,7 +143,7 @@ function InviteCollaboratorsDialog({
               type="submit"
               disabled={parsedInviteEmails.length === 0}
             >
-              Send invite{parsedInviteEmails.length > 1 ? "s" : ""}
+              Odeslat pozvánku
             </SubmitButton>
           </DialogFooter>
         </form>
@@ -160,6 +161,8 @@ export function Collaborators({
   repo: string;
   branch?: string;
 }) {
+  const { config } = useConfig();
+  const displayName = projectName(repo, config?.object);
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [addCollaboratorState, addCollaboratorAction] = useActionState<
     AddCollaboratorState,
@@ -298,7 +301,7 @@ export function Collaborators({
     return (
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-lg">Collaborators</h1>
+          <h1 className="font-semibold text-lg">Přístupy k webu {displayName}</h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -313,11 +316,11 @@ export function Collaborators({
                   rel="noreferrer"
                 >
                   <BookText />
-                  <span className="sr-only">Collaborators docs</span>
+                  <span className="sr-only">Nápověda k přístupům</span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View docs</TooltipContent>
+            <TooltipContent>Nápověda</TooltipContent>
           </Tooltip>
         </div>
         {showInviteAction ? (
@@ -341,6 +344,7 @@ export function Collaborators({
     addCollaboratorAction,
     addCollaboratorState,
     collaborators.length,
+    displayName,
     emails,
     error,
     inviteDialogOpen,
@@ -451,7 +455,7 @@ export function Collaborators({
                         resending.includes(collaborator.id)
                       }
                     >
-                      Resend invitation
+                      Poslat pozvánku znovu
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -480,19 +484,19 @@ export function Collaborators({
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will remove access to &quot;{owner}/{repo}&quot; for
+                  Odeberete přístup k webu {displayName} uživateli
                   &quot;{collaboratorToRemove?.email}&quot;.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>Zrušit</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
                     if (!collaboratorToRemove) return;
                     void handleConfirmRemove(collaboratorToRemove.id);
                   }}
                 >
-                  Remove collaborator
+                  Odebrat uživatele
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -502,9 +506,9 @@ export function Collaborators({
         <div className="flex-1 flex items-center">
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>No collaborators</EmptyTitle>
+              <EmptyTitle>Zatím žádní uživatelé</EmptyTitle>
               <EmptyDescription>
-                Invite collaborators to give them access to this repository.
+                Pozvěte uživatele, kteří mají mít přístup ke správě webu.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
@@ -518,7 +522,7 @@ export function Collaborators({
                 value={emails}
                 onValueChange={setEmails}
                 disabled={isLoading}
-                triggerLabel="Invite a collaborator"
+                triggerLabel="Pozvat uživatele"
                 triggerVariant="default"
                 triggerSize="default"
               />

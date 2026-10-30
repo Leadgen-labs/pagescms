@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useConfig } from "@/contexts/config-context";
 import { useRepo } from "@/contexts/repo-context";
+import { projectName } from "@/lib/project-name";
 import { trackVisit } from "@/lib/tracker";
 import {
   RepoHeaderProvider,
@@ -40,7 +41,7 @@ export function RepoLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (config?.owner && config?.repo && config?.branch) {
-      trackVisit(owner, repo, config.branch);
+      trackVisit(owner, repo, config.branch, projectName(repo, config.object));
     }
   }, [config, owner, repo]);
 
