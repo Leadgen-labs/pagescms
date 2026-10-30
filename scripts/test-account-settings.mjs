@@ -14,9 +14,9 @@ const {accountLabel}=load('lib/account-label.ts');
 const {getInitialsFromName}=load('lib/utils/avatar.ts');
 const {formatUi}=load('lib/ui-translations.ts');
 
-test('account identity favors personal name or email rather than technical GitHub login',()=>{
+test('account identity always uses the signed-in email, never an editable name or GitHub login',()=>{
  assert.equal(accountLabel({name:'Leadgen-labs',githubUsername:'leadgen-labs',email:'me@example.com'}),'me@example.com');
- assert.equal(accountLabel({name:' Jana Nováková ',githubUsername:'jnovak',email:'me@example.com'}),'Jana Nováková');
+ assert.equal(accountLabel({name:' Jana Nováková ',githubUsername:'jnovak',email:'me@example.com'}),'me@example.com');
  assert.equal(accountLabel({email:'me@example.com'}),'me@example.com');
 });
 for(const language of ['cs','en'])test(`account control is a direct localized settings link in ${language}`,()=>{
@@ -45,4 +45,17 @@ test('failed sign-out retains the session page and enables retry; success redire
   const element=SignOut();const button=element.props.children[0];await button.props.onClick();
   if(success)assert.equal(redirect,'/sign-in');else{assert.equal(redirect,null);assert.equal(states[0],false);assert.equal(states[1],true);}
  }
+});
+
+
+test('account profile is read-only identity and preferences, without name, email or avatar editing',()=>{
+ const span=({children})=>React.createElement('div',null,children);
+ const {Profile}=load('components/settings/profile.tsx',{
+  '@/components/use-ui':{useUi:()=>source=>formatUi(source,'cs')},
+  '@/contexts/language-context':{useLanguage:()=>({t:cs=>cs})},
+  '@/components/webs/language-switcher':{LanguageSwitcher:()=>React.createElement('span',null,'CZ / EN')},
+  '@/components/ui/card':{Card:span,CardHeader:span,CardTitle:span,CardDescription:span,CardContent:span},
+ });
+ const html=renderToStaticMarkup(React.createElement(Profile,{email:'info@leadmarket.cz'}));
+ assert.match(html,/info@leadmarket.cz/);assert.match(html,/Přihlášený účet/);assert.doesNotMatch(html,/<input|<form|<img|Uložit profil|Leadgen-labs/);
 });

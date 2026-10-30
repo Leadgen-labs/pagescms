@@ -1,139 +1,23 @@
 "use client";
-
-import { ui, useUi } from "@/components/use-ui";
+import { useUi } from "@/components/use-ui";
 import { LanguageSwitcher } from "@/components/webs/language-switcher";
 import { useLanguage } from "@/contexts/language-context";
-import { UiText } from "@/components/ui-text";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "@/components/localized-toast";
-import { getInitialsFromName } from "@/lib/utils/avatar";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-type ProfileProps = {
-  name?: string | null;
-  email: string;
-  githubUsername?: string | null;
-};
-
-export function Profile({ name, email, githubUsername }: ProfileProps) {
+export function Profile({ email }: { email: string }) {
   const ui = useUi();
   const { t } = useLanguage();
-  const router = useRouter();
-  const [displayName, setDisplayName] = useState(name?.trim() || "");
-  const [isSaving, setIsSaving] = useState(false);
-
-  const initialName = name?.trim() || "";
-  const canSave = displayName.trim().length > 0 && displayName.trim() !== initialName && !isSaving;
-  const avatarLabel = displayName.trim() || email;
-
-  const handleSave = async () => {
-    const nextName = displayName.trim();
-    if (!nextName) return;
-
-    setIsSaving(true);
-    try {
-      const response = await fetch("/api/auth/update-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: nextName }),
-      });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload?.status) {
-        throw new Error(payload?.message || "Failed to update profile.");
-      }
-
-      toast.success(ui("Profile updated."));
-      router.refresh();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : ui("Failed to update profile.");
-      toast.error(message);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <> <Card>
+  return <>
+    <Card>
+      <CardHeader><CardTitle>{ui("Signed-in account")}</CardTitle><CardDescription>{ui("This is the email of the currently signed-in account. It cannot be changed here.")}</CardDescription></CardHeader>
+      <CardContent><p className="break-all font-medium">{email}</p></CardContent>
+    </Card>
+    <Card>
       <CardHeader>
-        <CardTitle><UiText text={"Profile"} /></CardTitle>
-        <CardDescription><UiText text="Your name, sign-in email and personal preferences." /></CardDescription>
+        <CardTitle>{t("Jazyk administrace a e-mailů", "Administration and email language")}</CardTitle>
+        <CardDescription>{t("Volba se ukládá k vašemu účtu a platí i při příštím přihlášení a na dalších zařízeních.", "Your preference is saved to your account and applies on your next sign-in and on other devices.")}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <form
-          className="w-full"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void handleSave();
-          }}
-        >
-          <div className="grid w-full items-center gap-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                <UiText text={"Name"} /> </Label>
-              <div className="col-span-3">
-                <Input
-                  id="name"
-                  name="name"
-                  value={displayName}
-                  onChange={(event) => setDisplayName(event.target.value)}
-                  maxLength={120}
-                  disabled={isSaving}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="sign-in-email" className="text-right"><UiText text="Sign-in email" /></Label>
-              <div className="col-span-3"><Input id="sign-in-email" type="email" value={email} readOnly /></div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="picture" className="text-right">
-                <UiText text={"Picture"} /> </Label>
-              <div className="col-span-3">
-                <Avatar className="h-24 w-24 rounded-md">
-                  <AvatarImage
-                    src={
-                      githubUsername
-                        ? `https://github.com/${githubUsername}.png`
-                        : `https://unavatar.io/${email}?fallback=false`
-                    }
-                    alt={avatarLabel}
-                  />
-                  <AvatarFallback className="rounded-md">
-                    {getInitialsFromName(avatarLabel)}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            </div>
-          </div>
-        </form>
-      </CardContent>
-      <CardFooter>
-        <Button
-          size="sm"
-          className="ml-auto"
-          onClick={() => void handleSave()}
-          disabled={!canSave}
-        >
-          <UiText text={"Save profile"} /> {isSaving && <Loader className="ml-2 h-4 w-4 animate-spin" />}
-        </Button>
-      </CardFooter>
-    </Card><Card><CardHeader><CardTitle>{t("Jazyk administrace a e-mailů", "Administration and email language")}</CardTitle><CardDescription>{t("Volba se ukládá k vašemu účtu a platí i při příštím přihlášení a na dalších zařízeních.", "Your preference is saved to your account and applies on your next sign-in and on other devices.")}</CardDescription></CardHeader><CardContent><LanguageSwitcher/></CardContent></Card></>
-  );
+      <CardContent><LanguageSwitcher /></CardContent>
+    </Card>
+  </>;
 }

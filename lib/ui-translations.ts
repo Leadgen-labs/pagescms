@@ -1,5 +1,8 @@
 /** Authored administration copy; repository content and identifiers are never machine translated. */
 export const uiTranslations: Record<string, string> = {
+  "Signed-in account": "Přihlášený účet",
+  "This is the email of the currently signed-in account. It cannot be changed here.": "E-mail právě přihlášeného účtu. Zde ho nelze měnit.",
+  "Your signed-in account and administration preferences.": "Váš přihlášený účet a osobní nastavení administrace.",
   "Account settings": "Nastavení účtu",
   "Your name, sign-in email and personal preferences.": "Vaše jméno, přihlašovací e-mail a osobní nastavení.",
   "Sign-in email": "Přihlašovací e-mail",
