@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
+import { internalProjectPath, publicProjectPath } from "@/lib/project-url";
 import { usePathname, useRouter } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
 import { useRepo } from "@/contexts/repo-context";
@@ -232,7 +233,7 @@ function RepoSwitcher() {
                     key={`${visit.owner}/${visit.repo}/${visit.branch}`}
                   >
                     <Link
-                      href={`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`}
+                      href={publicProjectPath(`/${visit.owner}/${visit.repo}/${encodeURIComponent(visit.branch)}`)}
                     >
                       <img
                         src={`https://github.com/${visit.owner}.png`}
@@ -263,7 +264,7 @@ function RepoSwitcher() {
 }
 
 export function RepoSidebar() {
-  const pathname = usePathname();
+  const pathname = internalProjectPath(usePathname());
   const { user } = useUser();
   const { config } = useConfig();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -510,7 +511,7 @@ export function RepoSidebar() {
       return (
         <SidebarMenuSubItem key={key}>
           <SidebarMenuSubButton asChild isActive={isActive}>
-            <Link href={href} onClick={handleNavigation}>
+            <Link href={publicProjectPath(href)} onClick={handleNavigation}>
               {getNodeIcon(node)}
               <span>{node.label || node.name}</span>
             </Link>
@@ -522,7 +523,7 @@ export function RepoSidebar() {
     return (
       <SidebarMenuItem key={key}>
         <SidebarMenuButton asChild isActive={isActive}>
-          <Link href={href} onClick={handleNavigation}>
+          <Link href={publicProjectPath(href)} onClick={handleNavigation}>
             {getNodeIcon(node)}
             <span>{node.label || node.name}</span>
           </Link>
@@ -560,7 +561,7 @@ export function RepoSidebar() {
               return (
                 <SidebarMenuItem key={item.key}>
                   <SidebarMenuButton asChild isActive={isActive}>
-                    <Link href={item.href} onClick={handleNavigation}>
+                    <Link href={publicProjectPath(item.href)} onClick={handleNavigation}>
                       {item.icon}
                       <span>{item.label}</span>
                     </Link>
