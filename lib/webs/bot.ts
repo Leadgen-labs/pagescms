@@ -15,10 +15,13 @@ export async function callWebsBot<T = any>(path: string, payload: Record<string,
   const timestamp = String(Math.floor(Date.now() / 1000));
   const signature = createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
   // The custom domain can be challenged by the zone WAF before the Worker
-  // verifies our HMAC. Retry only read-only overview requests on a trusted URL.
+  // verifies our HMAC. Overview reads may retry. Submissions use the trusted
+  // server URL directly, including mutations, which must never be replayed.
   const fallback = process.env.WEBS_BOT_FALLBACK_URL?.replace(/\/+$/, "")
     || (bot === "https://mcp.mobilut.com" ? "https://webs-bot.crimson-bonus-69e4.workers.dev" : "");
-  const urls = path === "/cms/overview" ? [...new Set([bot, fallback].filter(Boolean))] : [bot];
+  const urls = path === "/cms/overview"
+    ? [...new Set([bot, fallback].filter(Boolean))]
+    : [path === "/cms/submissions" ? fallback || bot : bot];
   for (const [index, url] of urls.entries()) {
     let res: Response;
     try {
