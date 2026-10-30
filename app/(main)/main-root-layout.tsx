@@ -15,7 +15,7 @@ export function MainRootLayout({
 					<About/>
           <div className="ml-auto flex items-center gap-2">
             <LanguageSwitcher/><AdminButton />
-					  <User align="end" />
+					  <User />
           </div>
 				</div>
 			</header>

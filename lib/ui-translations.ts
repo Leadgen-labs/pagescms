@@ -1,5 +1,13 @@
 /** Authored administration copy; repository content and identifiers are never machine translated. */
 export const uiTranslations: Record<string, string> = {
+  "Account settings": "Nastavení účtu",
+  "Your name, sign-in email and personal preferences.": "Vaše jméno, přihlašovací e-mail a osobní nastavení.",
+  "Sign-in email": "Přihlašovací e-mail",
+  "Appearance": "Vzhled",
+  "The appearance preference applies to this browser.": "Volba vzhledu platí pro tento prohlížeč.",
+  "Advanced: GitHub connection": "Pokročilé: propojení s GitHubem",
+  "Signing out…": "Odhlašování…",
+  "Could not sign out. Please try again.": "Odhlášení se nepodařilo. Zkuste to znovu.",
   "Switch website": "Přepnout web",
   "Your websites": "Vaše weby",
   "All websites": "Všechny weby",

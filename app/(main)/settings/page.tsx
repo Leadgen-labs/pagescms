@@ -9,6 +9,8 @@ import { accountTable } from "@/db/schema";
 import { MainRootLayout } from "../main-root-layout";
 import { Installations } from "@/components/settings/installations";
 import { Identities } from "@/components/settings/identities";
+import { Appearance } from "@/components/settings/appearance";
+import { SignOut } from "@/components/settings/sign-out";
 import { Profile } from "@/components/settings/profile";
 import { DocumentTitle } from "@/components/document-title";
 import { buttonVariants } from "@/components/ui/button";
@@ -41,7 +43,7 @@ export default async function Page() {
 
   return (
     <MainRootLayout>
-      <DocumentTitle title={ui("Settings")} />
+      <DocumentTitle title={ui("Account settings")} />
       <div className="max-w-screen-sm mx-auto p-4 md:p-6 space-y-6">
         <Link
           className={cn(
@@ -51,10 +53,11 @@ export default async function Page() {
           href="/"
         >
           <ArrowLeft />
-          <UiText text={"Go home"} /> </Link>
-        <header className="flex items-center mb-6">
+          <UiText text={"All websites"} /> </Link>
+        <header className="space-y-2 mb-6">
           <h1 className="font-semibold tracking-tight text-lg md:text-2xl">
-            <UiText text={"Settings"} /> </h1>
+            <UiText text={"Account settings"} /> </h1>
+          <p className="text-sm text-muted-foreground"><UiText text="Your name, sign-in email and personal preferences." /></p>
         </header>
         <div className="flex flex-col relative flex-1 space-y-6">
           <Profile
@@ -63,35 +66,21 @@ export default async function Page() {
             githubUsername={user.githubUsername}
           />
 
-          <Card>
-            <CardHeader>
-              <CardTitle><UiText text={"Authentication"} /></CardTitle>
-              <CardDescription>
-                <UiText text={"Your sign-in methods and linked identity providers."} /> </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Identities
-                email={user.email}
-                githubConnected={githubConnected}
-                githubUsername={user.githubUsername}
-                githubManageUrl={githubManageUrl}
-              />
-            </CardContent>
-          </Card>
-
+          <Appearance />
           {githubConnected && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base md:text-lg">
-                  <UiText text={"Installations"} /> </CardTitle>
-                <CardDescription>
-                  <UiText text={"Manage the accounts the Github application is installed on."} /> </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Installations />
-              </CardContent>
-            </Card>
+            <details className="space-y-4 rounded-lg border p-4">
+              <summary className="cursor-pointer text-sm font-medium"><UiText text="Advanced: GitHub connection" /></summary>
+              <Card>
+                <CardHeader><CardTitle><UiText text="Authentication" /></CardTitle><CardDescription><UiText text="Your sign-in methods and linked identity providers." /></CardDescription></CardHeader>
+                <CardContent><Identities email={user.email} githubConnected={githubConnected} githubUsername={user.githubUsername} githubManageUrl={githubManageUrl} /></CardContent>
+              </Card>
+              <Card>
+                <CardHeader><CardTitle><UiText text="Installations" /></CardTitle><CardDescription><UiText text="Manage the accounts the Github application is installed on." /></CardDescription></CardHeader>
+                <CardContent><Installations /></CardContent>
+              </Card>
+            </details>
           )}
+          <SignOut />
         </div>
       </div>
     </MainRootLayout>

@@ -73,7 +73,7 @@ export function Profile({ name, email, githubUsername }: ProfileProps) {
     <> <Card>
       <CardHeader>
         <CardTitle><UiText text={"Profile"} /></CardTitle>
-        <CardDescription><UiText text={"Manage the information displayed to other users."} /></CardDescription>
+        <CardDescription><UiText text="Your name, sign-in email and personal preferences." /></CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -97,6 +97,10 @@ export function Profile({ name, email, githubUsername }: ProfileProps) {
                   disabled={isSaving}
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="sign-in-email" className="text-right"><UiText text="Sign-in email" /></Label>
+              <div className="col-span-3"><Input id="sign-in-email" type="email" value={email} readOnly /></div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="picture" className="text-right">

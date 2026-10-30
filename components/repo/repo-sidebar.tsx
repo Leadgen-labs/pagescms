@@ -678,8 +678,8 @@ export function RepoSidebar() {
       <SidebarFooter className="border-t">
         <div className="py-1"><LanguageSwitcher/></div>
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <User align="start" />
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <User showLabel />
             <AdminButton />
           </div>
           <About />
