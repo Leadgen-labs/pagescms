@@ -358,6 +358,7 @@ export function RepoSidebar() {
     const canManageRepo = hasGithubIdentity(user);
 
     const items: NavItem[] = [];
+    if (user?.isAdmin) items.push({key:"superadmin",label:ui("Superadmin overview"),href:"/admin/weby",icon:<LayoutDashboard className="size-4"/>});
     if (config.repo.startsWith("webs-obsah-")) items.push({key:"prehled",label:t("Přehled webu", "Website overview"),href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/prehled`,icon:<LayoutDashboard className="size-4"/>});
     if (config.repo.startsWith("webs-obsah-")) items.push({key:"submissions",label:t("Formuláře a poptávky", "Forms and enquiries"),href:`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/submissions`,icon:<Database className="size-4"/>});
 

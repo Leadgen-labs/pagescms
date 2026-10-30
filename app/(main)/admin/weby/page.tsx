@@ -40,13 +40,14 @@ export default async function Page() {
 
   return (
     <MainRootLayout>
-      <DocumentTitle title={ui("Weby")} />
+      <DocumentTitle title={ui("Superadmin overview")} />
       <div className="max-w-screen-xl mx-auto p-4 md:p-6 space-y-6">
-        <Link className={cn(buttonVariants({ variant: "outline", size: "xs" }), "inline-flex")} href="/admin">
+        <div className="flex flex-wrap gap-2"><Link className={cn(buttonVariants({ variant: "outline", size: "xs" }), "inline-flex")} href="/">
           <ArrowLeft />
-          <UiText text={"Admin"}/></Link>
+          <UiText text="My websites" /></Link>
+          <Link className={buttonVariants({ variant: "outline", size: "xs" })} href="/admin"><UiText text="User administration" /></Link></div>
         <header>
-          <h1 className="font-semibold tracking-tight text-lg md:text-2xl"><UiText text={"Weby"}/></h1>
+          <h1 className="font-semibold tracking-tight text-lg md:text-2xl"><UiText text="Superadmin overview" /></h1>
           <p className="text-sm text-muted-foreground">
             <UiText text={"Stav všech webů z bota: doména, měření, poslední nasazení a poptávky (bez náhledů). Dostupnost, robots.txt a nasazení se kontrolují nejvýš jednou za"}/>{Math.round(checkedFor / 60) || 5} <UiText text={"minut."}/></p>
         </header>
