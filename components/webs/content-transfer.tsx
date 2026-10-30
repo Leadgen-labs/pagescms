@@ -9,7 +9,7 @@ import { getRootActions } from "@/lib/actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs } from "radix-ui";
 
-export function ContentTransfer() {
+export function ContentTransfer({ defaultTab = "content" }: { defaultTab?: string }) {
   const { config } = useConfig();
   const groups = useMemo(() => {
     const actions = getRootActions(config?.object);
@@ -60,7 +60,7 @@ export function ContentTransfer() {
         </section>
       )}
       {groups.length > 0 ? (
-        <Tabs.Root defaultValue={groups[0].key}>
+        <Tabs.Root defaultValue={groups.some((group) => group.key === defaultTab) ? defaultTab : groups[0].key}>
           <Tabs.List className="inline-flex gap-1 rounded-lg bg-muted p-1" aria-label="Co chcete exportovat nebo importovat">
             {groups.map((group) => <Tabs.Trigger className="rounded-md px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 data-[state=active]:bg-background data-[state=active]:shadow-sm" key={group.key} value={group.key}>{group.label}</Tabs.Trigger>)}
           </Tabs.List>
@@ -79,7 +79,7 @@ export function ContentTransfer() {
                   <h2 className="text-lg font-medium">Připravit a zkontrolovat import</h2>
                   <p className="text-sm text-muted-foreground">Nahrajte soubor, připravte náhled a otevřete kontrolu. Opravte upozornění a vyberte záznamy, které chcete použít. Web se zatím nezmění.</p>
                   {buttons(group.preview)}
-                  <Link className={buttonVariants({ variant: "outline" })} href={`${base}/collection/${group.review}`}>Otevřít kontrolu importu</Link>
+                  <Link className={buttonVariants({ variant: "outline" })} href={`${base}/collection/${group.review}`}>{group.key === "redirects" ? "Kontrola přesměrování" : "Kontrola importu"}</Link>
                 </section>
               )}
               {group.apply.length > 0 && (

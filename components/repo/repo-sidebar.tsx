@@ -315,14 +315,18 @@ export function RepoSidebar() {
   const contentNavigation = useMemo<NavigationNode[]>(() => {
     if (!config?.object) return [];
     const navigation = (config.object as any).navigation?.content;
-    if (Array.isArray(navigation)) return navigation;
-
     const content = (config.object as any).content ?? [];
-    return content.map((item: any) => ({
+    const nodes: NavigationNode[] = Array.isArray(navigation) ? navigation : content.map((item: any) => ({
       type: item.type,
       name: item.name,
       label: item.label || item.name,
     }));
+    if (!config.repo.startsWith("webs-obsah-")) return nodes;
+    const withoutReviews = (items: NavigationNode[]): NavigationNode[] => items
+      .filter((item) => !(item.type === "collection" && ["kontrola-importu", "kontrola-presmerovani"].includes(item.name)))
+      .map((item) => item.items ? { ...item, items: withoutReviews(item.items) } : item)
+      .filter((item) => item.type !== "group" || item.items?.length);
+    return withoutReviews(nodes);
   }, [config]);
 
   const mediaNavigation = useMemo<NavigationNode[]>(() => {
@@ -648,7 +652,7 @@ export function RepoSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`}>
+                  <SidebarMenuButton asChild isActive={pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer` || ["kontrola-importu", "kontrola-presmerovani"].some((name) => pathname === `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}` || pathname.startsWith(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}/`))}>
                     <Link href={publicProjectPath(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`)} onClick={handleNavigation}>
                       <ArrowDownUp className="size-4" />
                       <span>Export a import</span>
