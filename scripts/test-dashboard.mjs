@@ -1,0 +1,12 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+const mod={exports:{}};new Function('exports',ts.transpileModule(readFileSync(new URL('../lib/webs/dashboard.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(mod.exports);
+const {dashboardSummary,groupWebsiteAlerts,filterDashboardSites}=mod.exports;
+const sites=[{slug:'kesek',name:'Kešek',domain:'kesek.cz',status:'live',leads:{last7:2,last30:5,failed30:0},aiSpendMonthUsd:1.25},{slug:'alpha',name:'Alpha',domain:null,status:'draft',leads:{last7:1,last30:2,failed30:1},aiSpendMonthUsd:2}];
+const alerts=[{slug:'kesek',name:'Kešek',level:'warning',text:'Tracking missing'},{slug:'kesek',name:'Kešek',level:'error',text:'Offline'}];
+test('summary counts affected websites once and aggregates periods separately',()=>{assert.deepEqual(dashboardSummary(sites,alerts),{total:2,live:1,draft:1,attention:1,enquiries30:7,enquiries7:3,failed30:1,spend:3.25});});
+test('missing or invalid cost is unknown instead of a misleading zero',()=>{assert.equal(dashboardSummary([{...sites[0],aiSpendMonthUsd:undefined}],[]).spend,null);assert.equal(dashboardSummary([{...sites[0],aiSpendMonthUsd:NaN}],[]).spend,null);assert.equal(dashboardSummary([],[]).spend,null);assert.equal(dashboardSummary([{...sites[0],aiSpendMonthUsd:0}],[]).spend,0);});
+test('alerts group by site, retain error priority and remove duplicates',()=>{const groups=groupWebsiteAlerts([...alerts,alerts[0],{slug:'alpha',name:'Alpha',level:'warning',text:'Draft'}]);assert.equal(groups.length,2);assert.equal(groups[0].slug,'kesek');assert.equal(groups[0].level,'error');assert.equal(groups[0].alerts.length,2);});
+test('search ignores accents, supports domain and combines with filters',()=>{assert.equal(filterDashboardSites(sites,alerts,' KESEK ','all','cs')[0].name,'Kešek');assert.equal(filterDashboardSites(sites,alerts,'.cz','all','en').length,1);assert.equal(filterDashboardSites(sites,alerts,'kesek','draft','cs').length,0);assert.equal(filterDashboardSites(sites,alerts,'','attention','cs').length,1);assert.equal(filterDashboardSites(sites,alerts,'','all','en')[0].slug,'kesek');assert.equal(sites[0].slug,'kesek');});
