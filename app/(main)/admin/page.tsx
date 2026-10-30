@@ -177,7 +177,7 @@ export default async function Page({
 
   return (
     <MainRootLayout>
-      <DocumentTitle title={ui("Admin")} />
+      <DocumentTitle title={ui("User administration")} />
       <div className="max-w-screen-lg mx-auto p-4 md:p-6 space-y-6">
         <Link
           className={cn(
@@ -191,9 +191,9 @@ export default async function Page({
 
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-semibold tracking-tight text-lg md:text-2xl">
-            <UiText text={"Admin"}/></h1>
+            <UiText text="User administration" /></h1>
           <Link className={buttonVariants({ variant: "default", size: "sm" })} href="/admin/weby">
-            <UiText text={"Přehled webů"}/></Link>
+            <UiText text="Superadmin overview" /></Link>
         </header>
 
         <div className="space-y-6">

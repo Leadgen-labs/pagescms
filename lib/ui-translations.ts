@@ -1,5 +1,10 @@
 /** Authored administration copy; repository content and identifiers are never machine translated. */
 export const uiTranslations: Record<string, string> = {
+  "My websites": "Moje weby",
+  "Superadmin": "Superadmin",
+  "Superadmin overview": "Superadmin přehled",
+  "User administration": "Správa uživatelů",
+  "Health, deployments, enquiries and costs across all websites.": "Stav, nasazení, poptávky a náklady napříč všemi weby.",
   "Signed-in account": "Přihlášený účet",
   "This is the email of the currently signed-in account. It cannot be changed here.": "E-mail právě přihlášeného účtu. Zde ho nelze měnit.",
   "Your signed-in account and administration preferences.": "Váš přihlášený účet a osobní nastavení administrace.",
