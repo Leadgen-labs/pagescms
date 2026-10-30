@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { internalProjectPath, publicProjectPath } from "@/lib/project-url";
 
 function isAllowedOrigin(originHeader: string, hostHeader: string): boolean {
 	try {
@@ -12,12 +13,14 @@ function isAllowedOrigin(originHeader: string, hostHeader: string): boolean {
 
 export function proxy(request: NextRequest) {
 	const pathname = request.nextUrl.pathname;
+	const internalPath = internalProjectPath(pathname);
+	const publicPath = publicProjectPath(pathname);
 	const isStaticAsset =
 		pathname.startsWith("/_next/") ||
 		pathname === "/favicon.ico" ||
 		/\.[^/]+$/.test(pathname);
 
-	if (isStaticAsset) {
+	if (isStaticAsset && internalPath === pathname && publicPath === pathname) {
 		return NextResponse.next();
 	}
 
@@ -31,9 +34,21 @@ export function proxy(request: NextRequest) {
 		}
 	}
 
+	// Canonicalize page GETs only. API calls and form/action POSTs keep their behavior.
+	if ((request.method === "GET" || request.method === "HEAD") && publicPath !== pathname) {
+		const destination = new URL(request.url);
+		destination.pathname = publicPath;
+		return NextResponse.redirect(destination, 307);
+	}
 	const requestHeaders = new Headers(request.headers);
 	const returnTo = `${request.nextUrl.pathname}${request.nextUrl.search}`;
 	requestHeaders.set("x-return-to", returnTo);
+
+	if (internalPath !== pathname) {
+		const destination = new URL(request.url);
+		destination.pathname = internalPath;
+		return NextResponse.rewrite(destination, { request: { headers: requestHeaders } });
+	}
 
 	return NextResponse.next({
 		request: {
