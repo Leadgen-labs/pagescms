@@ -39,15 +39,16 @@ export async function grant(env=process.env){
  try{
   return await sql.begin(async tx=>{
    const users=await tx`SELECT id FROM "user" WHERE lower(email)=${target.email} AND email_verified=true`;
-   assert.equal(users.length,1,'Existing verified CMS user required');
+   assert.ok(users.length<=1,'Ambiguous verified CMS user');
+   const userId=users[0]?.id??null;
    const before=await tx`SELECT id,type,installation_id,owner_id,repo_id,user_id FROM collaborator WHERE lower(owner)=${target.owner.toLowerCase()} AND lower(repo)=${target.repo} AND lower(email)=${target.email}`;
    assert.ok(before.length<=1,'Ambiguous collaborator identity');
    await tx`INSERT INTO collaborator(type,installation_id,owner_id,repo_id,owner,repo,email,user_id)
-    VALUES (${identity.type},${identity.installationId},${target.ownerId},${identity.repoId},${target.owner},${target.repo},${target.email},${users[0].id})
+    VALUES (${identity.type},${identity.installationId},${target.ownerId},${identity.repoId},${target.owner},${target.repo},${target.email},${userId})
     ON CONFLICT (lower(owner),lower(repo),lower(email)) DO UPDATE SET type=excluded.type,installation_id=excluded.installation_id,owner_id=excluded.owner_id,repo_id=excluded.repo_id,user_id=excluded.user_id`;
    const rows=await tx`SELECT type,installation_id,owner_id,repo_id,user_id FROM collaborator WHERE lower(owner)=${target.owner.toLowerCase()} AND lower(repo)=${target.repo} AND lower(email)=${target.email}`;
-   assert.equal(rows.length,1);assert.equal(rows[0].user_id,users[0].id);assert.equal(rows[0].repo_id,identity.repoId);assert.equal(rows[0].owner_id,target.ownerId);assert.equal(rows[0].installation_id,identity.installationId);assert.equal(rows[0].type,identity.type);
-   return {email:target.email,repository:`${target.owner}/${target.repo}`,verifiedUser:true,collaboratorBound:true,existing:before.length===1,globalAdminChanged:false,emailsSent:0,productionActivated:false};
+   assert.equal(rows.length,1);assert.equal(rows[0].user_id,userId);assert.equal(rows[0].repo_id,identity.repoId);assert.equal(rows[0].owner_id,target.ownerId);assert.equal(rows[0].installation_id,identity.installationId);assert.equal(rows[0].type,identity.type);
+   return {email:target.email,repository:`${target.owner}/${target.repo}`,verifiedUser:users.length===1,accessPrepared:true,binding:userId?'verified-user':'email-awaiting-first-sign-in',existing:before.length===1,globalAdminChanged:false,emailsSent:0,productionActivated:false};
   });
  }finally{await sql.end({timeout:5});}
 }
