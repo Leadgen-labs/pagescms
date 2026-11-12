@@ -851,9 +851,11 @@ export function Entry({
         <Button asChild variant="ghost" size="icon-sm" className="shrink-0" aria-label={t("Zpět na články", "Back to articles")}>
           <Link href={publicProjectPath(collectionPath)}><ArrowLeft aria-hidden="true" /></Link>
         </Button>
-        <div className="min-w-0 leading-tight">
-          <div className="truncate text-xs text-muted-foreground">{siteName} · {t("Články", "Articles")}</div>
-          <h1 className="truncate text-sm font-semibold sm:text-base">
+        <div className="flex min-w-0 items-center gap-2 text-sm leading-tight">
+          <span className="sr-only">{siteName}</span>
+          <span className="shrink-0 text-muted-foreground">{t("Články", "Articles")}</span>
+          <span aria-hidden="true" className="text-muted-foreground">/</span>
+          <h1 className="truncate font-semibold">
             {path ? String(entry?.contentObject?.title || getFileName(path)) : t("Nový článek", "New article")}
           </h1>
         </div>

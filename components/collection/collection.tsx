@@ -941,10 +941,10 @@ export function Collection({ name, path }: { name: string; path?: string }) {
   ]);
 
   const headerNode = useMemo(
-    () => isArticleList && collectionPath === schema.path && collectionActions.length === 0 ? null : (
+    () => (
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 truncate">{isArticleList && collectionPath === schema.path
-          ? null
+          ? <span className="text-sm font-medium text-muted-foreground">{projectName(config.repo, config.object)}</span>
           : breadcrumbNode}</div>
         <CollectionHeaderActions
           addEntryHref={addEntryHref}
@@ -984,6 +984,7 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       config.branch,
       config.owner,
       config.repo,
+      config.object,
       handleFolderCreate,
       handleTableSearchChange,
       canCreate,
@@ -1009,7 +1010,6 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       <ArticleList
         key={name + ":" + collectionPath}
         name={name}
-        siteName={projectName(config.repo, config.object)}
         entries={data as ArticleCollectionEntry[]}
         addHref={publicProjectPath(addEntryHref)}
         editHref={(entryPath) => publicProjectPath(

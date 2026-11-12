@@ -11,16 +11,20 @@ import {
   Ellipsis,
   FileText,
   Folder,
+  ListFilter,
   Plus,
   RefreshCw,
   Search,
+  X,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { FileOptions } from "@/components/file/file-options";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { pragueDateTime } from "@/lib/editorial-article";
 import { ErrorText } from "@/components/error-text";
@@ -42,7 +46,6 @@ const STATUS_STYLE = {
 
 type ArticleListProps = {
   name: string;
-  siteName: string;
   entries: ArticleCollectionEntry[];
   editHref: (path: string) => string;
   addHref: string;
@@ -59,7 +62,7 @@ type ArticleListProps = {
 };
 
 export function ArticleList({
-  name, siteName, entries, editHref, addHref, onFolder, onDelete, onRename, canCreate, canDelete,
+  name, entries, editHref, addHref, onFolder, onDelete, onRename, canCreate, canDelete,
   canRename, loading, refreshing, error, onRefresh,
 }: ArticleListProps) {
   const { language, t } = useLanguage();
@@ -111,66 +114,68 @@ export function ArticleList({
   const sortLabel = t("Řazení článků", "Sort articles");
 
   return (
-    <section className="mx-auto max-w-6xl space-y-5 sm:space-y-6" aria-labelledby="articles-heading">
-      <div className="editorial-hero flex flex-wrap items-end justify-between gap-5 rounded-2xl px-5 py-6 sm:px-8 sm:py-8">
-        <div className="min-w-0">
-          <p className="text-sm font-medium wrap-anywhere text-[#b6d8c7]">{siteName}</p>
-          <h1 id="articles-heading" className="mt-2 text-4xl leading-none font-semibold tracking-[-0.055em] sm:text-6xl">
-            {t("Články", "Articles")}
-          </h1>
-        </div>
-        {canCreate && (
-          <Button asChild className="h-11 bg-[#d8f4aa] px-4 font-semibold text-[#19382e] hover:bg-[#e6ffc4]">
-            <Link href={addHref}><Plus aria-hidden />{newArticle}</Link>
-          </Button>
-        )}
-      </div>
+    <section className="mx-auto max-w-6xl space-y-4" aria-labelledby="articles-heading">
+      <h1 id="articles-heading" className="text-2xl font-semibold tracking-tight">{t("Články", "Articles")}</h1>
 
-      <div className="@container/list space-y-4">
-        <div className="grid grid-cols-2 gap-2.5 @min-[540px]/list:grid-cols-4" role="group" aria-label={t("Stav článku", "Article status")}>
-          {FILTERS.map((value) => (
-            <Button
-              key={value}
-              type="button"
-              variant="outline"
-              aria-pressed={value === filter}
-              onClick={() => { setFilter(value); setPage(0); }}
-              className="editorial-filter h-auto min-h-18 flex-col items-start justify-center gap-1 rounded-xl px-3 py-2.5 text-left whitespace-normal sm:px-4"
-            >
-              {filterLabels[value]}
-              {!loading && <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{counts[value]}</span>}
-            </Button>
-          ))}
-        </div>
-        <div className="overflow-hidden rounded-2xl border bg-card text-card-foreground">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-b p-3 sm:p-4 @min-[560px]/list:flex @min-[560px]/list:items-center">
-            <div className="relative col-span-2 min-w-0 @min-[560px]/list:mr-auto @min-[560px]/list:w-80">
-              <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                value={query}
-                onChange={(event) => { setQuery(event.target.value); setPage(0); }}
-                placeholder={search}
-                aria-label={search}
-                className="h-11 pl-9"
-              />
-            </div>
-            <select
-              value={sort}
-              onChange={(event) => { setSort(event.target.value as ArticleSort); setPage(0); }}
-              aria-label={sortLabel}
-              className="h-11 min-w-0 rounded-md border bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              <option value="newest">{t("Nejnovější vydání", "Newest publication")}</option>
-              <option value="oldest">{t("Nejstarší vydání", "Oldest publication")}</option>
-              <option value="title-asc">{t("Nadpis od A do Z", "Title from A to Z")}</option>
-              <option value="title-desc">{t("Nadpis od Z do A", "Title from Z to A")}</option>
-            </select>
-            <Button type="button" variant="outline" size="icon" className="size-11"
-              onClick={onRefresh} disabled={refreshing} aria-label={refresh} title={refresh}>
-              <RefreshCw aria-hidden className={cn(refreshing && "animate-spin motion-reduce:animate-none")} />
-            </Button>
+      <div className="@container/list space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-0 basis-full @min-[660px]/list:basis-64">
+            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              value={query}
+              onChange={(event) => { setQuery(event.target.value); setPage(0); }}
+              placeholder={search}
+              aria-label={search}
+              className="h-10 bg-background pl-9"
+            />
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" className="h-10 border-dashed" aria-label={t("Stav článku", "Article status")}>
+                <ListFilter aria-hidden />
+                {filter === "all" ? t("Stav", "Status") : filterLabels[filter]}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44">
+              <DropdownMenuRadioGroup value={filter} onValueChange={(value) => { setFilter(value as ArticleFilter); setPage(0); }}>
+                {FILTERS.map((value) => (
+                  <DropdownMenuRadioItem key={value} value={value} className="justify-between">
+                    {filterLabels[value]}
+                    {!loading && <span className="tabular-nums text-muted-foreground">{counts[value]}</span>}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <select
+            value={sort}
+            onChange={(event) => { setSort(event.target.value as ArticleSort); setPage(0); }}
+            aria-label={sortLabel}
+            className="h-10 min-w-0 max-w-full rounded-md border bg-background px-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            <option value="newest">{t("Nejnovější vydání", "Newest publication")}</option>
+            <option value="oldest">{t("Nejstarší vydání", "Oldest publication")}</option>
+            <option value="title-asc">{t("Nadpis od A do Z", "Title from A to Z")}</option>
+            <option value="title-desc">{t("Nadpis od Z do A", "Title from Z to A")}</option>
+          </select>
+          <Button type="button" variant="outline" size="icon" className="size-10"
+            onClick={onRefresh} disabled={refreshing} aria-label={refresh} title={refresh}>
+            <RefreshCw aria-hidden className={cn(refreshing && "animate-spin motion-reduce:animate-none")} />
+          </Button>
+          {hasFilters && (
+            <Button type="button" variant="ghost" className="h-10" onClick={clearFilters}>
+              <X aria-hidden />{t("Zrušit filtry", "Clear filters")}
+            </Button>
+          )}
+          {canCreate && (
+            <Button asChild className="ml-auto h-10">
+              <Link href={addHref}><Plus aria-hidden />{newArticle}</Link>
+            </Button>
+          )}
+        </div>
+
+        <div className="overflow-hidden rounded-lg border bg-card text-card-foreground">
 
           {error && (
             <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border-b border-destructive/30 bg-destructive/5 p-4">
@@ -193,61 +198,75 @@ export function ArticleList({
               ))}
             </div>
           ) : shown.length ? (
-            <ul className="divide-y">
-            {shown.map((row, index) => {
-              if (row.type === "dir") {
-                return (
-                  <li key={row.path} className="px-4 py-2">
-                    <Button type="button" variant="ghost" className="h-11 max-w-full justify-start px-2" onClick={() => onFolder(row.path)}>
-                      <Folder aria-hidden className="text-muted-foreground" /><span className="truncate">{row.title}</span>
-                    </Button>
-                  </li>
-                );
-              }
-              const { icon: StatusIcon, classes } = STATUS_STYLE[row.status];
-              const status = (
-                <Badge className={cn("px-2 py-1", classes)}>
-                  <StatusIcon aria-hidden />{statusLabels[row.status]}
-                </Badge>
-              );
-              const date = row.publishedAt
-                ? <time dateTime={row.publishedAt}>{dateFormatter.format(new Date(row.publishedAt + "Z"))}</time>
-                : null;
-              const titleId = `article-title-${firstRow + index}`;
-              const statusId = `article-status-${firstRow + index}`;
-              return (
-                <li key={row.path} className="flex items-center gap-2 px-3 py-2 hover:bg-muted/30 sm:px-4">
-                  <Link href={editHref(row.path)} aria-labelledby={titleId} aria-describedby={statusId}
-                    className="group flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-lg py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                    <span className="hidden size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary @min-[420px]/list:grid" aria-hidden>
-                      <FileText className="size-4" />
-                    </span>
-                    <span className="grid min-w-0 flex-1 gap-x-4 gap-y-1 @min-[690px]/list:grid-cols-[minmax(0,1fr)_auto] @min-[690px]/list:items-center">
-                      <span id={titleId} className="text-[15px] leading-snug font-semibold wrap-anywhere group-hover:text-primary group-hover:underline">{row.title}</span>
-                      <span id={statusId} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">{status}{date}</span>
-                    </span>
-                  </Link>
-                  <div className="shrink-0">
-                    {row.sha && (
-                      <FileOptions type="collection" name={name} path={row.path} sha={row.sha}
-                        canDelete={canDelete} canRename={canRename} onDelete={onDelete} onRename={onRename}>
-                        <Button type="button" variant="ghost" size="icon" className="size-11" aria-label={t(`Akce pro článek ${row.title}`, `Actions for ${row.title}`)}>
-                          <Ellipsis aria-hidden />
-                        </Button>
-                      </FileOptions>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-            </ul>
+            <Table className="table-fixed">
+              <TableHeader className="bg-muted/45">
+                <TableRow>
+                  <TableHead scope="col" className="px-4">{t("Nadpis", "Title")}</TableHead>
+                  <TableHead scope="col" className="hidden w-44 @min-[680px]/list:table-cell">{t("Stav v redakci", "Editorial status")}</TableHead>
+                  <TableHead scope="col" className="hidden w-40 @min-[680px]/list:table-cell">{t("Datum vydání", "Publication date")}</TableHead>
+                  <TableHead scope="col" className="w-15 text-right"><span className="sr-only">{t("Akce", "Actions")}</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {shown.map((row) => {
+                  if (row.type === "dir") {
+                    return (
+                      <TableRow key={row.path}>
+                        <TableCell colSpan={4} className="px-4 py-2">
+                          <Button type="button" variant="ghost" className="h-11 max-w-full justify-start px-2" onClick={() => onFolder(row.path)}>
+                            <Folder aria-hidden className="text-muted-foreground" /><span className="truncate">{row.title}</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                  const { icon: StatusIcon, classes } = STATUS_STYLE[row.status];
+                  const status = (
+                    <Badge className={cn("px-2 py-1", classes)}>
+                      <StatusIcon aria-hidden />{statusLabels[row.status]}
+                    </Badge>
+                  );
+                  const date = row.publishedAt
+                    ? <time dateTime={row.publishedAt}>{dateFormatter.format(new Date(row.publishedAt + "Z"))}</time>
+                    : null;
+                  return (
+                    <TableRow key={row.path}>
+                      <TableCell className="px-4 py-2 whitespace-normal">
+                        <div className="flex items-start gap-3">
+                          <span className="mt-1 hidden size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground lg:flex" aria-hidden>
+                            <FileText className="size-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <Link href={editHref(row.path)} className="flex min-h-11 items-center rounded-sm py-1 font-medium wrap-anywhere hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                              {row.title}
+                            </Link>
+                            <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground @min-[680px]/list:hidden">
+                              {status}{date}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden @min-[680px]/list:table-cell">{status}</TableCell>
+                      <TableCell className="hidden text-muted-foreground @min-[680px]/list:table-cell">{date ?? "—"}</TableCell>
+                      <TableCell className="pr-3 text-right">
+                        {row.sha && (
+                          <FileOptions type="collection" name={name} path={row.path} sha={row.sha}
+                            canDelete={canDelete} canRename={canRename} onDelete={onDelete} onRename={onRename}>
+                            <Button type="button" variant="ghost" size="icon" className="size-11" aria-label={t(`Akce pro článek ${row.title}`, `Actions for ${row.title}`)}>
+                              <Ellipsis aria-hidden />
+                            </Button>
+                          </FileOptions>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           ) : !error && (
             <div className="flex flex-col items-center gap-2 p-8 text-center sm:p-12">
               <FileText aria-hidden className="mb-1 size-6 text-muted-foreground" />
               <h2 className="font-semibold">{hasFilters ? t("Žádné odpovídající články", "No matching articles") : t("Zatím žádné články", "No articles yet")}</h2>
-              {hasFilters && (
-                <Button type="button" variant="outline" className="mt-2" onClick={clearFilters}>{t("Zrušit filtry", "Clear filters")}</Button>
-              )}
             </div>
           )}
 

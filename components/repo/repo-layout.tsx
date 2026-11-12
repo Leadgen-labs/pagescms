@@ -35,7 +35,7 @@ function RepoHeader({ editorial }: { editorial: boolean }) {
     <header className={cn(
       "sticky top-0 z-30 flex min-h-14 shrink-0 items-center border-b bg-background px-3 md:px-6",
       !hasHeaderContent && "md:hidden",
-      editorial && "items-start py-2.5",
+      editorial && "min-h-16 py-2.5",
     )}>
       <SidebarTrigger className="mr-2 shrink-0 md:hidden" />
       {hasHeaderContent && <div className="min-w-0 flex-1 self-center">{header}</div>}
@@ -69,7 +69,7 @@ export function RepoLayout({ children }: { children: React.ReactNode }) {
         <RepoSidebar editorial={editorial} />
         <SidebarInset className="min-h-screen">
           <RepoHeader editorial={editorial} />
-          <div className={cn("min-w-0 flex-1 p-4 md:p-6", editorial && "bg-[var(--editorial-canvas)] px-3 sm:px-6 lg:px-8 lg:py-7")}>
+          <div className={cn("min-w-0 flex-1 p-4 md:p-6", editorial && "bg-[var(--editorial-work)] px-3 sm:px-6")}>
             {review && config && (
               <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-4 py-3 text-sm">
                 <Link className="font-medium underline underline-offset-4" href={publicProjectPath(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`) + (review === "kontrola-presmerovani" ? "?tab=redirects" : "?tab=content")}><UiText text={"← Export a import"}/></Link>

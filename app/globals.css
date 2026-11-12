@@ -82,53 +82,45 @@
   --sidebar-ring: oklch(0.709 0.01 56.259);
 }
 
-[data-editorial] {
-  --editorial-canvas: #edf1eb;
-  --editorial-paper: #fcfdf9;
-  --editorial-rail: #f3f6ee;
-  --editorial-highlight: #e3efd7;
-  --editorial-highlight-ink: #23452f;
+[data-editorial], .editorial-sidebar {
+  --editorial-work: #f7f8f6;
+  --background: #fff;
+  --card: #fff;
+  --foreground: #18251d;
+  --card-foreground: #18251d;
+  --muted-foreground: #536459;
+  --border: #d9e2da;
+  --input: #d9e2da;
+  --sidebar: #f1f4f0;
+  --sidebar-border: #d9e2da;
+  --sidebar-foreground: #18251d;
+  --sidebar-accent: #deeee5;
+  --sidebar-accent-foreground: #15654d;
+}
+
+.dark [data-editorial], .dark .editorial-sidebar {
+  --editorial-work: #151a17;
+  --background: #1b211e;
+  --card: #1b211e;
+  --foreground: #ecf5ee;
+  --card-foreground: #ecf5ee;
+  --muted-foreground: #b1c1b7;
+  --border: #36453c;
+  --input: #36453c;
+  --sidebar: #202a24;
+  --sidebar-border: #36453c;
+  --sidebar-foreground: #ecf5ee;
+  --sidebar-accent: #263f32;
+  --sidebar-accent-foreground: #9be2c4;
 }
 
 .editorial-sidebar {
-  --sidebar: #142e26;
-  --sidebar-foreground: #e7f0e8;
-  --sidebar-primary: #d8f4aa;
-  --sidebar-primary-foreground: #19382e;
-  --sidebar-accent: #26463a;
-  --sidebar-accent-foreground: #f3faf3;
-  --sidebar-border: #345346;
-  --sidebar-ring: #a4c69e;
   color: var(--sidebar-foreground);
 }
 
-.editorial-sidebar [data-sidebar="menu-button"] .text-muted-foreground,
-.editorial-sidebar [data-slot="sidebar-footer"] a .text-muted-foreground {
-  color: #b6c8bf;
-}
-
-.dark [data-editorial] {
-  --editorial-canvas: #15221d;
-  --editorial-paper: #203129;
-  --editorial-rail: #192922;
-  --editorial-highlight: #304e3d;
-  --editorial-highlight-ink: #daf3c9;
-}
-
-.editorial-hero {
-  background: linear-gradient(110deg, #142e26 15%, #214638 100%);
-  color: #f3fbf2;
-}
-
-.editorial-filter[aria-pressed="true"] {
-  background: var(--editorial-highlight, #e3efd7);
-  color: var(--editorial-highlight-ink, #23452f);
-  border-color: currentColor;
-}
-
-.editorial-sidebar [data-sidebar="menu-button"][data-active="true"] {
-  background-color: color-mix(in srgb, var(--sidebar-primary) 12%, var(--sidebar));
-  color: var(--sidebar-primary);
+.editorial-sidebar [data-active="true"]:is([data-sidebar="menu-button"], [data-sidebar="menu-sub-button"]) {
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
   font-weight: 600;
 }
 

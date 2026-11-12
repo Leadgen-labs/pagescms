@@ -91,7 +91,6 @@ import {
   ChevronsUpDown,
   ChevronRight,
   CircleHelp,
-  FileText,
   ImageIcon,
   Link2,
   Search,
@@ -1235,30 +1234,28 @@ const EntryForm = ({
         id="entry-form"
         onSubmit={handleFormSubmit}
         noValidate={editorial}
-        className={cn("mx-auto grid w-full items-start", article ? "min-w-0 gap-4 @min-[740px]/article:grid-cols-[minmax(0,1fr)_minmax(250px,31%)] @min-[930px]/article:gap-6" : "max-w-screen-md gap-6")}
+        className={cn("mx-auto grid w-full items-start", article ? "min-w-0 gap-4 @min-[740px]/article:grid-cols-[minmax(0,1fr)_minmax(225px,25%)]" : "max-w-screen-md gap-6")}
         inert={article?.busy || undefined}
       >
         {article ? (
           <>
-            <section className="min-w-0 space-y-6 rounded-2xl border bg-[var(--editorial-paper,var(--card))] p-4 text-card-foreground shadow-xs sm:p-7 lg:p-9" aria-labelledby="article-writing-title">
-              <h2 id="article-writing-title" className="flex items-center gap-2 border-b pb-4 text-lg font-semibold tracking-tight">
-                <FileText aria-hidden="true" className="size-5 text-primary" />{t("Obsah článku", "Article content")}
-              </h2>
-              <div className="[&_input]:h-auto [&_input]:border-x-0 [&_input]:border-t-0 [&_input]:rounded-none [&_input]:bg-transparent [&_input]:px-0 [&_input]:py-2 [&_input]:text-2xl [&_input]:font-semibold [&_input]:tracking-tight [&_input]:shadow-none sm:[&_input]:text-3xl">
+            <section className="min-w-0 space-y-5 rounded-xl border bg-card p-3.5 text-card-foreground shadow-xs sm:p-6" aria-labelledby="article-writing-title">
+              <h2 id="article-writing-title" className="sr-only">{t("Obsah článku", "Article content")}</h2>
+              <div className="[&_input]:h-auto [&_input]:py-2 [&_input]:text-2xl [&_input]:font-semibold [&_input]:tracking-tight sm:[&_input]:text-3xl">
                 {render(namedFields(["title"]))}
               </div>
               {render(namedFields(["description", "body"]))}
             </section>
-            <aside className="min-w-0 divide-y overflow-clip rounded-2xl border bg-[var(--editorial-rail,var(--card))] text-card-foreground" aria-labelledby="article-details-title">
-              <div className="min-w-0 space-y-4 p-4 sm:p-5">
-                <h2 id="article-details-title" className="flex items-center gap-2 text-base font-semibold tracking-tight">
+            <aside className="min-w-0 divide-y overflow-clip rounded-xl border bg-card text-card-foreground shadow-xs" aria-labelledby="article-details-title">
+              <div className="min-w-0 space-y-4 p-3.5 sm:p-4">
+                <h2 id="article-details-title" className="flex items-center gap-2 text-sm font-semibold">
                   <Settings2 aria-hidden="true" className="size-4 text-primary" />{t("Detaily článku", "Article details")}
                 </h2>
                 {filename}
                 {!filename && article.address && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium">{t("Adresa článku", "Article address")}</p>
-                    <code className="block text-xs wrap-anywhere text-muted-foreground">{article.address}</code>
+                    <code className="block text-xs wrap-anywhere text-primary">{article.address}</code>
                   </div>
                 )}
                 {render(fields.filter((field) => !groupedNames.has(field.name)))}

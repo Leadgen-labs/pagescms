@@ -48,7 +48,7 @@ export function ArticleStatus({
   const link = live ? receipt.publicUrl : receipt?.previewUrl;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border bg-[var(--editorial-paper,var(--card))] px-3 py-2.5 sm:px-4">
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
       <div role="status" className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
         <span className={cn(
           "inline-flex items-center gap-1.5 rounded-full bg-background px-2.5 py-1 text-xs font-medium ring-1 ring-border",
