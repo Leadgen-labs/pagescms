@@ -23,7 +23,7 @@ test('website links lead to existing per-site dashboards and preserve other owne
  assert.equal(websiteHref({owner:'another',repo:'webs-obsah-demo',defaultBranch:'draft/preview'}),'/another/webs-obsah-demo/draft%2Fpreview/prehled');
 });
 
-function api({authenticated=true,github=false}={}){
+function api({authenticated=true,github=false,adminRepos=[]}={}){
  let searchCalls=[],dbCalls=0;
  const deps={
   '@/lib/utils/octokit':{createOctokitInstance:()=>({rest:{search:{repos:async options=>{searchCalls.push(options);const count=options.page?1:100;return {data:{total_count:101,items:Array.from({length:count},(_,i)=>({name:'webs-obsah-site'+(options.page?100:i),owner:{login:'leadgen-labs'},permissions:{push:true},default_branch:'main'}))}};}}}})},
@@ -37,6 +37,11 @@ function api({authenticated=true,github=false}={}){
   '@/lib/api-error':{toErrorResponse:e=>Response.json({error:e.message},{status:500})},
   '@/lib/session-server':{requireApiUserSession:async()=>authenticated?{user:{id:'signed-in-user'}}:{response:new Response(null,{status:401})}},
   '@/lib/collaborator-access':{collaboratorMatchesUser:user=>user.id},
+  '@/lib/token':{listAdminContentRepos:async (user,owner)=>{
+    assert.equal(user.id,'signed-in-user');
+    assert.equal(owner,'leadgen-labs');
+    return adminRepos;
+  }},
  };
  const mod={exports:{}};new Function('require','exports',compile('app/api/repos/[owner]/route.ts'))(name=>{if(!(name in deps))throw Error(name);return deps[name];},mod.exports);
  return {get:mod.exports.GET,searchCalls,dbCalls:()=>dbCalls};
@@ -49,4 +54,10 @@ test('website endpoint still requires authentication and scopes collaborators to
 });
 test('website endpoint fetches all search pages rather than the first five projects',async()=>{
  const h=api({github:true});const response=await h.get(request,context);const payload=await response.json();assert.equal(response.status,200);assert.equal(payload.data.length,102);assert.equal(h.searchCalls.length,2);assert.equal(h.searchCalls[0].per_page,100);assert.match(h.searchCalls[0].q,/webs-obsah-/);
+});
+test('website endpoint includes app repositories without a GitHub link or invitation',async()=>{
+ const h=api({adminRepos:[{owner:'leadgen-labs',repo:'webs-obsah-admin',defaultBranch:'main'}]});
+ const response=await h.get(request,context);
+ assert.equal(response.status,200);
+ assert.deepEqual((await response.json()).data.map(({repo})=>repo),['webs-obsah-client','webs-obsah-admin']);
 });

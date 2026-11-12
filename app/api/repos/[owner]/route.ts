@@ -10,6 +10,7 @@ import { hasGithubIdentity } from "@/lib/authz-shared";
 import { toErrorResponse } from "@/lib/api-error";
 import { requireApiUserSession } from "@/lib/session-server";
 import { collaboratorMatchesUser } from "@/lib/collaborator-access";
+import { listAdminContentRepos } from "@/lib/token";
 
 export const dynamic = "force-dynamic";
 
@@ -98,6 +99,11 @@ export async function GET(
       const key = `${repo.owner.toLowerCase()}::${repo.repo.toLowerCase()}`;
       if (!reposByKey.has(key)) {
         reposByKey.set(key, repo);
+      }
+    }
+    if (websitesOnly) {
+      for (const repo of await listAdminContentRepos(user, params.owner)) {
+        reposByKey.set(`${repo.owner.toLowerCase()}::${repo.repo.toLowerCase()}`, repo);
       }
     }
 

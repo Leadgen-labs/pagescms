@@ -15,6 +15,8 @@ import { User } from "@/types/user";
 import { getGithubAccount } from "@/lib/github-account";
 import { createHttpError } from "@/lib/api-error";
 import { collaboratorMatchesUserForRepo } from "@/lib/collaborator-access";
+import { hasAdminAccess } from "@/lib/admin";
+import { isContentRepoName, isContentRepoOwner } from "@/lib/webs/content-repositories";
 
 const installationTokenRefreshInFlight = new Map<number, Promise<string>>();
 
@@ -25,6 +27,14 @@ const getToken = cache(async (
   repo: string,
   verifyGithubAccess: boolean = false,
 ) => {
+  if (hasAdminAccess(user) && isContentRepoOwner(owner) && isContentRepoName(repo)) {
+    try {
+      return { token: await getInstallationToken(owner, repo), source: "installation" as const };
+    } catch (error) {
+      if (!isGitHubNotFound(error)) throw error;
+    }
+  }
+
   const githubAccount = await getGithubAccount(user.id);
   if (githubAccount?.accessToken) {
     const hasGithubAccess = await canAccessRepoWithToken(githubAccount.accessToken, owner, repo);
@@ -59,20 +69,57 @@ const getToken = cache(async (
   );
 });
 
-// Get the GitHub App installation token for a specific repository.
-const getInstallationToken = cache(async (owner: string, repo: string) => {
-  const app = new App({
+const getGitHubApp = () =>
+  new App({
     appId: process.env.GITHUB_APP_ID!,
     privateKey: process.env.GITHUB_APP_PRIVATE_KEY!,
   });
 
+const isGitHubNotFound = (error: unknown) =>
+  typeof error === "object" && error !== null && "status" in error && error.status === 404;
+
+// Get the GitHub App installation token for a specific repository.
+const getInstallationToken = cache(async (owner: string, repo: string) => {
+  const app = getGitHubApp();
   const repoInstallation = await app.octokit.request(
     "GET /repos/{owner}/{repo}/installation",
     { owner, repo },
   );
   if (!repoInstallation) throw new Error(`Installation token not found for "${owner}/${repo}".`);
 
-  const installationId = repoInstallation.data.id;
+  return getTokenForInstallation(app, repoInstallation.data.id);
+});
+
+const listAdminContentRepos = cache(async (user: User, owner: string) => {
+  if (!hasAdminAccess(user) || !isContentRepoOwner(owner)) return [];
+
+  const app = getGitHubApp();
+  try {
+    const { data: installation } = await app.octokit.request("GET /orgs/{org}/installation", { org: owner })
+      .catch((error: unknown) => {
+        if (!isGitHubNotFound(error)) throw error;
+        return app.octokit.request("GET /users/{username}/installation", { username: owner });
+      });
+    const octokit = createOctokitInstance(await getTokenForInstallation(app, installation.id));
+    return await octokit.paginate(
+      "GET /installation/repositories",
+      { per_page: 100 },
+      ({ data }) => data.filter((repo) => repo.owner.login.toLowerCase() === owner.toLowerCase() && isContentRepoName(repo.name))
+        .map((repo) => ({
+          owner: repo.owner.login,
+          repo: repo.name,
+          private: repo.private,
+          defaultBranch: repo.default_branch,
+          updatedAt: repo.updated_at,
+        })),
+    );
+  } catch (error) {
+    if (isGitHubNotFound(error)) return [];
+    throw error;
+  }
+});
+
+async function getTokenForInstallation(app: App, installationId: number) {
   const tokenData = await db.query.githubInstallationTokenTable.findFirst({
     where: eq(githubInstallationTokenTable.installationId, installationId)
   });
@@ -132,7 +179,7 @@ const getInstallationToken = cache(async (owner: string, repo: string) => {
   } finally {
     installationTokenRefreshInFlight.delete(installationId);
   }
-});
+}
 
 // Get the GitHub user token.
 const getUserToken = cache(async (userId: string) => {
@@ -156,4 +203,4 @@ const canAccessRepoWithToken = async (
   }
 };
 
-export { getInstallationToken, getUserToken, getToken };
+export { getInstallationToken, getUserToken, getToken, listAdminContentRepos };

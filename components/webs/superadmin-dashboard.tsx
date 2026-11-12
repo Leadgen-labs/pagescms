@@ -11,10 +11,12 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { publicProjectPath } from "@/lib/project-url";
+import { useWebsites } from "@/hooks/use-websites";
+import { websiteHref } from "@/lib/websites";
+import { CONTENT_REPO_OWNERS, CONTENT_REPO_PREFIX } from "@/lib/webs/content-repositories";
 import { dashboardSummary, filterDashboardSites, groupWebsiteAlerts, type WebsiteFilter } from "@/lib/webs/dashboard";
 import { formatDate, SiteChecklist, type SiteAlert, type SiteOverviewData } from "./site-checklist";
 
-const websitePath = (slug: string) => publicProjectPath(`/Leadgen-labs/webs-obsah-${encodeURIComponent(slug)}/main/prehled`);
 const avatarTones = ["bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300","bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300","bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300","bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"];
 
 function StatCard({ label, value, note, icon, warning = false }: {label:string;value:ReactNode;note:ReactNode;icon:ReactNode;warning?:boolean}) {
@@ -29,6 +31,15 @@ export function SuperadminDashboard({ sites, alerts, checkedForSeconds, error }:
   const ui = useUi();
   const { language } = useLanguage();
   const router = useRouter();
+  const { data } = useWebsites();
+  const websitePath = (slug: string) => {
+    const repo = CONTENT_REPO_PREFIX + slug;
+    for (const owner of CONTENT_REPO_OWNERS) {
+      const website = data?.websites.find((item) => item.owner.toLowerCase() === owner.toLowerCase() && item.repo.toLowerCase() === repo);
+      if (website) return websiteHref(website);
+    }
+    return publicProjectPath(`/Leadgen-labs/webs-obsah-${encodeURIComponent(slug)}/main/prehled`);
+  };
   const [refreshing, startRefresh] = useTransition();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<WebsiteFilter>("all");
