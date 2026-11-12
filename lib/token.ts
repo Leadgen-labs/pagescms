@@ -15,7 +15,6 @@ import { User } from "@/types/user";
 import { getGithubAccount } from "@/lib/github-account";
 import { createHttpError } from "@/lib/api-error";
 import { collaboratorMatchesUserForRepo } from "@/lib/collaborator-access";
-import { isCmsGithubRepository } from "@/lib/github-owner-scope";
 
 const installationTokenRefreshInFlight = new Map<number, Promise<string>>();
 
@@ -26,7 +25,6 @@ const getToken = cache(async (
   repo: string,
   verifyGithubAccess: boolean = false,
 ) => {
-  if (!isCmsGithubRepository(owner, repo)) throw createHttpError("Repository is outside Pages CMS.", 403);
   const githubAccount = await getGithubAccount(user.id);
   if (githubAccount?.accessToken) {
     const hasGithubAccess = await canAccessRepoWithToken(githubAccount.accessToken, owner, repo);
@@ -63,7 +61,6 @@ const getToken = cache(async (
 
 // Get the GitHub App installation token for a specific repository.
 const getInstallationToken = cache(async (owner: string, repo: string) => {
-  if (!isCmsGithubRepository(owner, repo)) throw createHttpError("Repository is outside Pages CMS.", 403);
   const app = new App({
     appId: process.env.GITHUB_APP_ID!,
     privateKey: process.env.GITHUB_APP_PRIVATE_KEY!,

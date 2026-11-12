@@ -4,22 +4,17 @@ import { createRequire } from 'node:module';
 import ts from 'typescript';
 import fs from 'node:fs';
 const require = createRequire(import.meta.url);
-const scope = require('../lib/github-owner-scope.ts');
-function loadTypeScript(relativeUrl, imports) {
-  const source = ts.transpileModule(fs.readFileSync(new URL(relativeUrl, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
-  const compiledModule = { exports: {} };
-  new Function('require', 'module', 'exports', source)(name => imports[name] ?? require(name), compiledModule, compiledModule.exports);
-  return compiledModule.exports;
-}
-const urls = loadTypeScript('../lib/project-url.ts', { '@/lib/github-owner-scope': scope });
-const { internalProjectPath, publicProjectPath } = urls;
+const { internalProjectPath, publicProjectPath } = require('../lib/project-url.ts');
 const { NextRequest } = require('next/server');
-const { proxy } = loadTypeScript('../proxy.ts', { '@/lib/project-url': urls });
+const source = ts.transpileModule(fs.readFileSync(new URL('../proxy.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+const compiledModule = { exports: {} };
+new Function('require', 'module', 'exports', source)(name => name === '@/lib/project-url' ? { internalProjectPath, publicProjectPath } : require(name), compiledModule, compiledModule.exports);
+const { proxy } = compiledModule.exports;
 const base = '/leadgen-labs-cz/webs-obsah-kesek/main';
 const legacyBase = '/leadgen-labs/webs-obsah-kesek/main';
 
 test('short overview, access section, nested entries and other projects round-trip', () => {
-  for (const [short, internal] of [['/kesek',base+'/prehled'],['/kesek/pristupy',base+'/collaborators'],['/kesek/collection/blog/cs/clanek.md',base+'/collection/blog/cs/clanek.md'],['/kesek/media/default',base+'/media/default'],['/demo/submissions','/leadgen-labs-cz/webs-obsah-demo/main/submissions'],['/nevolame','/leadgen-labs/webs-obsah-nevolame/main/prehled']]) {
+  for (const [short, internal] of [['/kesek',base+'/prehled'],['/kesek/pristupy',base+'/collaborators'],['/kesek/collection/blog/cs/clanek.md',base+'/collection/blog/cs/clanek.md'],['/kesek/media/default',base+'/media/default'],['/demo/submissions','/leadgen-labs-cz/webs-obsah-demo/main/submissions'],['/nevolame','/leadgen-labs-cz/webs-obsah-nevolame/main/prehled']]) {
     assert.equal(internalProjectPath(short), internal);
     assert.equal(publicProjectPath(internal), short);
   }
@@ -85,41 +80,4 @@ test('export/import short URLs reach the original authorized project route', () 
     assert.equal(rewritten.headers.get('x-middleware-rewrite'), 'https://cms.mobilut.com' + internal + '?tab=content');
     assert.equal(rewritten.headers.get('x-middleware-request-x-return-to'), short + '?tab=content');
   }
-});
-
-test('organization installations do not open unrelated GitHub accounts or repositories', () => {
-  assert.equal(scope.isCmsGithubOwner('Leadgen-labs'), true);
-  assert.equal(scope.isCmsGithubOwner('Leadgen-labs-cz'), true);
-  assert.equal(scope.isCmsGithubOwner('unrelated'), false);
-  assert.equal(scope.isCmsGithubRepository('Leadgen-labs', 'webs-obsah-nevolame'), true);
-  assert.equal(scope.isCmsGithubRepository('Leadgen-labs-cz', 'webs-obsah-demo'), true);
-  assert.equal(scope.isCmsGithubRepository('Leadgen-labs-cz', 'webs'), false);
-  assert.equal(scope.isCmsGithubRepository('unrelated', 'webs-obsah-demo'), false);
-});
-
-test('repository discovery cannot fall back to another installation', async () => {
-  const permitted = { id: 1, account: { login: 'Leadgen-labs' } };
-  const foreign = { id: 2, account: { login: 'unrelated' } };
-  const { getInstallations, getInstallationRepos } = loadTypeScript('../lib/github-app.ts', {
-    '@/lib/github-owner-scope': scope,
-    '@/lib/utils/octokit': {
-      createOctokitInstance: () => ({
-        rest: { apps: {
-          listInstallationsForAuthenticatedUser: async () => ({
-            data: { installations: [permitted, foreign], total_count: 2 },
-          }),
-          listInstallationReposForAuthenticatedUser: async () => ({
-            data: { repositories: [
-              { owner: { login: 'Leadgen-labs-cz' }, name: 'webs-obsah-demo' },
-              { owner: { login: 'Leadgen-labs-cz' }, name: 'webs' },
-              { owner: { login: 'unrelated' }, name: 'webs-obsah-foreign' },
-            ], total_count: 3 },
-          }),
-        }},
-      }),
-    },
-  });
-  assert.deepEqual(await getInstallations('token'), [permitted]);
-  assert.deepEqual(await getInstallations('token', ['Leadgen-labs-cz']), []);
-  assert.deepEqual((await getInstallationRepos('token', 1)).map(repo => repo.name), ['webs-obsah-demo']);
 });

@@ -5,7 +5,6 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getInstallations } from "@/lib/github-app";
 import { requireGithubUserToken } from "@/lib/authz-server";
-import { isCmsGithubRepository } from "@/lib/github-owner-scope";
 import templates from "@/lib/templates";
 import { z } from "zod";
 
@@ -35,7 +34,6 @@ const handleCopyTemplate = async (prevState: any, formData: FormData) => {
 
 		const owner = ownerAndNameValidation.data.owner;
 		const name = ownerAndNameValidation.data.name;
-    if (!isCmsGithubRepository(owner, name)) throw new Error("Repository is outside Pages CMS.");
 
 		const installations = await getInstallations(token, [owner]);
 		if (installations.length !== 1) throw new Error(`"${owner}" is not part of your GitHub App installations`);

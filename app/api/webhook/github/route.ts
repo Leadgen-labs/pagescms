@@ -3,7 +3,6 @@ import crypto from "crypto";
 import { handleActionWebhookEvent } from "@/lib/github-webhook-actions";
 import { handleInstallationWebhookEvent } from "@/lib/github-webhook-installation";
 import { handlePushWebhookEvent } from "@/lib/github-webhook-push";
-import { isCmsGithubOwner, isCmsGithubRepository } from "@/lib/github-owner-scope";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -19,14 +18,6 @@ export const maxDuration = 60;
  * Requires GitHub App webhook secret and signature.
  */
 const processWebhookEvent = async (event: string | null, data: any) => {
-  const owner = data?.repository?.owner?.login;
-  const repo = data?.repository?.name;
-  const account = data?.installation?.account?.login ?? data?.account?.login;
-  const inScope = typeof owner === "string" && typeof repo === "string"
-    ? isCmsGithubRepository(owner, repo)
-    : typeof account === "string" && isCmsGithubOwner(account);
-  if (!inScope) return;
-
   if (await handleInstallationWebhookEvent(event, data)) return;
   if (await handlePushWebhookEvent(event, data)) return;
   if (await handleActionWebhookEvent(event, data)) return;

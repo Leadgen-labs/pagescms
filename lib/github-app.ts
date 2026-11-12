@@ -4,7 +4,6 @@
  */
 
 import { createOctokitInstance } from "@/lib/utils/octokit";
-import { isCmsGithubOwner, isCmsGithubRepository } from "@/lib/github-owner-scope";
 
 type InstallationAccount = {
   type?: string;
@@ -35,9 +34,7 @@ const getInstallations = async (
 
     if (response.data.installations.length === 0) break;
 
-    installations = installations.concat(response.data.installations.filter(
-      installation => installation.account && "login" in installation.account && isCmsGithubOwner(installation.account.login),
-    ));
+    installations = installations.concat(response.data.installations);
 
     if (owners) {
       const lowercaseOwners = owners.map((o) => o.toLowerCase());
@@ -89,9 +86,7 @@ const getInstallationRepos = async (
 
     if (response.data.repositories.length === 0) break;
 
-    allRepos = allRepos.concat(response.data.repositories.filter(
-      repo => isCmsGithubRepository(repo.owner.login, repo.name),
-    ));
+    allRepos = allRepos.concat(response.data.repositories);
 
     if (repos) {
       const lowercaseRepos = repos.map((repo) => repo.toLowerCase());

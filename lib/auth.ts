@@ -9,7 +9,7 @@ import * as schema from "@/db/schema";
 import { getBaseUrl } from "@/lib/base-url";
 import { repairLegacyGithubStubOnLogin } from "@/lib/github-legacy-stub-repair";
 import { sendEmail } from "@/lib/mailer";
-import { canSignInWithGithub, syncGithubProfileOnLogin } from "@/lib/github-account";
+import { syncGithubProfileOnLogin } from "@/lib/github-account";
 import { bindCollaboratorInvitesToUser } from "@/lib/collaborator-access";
 import { LoginEmailTemplate } from "@/components/email/login";
 import { render } from "@react-email/render";
@@ -84,10 +84,6 @@ export const auth = betterAuth({
           profile.email = (emails.find((entry) => entry.primary) ?? emails[0])?.email as string;
         }
         const emailVerified = emails?.find((entry) => entry.email === profile.email)?.verified ?? false;
-        if (!Number.isSafeInteger(profile.id) || !token.accessToken ||
-          !await canSignInWithGithub(token.accessToken, profile.id, emailVerified ? profile.email : undefined)) {
-          return null;
-        }
 
         const userMap = {
           name: profile.name ?? profile.login,

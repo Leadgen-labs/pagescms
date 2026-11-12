@@ -1,6 +1,7 @@
-import { CONTENT_REPO_PREFIX, LEGACY_CONTENT_OWNER, ORGANIZATION_CONTENT_OWNER } from "@/lib/github-owner-scope";
-
-const RESERVED = new Set(["api", "admin", "auth", "sign-in", "settings", "_next", LEGACY_CONTENT_OWNER, ORGANIZATION_CONTENT_OWNER]);
+/** Short editorial links use the content repositories in the organization. */
+const OWNER = "leadgen-labs-cz";
+const PREFIX = "webs-obsah-";
+const RESERVED = new Set(["api", "admin", "auth", "sign-in", "settings", "_next", "leadgen-labs", OWNER]);
 const SECTIONS = new Set(["prehled", "pristupy", "collection", "file", "media", "configuration", "actions", "cache", "submissions", "transfer"]);
 const validSlug = (slug: string) => /^[a-z0-9][a-z0-9-]{1,40}$/.test(slug) && !RESERVED.has(slug);
 
@@ -19,7 +20,5 @@ export function internalProjectPath(pathname: string): string {
   const suffix = (match[2] ?? "").replace(/\/$/, "");
   if (suffix && !SECTIONS.has(suffix.split("/")[0])) return pathname;
   const section = !suffix || suffix === "prehled" ? "prehled" : suffix === "pristupy" ? "collaborators" : suffix;
-  // Nevoláme is still owned by the original account.
-  const owner = match[1] === "nevolame" ? LEGACY_CONTENT_OWNER : ORGANIZATION_CONTENT_OWNER;
-  return "/" + owner + "/" + CONTENT_REPO_PREFIX + match[1] + "/main/" + section;
+  return "/" + OWNER + "/" + PREFIX + match[1] + "/main/" + section;
 }
