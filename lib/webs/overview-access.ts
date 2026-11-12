@@ -11,7 +11,7 @@ export async function canReadSiteOverview(
   repo: string,
   access: { token: string; source: "user" | "installation" },
 ): Promise<boolean> {
-  // An installation token is returned only for an explicitly invited collaborator.
+  // getToken grants installation access to invited collaborators and scoped superadmins.
   if (access.source === "installation") return true;
   const collaborator = await db.query.collaboratorTable.findFirst({
     where: collaboratorMatchesUserForRepo(user, owner, repo),
