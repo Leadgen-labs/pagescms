@@ -74,7 +74,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "@/components/localized-toast";
-import { ArrowLeft, EllipsisVertical, Eye, History, Lock, LockOpen, Save } from "lucide-react";
+import { ArrowLeft, EllipsisVertical, Eye, History, Lock, LockOpen, Save, Settings2 } from "lucide-react";
 import useSWR, { useSWRConfig } from "swr";
 
 type LintView = {
@@ -862,6 +862,9 @@ export function Entry({
       </div>
       {!error && !isCreationBlocked && (
         <div className="flex min-w-0 flex-wrap items-center gap-1.5 max-[359px]:gap-1">
+          <Button asChild variant="ghost" size="icon-sm" className="xl:hidden" aria-label={t("Detaily článku", "Article details")}>
+            <a href="#article-details"><Settings2 aria-hidden="true" /></a>
+          </Button>
           <Button ref={previewButton} type="button" onClick={() => requestArticleAction("preview")}
             variant="outline" size="sm" className="h-9 px-2.5 max-[359px]:px-2" disabled={isBusy} aria-label={t("Náhled článku", "Article preview")}>
             <Eye aria-hidden="true" /><span className="hidden min-[420px]:inline">{t("Náhled", "Preview")}</span>

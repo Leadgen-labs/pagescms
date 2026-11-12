@@ -116,7 +116,12 @@ export function ArticleList({
   return (
     <section className="mx-auto max-w-6xl space-y-4" aria-labelledby="articles-heading">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 id="articles-heading" className="text-2xl font-semibold tracking-tight">{t("Články", "Articles")}</h1>
+        <div className="min-w-0">
+          <h1 id="articles-heading" className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("Články", "Articles")}</h1>
+          {!loading && !error && (
+            <p className="mt-1 text-sm text-muted-foreground">{t(`Celkem ${counts.all} · Koncepty ${counts.draft}`, `${counts.all} total · ${counts.draft} drafts`)}</p>
+          )}
+        </div>
         {canCreate && (
           <Button asChild className="h-10 sm:hidden">
             <Link href={addHref}><Plus aria-hidden />{newArticle}</Link>

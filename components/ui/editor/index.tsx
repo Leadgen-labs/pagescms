@@ -943,7 +943,7 @@ export function Editor({
   return (
     <div {...props} className={cn("", className)}>
       {articleToolbar && !disabled && (
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-t-md border border-b-0 bg-[var(--editorial-work,var(--muted))] px-2 py-1.5"
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border bg-[var(--editorial-work,var(--muted))] px-2 py-1.5 xl:sticky xl:top-[4.25rem] xl:z-10"
           role="group" aria-label={ui("Text formatting")}>
           <div className="flex items-center gap-0.5 border-r pr-1.5">
             <Button type="button" variant="ghost" size="icon" className="size-9" disabled={!activeState.canUndo}

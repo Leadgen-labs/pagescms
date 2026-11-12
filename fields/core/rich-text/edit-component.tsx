@@ -911,7 +911,7 @@ const EditComponent = forwardRef(
               className="cn-editor"
               articleToolbar={props.articleToolbar}
               editorClassName={props.articleToolbar
-                ? "min-h-[22rem] rounded-t-none px-3 py-4 wrap-anywhere sm:px-5 [&_img]:max-w-full [&_table]:table-fixed [&_td]:wrap-anywhere [&_th]:wrap-anywhere"
+                ? "editorial-prose min-h-[22rem] rounded-none border-transparent px-0 py-5 text-[1.125rem] leading-[1.68] shadow-none wrap-anywhere md:text-[1.1875rem] dark:bg-transparent [&_img]:max-w-full [&_table]:table-fixed [&_td]:wrap-anywhere [&_th]:wrap-anywhere"
                 : undefined}
               enableImages={Boolean(mediaConfig)}
               enableImagePasteDrop={Boolean(mediaConfig)}

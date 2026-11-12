@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner"
 import { Providers } from "@/components/providers";
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import { getBaseUrl } from "@/lib/base-url";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -14,6 +14,11 @@ const inter = Inter({
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
+});
+const editorialSerif = Source_Serif_4({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-editorial-serif",
+  preload: false,
 });
 const appUrl = getBaseUrl();
 const socialImage = "/images/social-card.png";
@@ -64,6 +69,7 @@ export default async function RootLayout({
           "min-h-screen bg-background font-sans antialiased",
           inter.variable,
           jetbrainsMono.variable,
+          editorialSerif.variable,
         )}
       >
         <Providers user={null}>

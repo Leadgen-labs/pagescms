@@ -48,8 +48,9 @@ export function RepoLayout({ children }: { children: React.ReactNode }) {
   const { config } = useConfig();
   const { owner, repo } = useRepo();
   const pathname = internalProjectPath(usePathname());
-  const editorial = config?.repo.toLowerCase().startsWith("webs-obsah-") === true
-    && config.branch === "main" && /\/collection\/blog-[a-z]{2}(?:-[a-z]{2})?(?:\/|$)/.test(pathname);
+  const contentWorkspace = config?.repo.toLowerCase().startsWith("webs-obsah-") === true
+    && config.branch === "main";
+  const editorial = contentWorkspace && /\/collection\/blog-[a-z]{2}(?:-[a-z]{2})?(?:\/|$)/.test(pathname);
   const review = config?.repo.startsWith("webs-obsah-")
     ? ["kontrola-importu", "kontrola-presmerovani"].find((name) => {
         const path = `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${name}`;
@@ -66,7 +67,7 @@ export function RepoLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider data-editorial={editorial || undefined}>
       <RepoHeaderProvider>
-        <RepoSidebar editorial={editorial} />
+        <RepoSidebar editorial={contentWorkspace} />
         <SidebarInset className="min-h-screen">
           <RepoHeader editorial={editorial} />
           <div className={cn("min-w-0 flex-1 p-4 md:p-6", editorial && "bg-[var(--editorial-work)] px-3 sm:px-6")}>
