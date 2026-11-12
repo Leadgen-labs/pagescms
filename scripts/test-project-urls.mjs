@@ -10,10 +10,11 @@ const source = ts.transpileModule(fs.readFileSync(new URL('../proxy.ts', import.
 const compiledModule = { exports: {} };
 new Function('require', 'module', 'exports', source)(name => name === '@/lib/project-url' ? { internalProjectPath, publicProjectPath } : require(name), compiledModule, compiledModule.exports);
 const { proxy } = compiledModule.exports;
-const base = '/leadgen-labs/webs-obsah-kesek/main';
+const base = '/leadgen-labs-cz/webs-obsah-kesek/main';
+const legacyBase = '/leadgen-labs/webs-obsah-kesek/main';
 
 test('short overview, access section, nested entries and other projects round-trip', () => {
-  for (const [short, internal] of [['/kesek',base+'/prehled'],['/kesek/pristupy',base+'/collaborators'],['/kesek/collection/blog/cs/clanek.md',base+'/collection/blog/cs/clanek.md'],['/kesek/media/default',base+'/media/default'],['/demo/submissions','/leadgen-labs/webs-obsah-demo/main/submissions']]) {
+  for (const [short, internal] of [['/kesek',base+'/prehled'],['/kesek/pristupy',base+'/collaborators'],['/kesek/collection/blog/cs/clanek.md',base+'/collection/blog/cs/clanek.md'],['/kesek/media/default',base+'/media/default'],['/demo/submissions','/leadgen-labs-cz/webs-obsah-demo/main/submissions'],['/nevolame','/leadgen-labs-cz/webs-obsah-nevolame/main/prehled']]) {
     assert.equal(internalProjectPath(short), internal);
     assert.equal(publicProjectPath(internal), short);
   }
@@ -29,7 +30,7 @@ test('system pages, API, unrelated repositories and non-main branches stay untou
 });
 
 test('old page URL redirects without dropping query parameters', () => {
-  const response=proxy(new NextRequest('https://cms.mobilut.com'+base+'/collaborators?tab=users'));
+  const response=proxy(new NextRequest('https://cms.mobilut.com'+legacyBase+'/collaborators?tab=users'));
   assert.equal(response.status,307);
   assert.equal(response.headers.get('location'),'https://cms.mobilut.com/kesek/pristupy?tab=users');
 });
@@ -67,7 +68,7 @@ test('API origin checks and original API paths remain in effect', () => {
 
 test('export/import short URLs reach the original authorized project route', () => {
   for (const slug of ['kesek', 'demo']) {
-    const internal = `/leadgen-labs/webs-obsah-${slug}/main/transfer`;
+    const internal = `/leadgen-labs-cz/webs-obsah-${slug}/main/transfer`;
     const short = `/${slug}/transfer`;
     assert.equal(publicProjectPath(internal), short);
     assert.equal(internalProjectPath(short), internal);

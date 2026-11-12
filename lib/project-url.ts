@@ -1,12 +1,12 @@
-/** Public URL aliases only. Repository identity and authorization are unchanged. */
-const OWNER = "leadgen-labs";
+/** Short editorial links use the content repositories in the organization. */
+const OWNER = "leadgen-labs-cz";
 const PREFIX = "webs-obsah-";
-const RESERVED = new Set(["api", "admin", "auth", "sign-in", "settings", "_next", OWNER]);
+const RESERVED = new Set(["api", "admin", "auth", "sign-in", "settings", "_next", "leadgen-labs", OWNER]);
 const SECTIONS = new Set(["prehled", "pristupy", "collection", "file", "media", "configuration", "actions", "cache", "submissions", "transfer"]);
 const validSlug = (slug: string) => /^[a-z0-9][a-z0-9-]{1,40}$/.test(slug) && !RESERVED.has(slug);
 
 export function publicProjectPath(pathname: string): string {
-  const match = pathname.match(/^\/leadgen-labs\/webs-obsah-([a-z0-9-]+)\/main(?:\/(.*))?$/i);
+  const match = pathname.match(/^\/leadgen-labs(?:-cz)?\/webs-obsah-([a-z0-9-]+)\/main(?:\/(.*))?$/i);
   if (!match || !validSlug(match[1].toLowerCase())) return pathname;
   const slug = match[1].toLowerCase();
   const suffix = (match[2] ?? "").replace(/\/$/, "");

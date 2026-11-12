@@ -58,7 +58,7 @@ const getInstallations = async (
     page++;
   }
 
-  return matchedInstallations.length ? matchedInstallations : installations;
+  return owners ? matchedInstallations : installations;
 };
 
 // Get all repositories for a GitHub App installation.)
