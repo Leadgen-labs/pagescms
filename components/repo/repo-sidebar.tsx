@@ -545,12 +545,14 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
     }
 
     const href = getNodeHref(node);
-    const isActive = pathname === href || pathname.startsWith(`${href}/`);
+    const link = publicProjectPath(href);
+    const current = publicProjectPath(pathname);
+    const isActive = current === link || current.startsWith(`${link}/`);
     if (nested) {
       return (
         <SidebarMenuSubItem key={key}>
           <SidebarMenuSubButton asChild isActive={isActive}>
-            <Link href={publicProjectPath(href)} onClick={handleNavigation}>
+            <Link href={link} onClick={handleNavigation}>
               {getNodeIcon(node)}
               <span>{node.label || node.name}</span>
             </Link>
@@ -562,7 +564,7 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
     return (
       <SidebarMenuItem key={key}>
         <SidebarMenuButton asChild isActive={isActive}>
-          <Link href={publicProjectPath(href)} onClick={handleNavigation}>
+          <Link href={link} onClick={handleNavigation}>
             {getNodeIcon(node)}
             <span>{node.label || node.name}</span>
           </Link>
@@ -638,7 +640,7 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
   ].filter(Boolean);
 
   return (
-    <Sidebar collapsible="offcanvas">
+    <Sidebar collapsible="offcanvas" className={editorial ? "editorial-sidebar" : undefined}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

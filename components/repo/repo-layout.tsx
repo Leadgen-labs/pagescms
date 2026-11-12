@@ -69,7 +69,7 @@ export function RepoLayout({ children }: { children: React.ReactNode }) {
         <RepoSidebar editorial={editorial} />
         <SidebarInset className="min-h-screen">
           <RepoHeader editorial={editorial} />
-          <div className={cn("min-w-0 flex-1 p-4 md:p-6", editorial && "bg-muted/35 px-3 sm:px-6")}>
+          <div className={cn("min-w-0 flex-1 p-4 md:p-6", editorial && "bg-[var(--editorial-canvas)] px-3 sm:px-6 lg:px-8 lg:py-7")}>
             {review && config && (
               <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-4 py-3 text-sm">
                 <Link className="font-medium underline underline-offset-4" href={publicProjectPath(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`) + (review === "kontrola-presmerovani" ? "?tab=redirects" : "?tab=content")}><UiText text={"← Export a import"}/></Link>

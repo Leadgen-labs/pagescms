@@ -82,7 +82,46 @@
   --sidebar-ring: oklch(0.709 0.01 56.259);
 }
 
-[data-editorial] [data-sidebar="menu-button"][data-active="true"] {
+[data-editorial] {
+  --editorial-canvas: #edf1eb;
+  --editorial-paper: #fcfdf9;
+  --editorial-rail: #f3f6ee;
+  --editorial-highlight: #e3efd7;
+  --editorial-highlight-ink: #23452f;
+}
+
+.editorial-sidebar {
+  --muted-foreground: #b6c8bf;
+  --sidebar: #142e26;
+  --sidebar-foreground: #e7f0e8;
+  --sidebar-primary: #d8f4aa;
+  --sidebar-primary-foreground: #19382e;
+  --sidebar-accent: #26463a;
+  --sidebar-accent-foreground: #f3faf3;
+  --sidebar-border: #345346;
+  --sidebar-ring: #a4c69e;
+}
+
+.dark [data-editorial] {
+  --editorial-canvas: #15221d;
+  --editorial-paper: #203129;
+  --editorial-rail: #192922;
+  --editorial-highlight: #304e3d;
+  --editorial-highlight-ink: #daf3c9;
+}
+
+.editorial-hero {
+  background: linear-gradient(110deg, #142e26 15%, #214638 100%);
+  color: #f3fbf2;
+}
+
+.editorial-filter[aria-pressed="true"] {
+  background: var(--editorial-highlight, #e3efd7);
+  color: var(--editorial-highlight-ink, #23452f);
+  border-color: currentColor;
+}
+
+.editorial-sidebar [data-sidebar="menu-button"][data-active="true"] {
   background-color: color-mix(in srgb, var(--sidebar-primary) 12%, var(--sidebar));
   color: var(--sidebar-primary);
   font-weight: 600;
