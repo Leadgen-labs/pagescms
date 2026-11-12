@@ -1,5 +1,6 @@
 import "./db/envConfig";
 import { defineConfig } from "drizzle-kit";
+import { getHetznerPostgresCredentials } from "./db/hetzner-postgres";
 
 export default defineConfig({
   dialect: "postgresql",
@@ -7,7 +8,5 @@ export default defineConfig({
   out: "./db/migrations",
   strict: true,
   verbose: true,
-  dbCredentials: {
-    url: process.env.DATABASE_URL!,
-  },
+  dbCredentials: getHetznerPostgresCredentials() ?? { url: process.env.DATABASE_URL! },
 });
