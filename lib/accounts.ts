@@ -10,6 +10,7 @@ import { getGithubAccount } from "@/lib/github-account";
 import { requireGithubUserToken } from "@/lib/authz-server";
 import { hasGithubIdentity } from "@/lib/authz-shared";
 import { collaboratorMatchesUser } from "@/lib/collaborator-access";
+import { isCmsGithubOwner } from "@/lib/github-owner-scope";
 
 const getAccounts = async (user: User) => {
 	let accounts: Array<{
@@ -44,7 +45,7 @@ const getAccounts = async (user: User) => {
     .from(collaboratorTable)
     .where(collaboratorMatchesUser(user));
 
-  const collaboratorAccounts = groupedRepos.map(collaborator => ({
+  const collaboratorAccounts = groupedRepos.filter(collaborator => isCmsGithubOwner(collaborator.owner)).map(collaborator => ({
     login: collaborator.owner,
     type: collaborator.type,
     repositorySelection: "selected",

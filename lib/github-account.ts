@@ -1,8 +1,10 @@
 import { cache } from "react";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { accountTable, userTable } from "@/db/schema";
+import { accountTable, collaboratorTable, userTable } from "@/db/schema";
 import { createOctokitInstance } from "@/lib/utils/octokit";
+import { getInstallations } from "@/lib/github-app";
+import { LEGACY_CONTENT_OWNER, ORGANIZATION_CONTENT_OWNER, isCmsGithubRepository } from "@/lib/github-owner-scope";
 
 // Read the linked GitHub OAuth account for a user.
 const getGithubAccount = cache(async (userId: string) => {
@@ -21,6 +23,27 @@ const getGithubId = cache(async (userId: string): Promise<number | null> => {
   const githubId = Number(account.accountId);
   return Number.isInteger(githubId) ? githubId : null;
 });
+
+async function canSignInWithGithub(token: string, githubId: number, verifiedEmail?: string) {
+  const linked = await db.query.accountTable.findFirst({
+    columns: { id: true },
+    where: and(eq(accountTable.providerId, "github"), eq(accountTable.accountId, String(githubId))),
+  });
+  if (linked) return true;
+
+  if (verifiedEmail) {
+    const collaborators = await db.query.collaboratorTable.findMany({
+      columns: { owner: true, repo: true },
+      where: and(
+        sql`lower(${collaboratorTable.email}) = lower(${verifiedEmail})`,
+        inArray(sql`lower(${collaboratorTable.owner})`, [LEGACY_CONTENT_OWNER, ORGANIZATION_CONTENT_OWNER]),
+      ),
+    });
+    if (collaborators.some(row => isCmsGithubRepository(row.owner, row.repo))) return true;
+  }
+
+  return (await getInstallations(token)).length > 0;
+}
 
 // Refresh GitHub-derived profile fields after login without overwriting custom names.
 const syncGithubProfileOnLogin = async (userId: string) => {
@@ -68,4 +91,4 @@ const syncGithubProfileOnLogin = async (userId: string) => {
     .where(eq(userTable.id, userId));
 };
 
-export { getGithubAccount, getGithubId, syncGithubProfileOnLogin };
+export { canSignInWithGithub, getGithubAccount, getGithubId, syncGithubProfileOnLogin };

@@ -4,6 +4,7 @@ import type { User } from "@/types/user";
 import { assertGithubIdentity } from "@/lib/authz-shared";
 import { getUserToken } from "@/lib/token";
 import { createOctokitInstance } from "@/lib/utils/octokit";
+import { isCmsGithubRepository } from "@/lib/github-owner-scope";
 
 const requireGithubUserToken = async (
   user: Pick<User, "id" | "githubUsername">,
@@ -19,6 +20,7 @@ const requireGithubRepoWriteAccess = async (
   repo: string,
   identityErrorMessage = "Only GitHub users can perform this action.",
 ) => {
+  if (!isCmsGithubRepository(owner, repo)) throw new Error("Repository is outside Pages CMS.");
   const token = await requireGithubUserToken(user, identityErrorMessage);
   const octokit = createOctokitInstance(token);
   const response = await octokit.rest.repos.get({ owner, repo });

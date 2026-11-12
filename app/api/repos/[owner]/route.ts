@@ -10,6 +10,7 @@ import { hasGithubIdentity } from "@/lib/authz-shared";
 import { toErrorResponse } from "@/lib/api-error";
 import { requireApiUserSession } from "@/lib/session-server";
 import { collaboratorMatchesUser } from "@/lib/collaborator-access";
+import { isCmsGithubOwner, isCmsGithubRepository } from "@/lib/github-owner-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export async function GET(
     const sessionResult = await requireApiUserSession();
     if ("response" in sessionResult) return sessionResult.response;
     const user = sessionResult.user;
+    if (!isCmsGithubOwner(params.owner)) return Response.json({ status: "success", data: [] });
 
     let githubRepos: any[] = [];
     let collaboratorRepos: any[] = [];
@@ -74,7 +76,9 @@ export async function GET(
         }
       }
 
-      githubRepos = githubRepos.filter(repo => repo.permissions.push).map(repo => ({
+      githubRepos = githubRepos.filter(repo => repo.permissions?.push &&
+        repo.owner.login.toLowerCase() === params.owner.toLowerCase() &&
+        isCmsGithubRepository(repo.owner.login, repo.name)).map(repo => ({
         owner: repo.owner.login,
         repo: repo.name,
         private: repo.private,
@@ -101,7 +105,8 @@ export async function GET(
       }
     }
 
-    const repos = Array.from(reposByKey.values()).filter(repo => !websitesOnly || repo.repo.startsWith("webs-obsah-"));
+    const repos = Array.from(reposByKey.values()).filter(repo => isCmsGithubRepository(repo.owner, repo.repo) &&
+      (!websitesOnly || repo.repo.startsWith("webs-obsah-")));
     for (const repo of repos) repo.displayName = projectName(repo.repo);
     // Optional display metadata, after the existing authorization checks.
     try {
