@@ -91,7 +91,6 @@
 }
 
 .editorial-sidebar {
-  --muted-foreground: #b6c8bf;
   --sidebar: #142e26;
   --sidebar-foreground: #e7f0e8;
   --sidebar-primary: #d8f4aa;
@@ -100,6 +99,11 @@
   --sidebar-accent-foreground: #f3faf3;
   --sidebar-border: #345346;
   --sidebar-ring: #a4c69e;
+  color: var(--sidebar-foreground);
+}
+
+.editorial-sidebar [data-sidebar="menu-button"] .text-muted-foreground {
+  color: #b6c8bf;
 }
 
 .dark [data-editorial] {
