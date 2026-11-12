@@ -9,6 +9,7 @@ import { createHttpError, toErrorResponse } from "@/lib/api-error";
 import { getBranchHeadSha, setBranchHeadSha } from "@/lib/github-cache-file";
 import { buildCommitTokens, resolveCommitIdentity, resolveCommitMessage } from "@/lib/commit-message";
 import { requireApiUserSession } from "@/lib/session-server";
+import { editorialArticlePath, editorialCollection } from "@/lib/editorial-article";
 
 /**
  * Renames a file in a GitHub repository.
@@ -70,6 +71,9 @@ export async function POST(
         
         if (!normalizedPath.startsWith(schema.path)) throw new Error(`Invalid path "${params.path}" for ${data.type} "${data.name}".`);
         if (!normalizedNewPath.startsWith(schema.path)) throw new Error(`Invalid path "${data.newPath}" for ${data.type} "${data.name}".`);
+        if (editorialCollection(params.repo, params.branch, data.name, normalizedPath) && !editorialArticlePath(normalizedNewPath, data.name)) {
+          throw createHttpError("Articles must be saved directly in the language folder.", 400);
+        }
 
         if (getFileExtension(normalizedPath) !== (schema.extension ?? "")) throw new Error(`Invalid extension "${getFileExtension(normalizedPath)}" for ${data.type} "${data.name}".`);
         if (getFileExtension(normalizedNewPath) !== (schema.extension ?? "")) throw new Error(`Invalid extension "${getFileExtension(normalizedNewPath)}" for ${data.type} "${data.name}".`);

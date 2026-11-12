@@ -106,8 +106,8 @@ export function EntryHistoryDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant={triggerVariant} size={triggerSize}>
-          <History />
+        <Button type="button" variant={triggerVariant} size={triggerSize} aria-label={ui("History")}>
+          <History aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="max-w-3xs">

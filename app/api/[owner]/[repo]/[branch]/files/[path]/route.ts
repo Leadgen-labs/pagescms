@@ -15,6 +15,8 @@ import { createHttpError, toErrorResponse } from "@/lib/api-error";
 import mergeWith from "lodash.mergewith";
 import { buildCommitTokens, resolveCommitIdentity, resolveCommitMessage } from "@/lib/commit-message";
 import { requireApiUserSession } from "@/lib/session-server";
+import { editorialArticlePath, editorialCollection } from "@/lib/editorial-article";
+import { articleRevision } from "@/lib/editorial-revision";
 
 /**
  * Create, update and delete individual files in a GitHub repository.
@@ -61,6 +63,9 @@ export async function POST(
         if (!schema) throw new Error(`Content schema not found for ${data.name}.`);
         if (!data.sha && !isContentOperationAllowed("create", { schema })) {
           throw createHttpError(`Creating entries isn't allowed for "${data.name}".`, 403);
+        }
+        if (!data.sha && editorialCollection(params.repo, params.branch, data.name) && !editorialArticlePath(normalizedPath, data.name)) {
+          throw createHttpError("Articles must be saved directly in the language folder.", 400);
         }
         schemaCommitTemplates = schema?.commit?.templates;
         schemaCommitIdentity = schema?.commit?.identity;
@@ -282,6 +287,8 @@ export async function POST(
         sha: response?.data.content?.sha,
         name: response?.data.content?.name,
         path: savedPath,
+        revision: savedPath && data.type === "content" && editorialCollection(params.repo, params.branch, data.name, savedPath)
+          ? articleRevision(Buffer.from(contentBase64, "base64")) : undefined,
         extension: getFileExtension(response?.data.content?.name || ""),
         size: response?.data.content?.size,
         url: response?.data.content?.download_url,

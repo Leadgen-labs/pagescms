@@ -30,6 +30,7 @@ export type EntryHistoryItem = {
 export type EntryData = {
   sha: string;
   path: string;
+  revision?: string;
   name?: string;
   contentObject?: Record<string, unknown>;
 };
@@ -39,6 +40,7 @@ export type FileSaveData = {
   sha?: string;
   name?: string;
   path?: string;
+  revision?: string;
   extension?: string;
   size?: number;
   url?: string;

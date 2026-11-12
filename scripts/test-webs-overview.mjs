@@ -92,3 +92,64 @@ test('overview verifies the exact repository first and ignores forged browser id
  const anonymous=overviewAccessHarness({signedIn:false});assert.equal((await anonymous.post()).status,401);assert.equal(anonymous.calls.length,0);
  const crossOrigin=overviewAccessHarness();assert.equal((await crossOrigin.post({},'https://other.example')).status,403);assert.equal(crossOrigin.calls.length,0);
 });
+
+test('article receipt forwards only the authorized repo and exact requested revision', async () => {
+  const compile = (file, deps = {}) => {
+    const output = {};
+    const { outputText } = ts.transpileModule(readFileSync(new URL('../' + file, import.meta.url), 'utf8'), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    });
+    new Function('require', 'exports', outputText)(name => {
+      assert.ok(name in deps, 'unexpected dependency ' + name);
+      return deps[name];
+    }, output);
+    return output;
+  };
+  const actor = { id: 'editor' };
+  const access = { token: 'fixture', source: 'installation' };
+  const params = { owner: 'Leadgen-labs', repo: 'webs-obsah-demo', branch: 'main' };
+  const path = 'blog/cs/clanek.md';
+  const revision = 'd'.repeat(32);
+  const data = { state: 'draft', publishedAt: null, publicUrl: null, previewUrl: 'https://example.test/clanek/?nahled=test' };
+  const calls = [];
+  let signedIn = true;
+  let authorized = true;
+  const route = compile('app/api/[owner]/[repo]/[branch]/webs-article/route.ts', {
+    '@/lib/api-error': errorModule.exports,
+    '@/lib/editorial-article': compile('lib/editorial-article.ts'),
+    '@/lib/session-server': { requireApiUserSession: async () => signedIn ? { user: actor } : { response: new Response(null, { status: 401 }) } },
+    '@/lib/token': { getToken: async (user, owner, repo) => {
+      assert.deepEqual([user, owner, repo], [actor, params.owner, params.repo]);
+      return access;
+    } },
+    '@/lib/webs/overview-access': { canReadSiteOverview: async (user, owner, repo, token) => {
+      assert.deepEqual([user, owner, repo, token], [actor, params.owner, params.repo, access]);
+      return authorized;
+    } },
+    '@/lib/webs/bot': { callWebsBot: async (endpoint, payload) => {
+      calls.push([endpoint, payload]);
+      return { status: 200, data };
+    } },
+  });
+  const post = (body = { path, revision }, origin = 'https://cms.example', branch = 'main') =>
+    route.POST(new Request('https://cms.example/api/webs-article', {
+      method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(body),
+    }), { params: Promise.resolve({ ...params, branch }) });
+
+  assert.equal((await post({ path, revision }, 'https://other.example')).status, 403);
+  assert.equal((await post({ path, revision }, 'https://cms.example', 'preview')).status, 400);
+  assert.equal((await post({ path: 'blog/cs/sub/clanek.md', revision })).status, 400);
+  assert.equal((await post({ path, revision: 'wrong' })).status, 400);
+  signedIn = false;
+  assert.equal((await post()).status, 401);
+  signedIn = true;
+  authorized = false;
+  assert.equal((await post({ path, revision, authorized: true })).status, 403);
+  assert.deepEqual(calls, []);
+
+  authorized = true;
+  const response = await post({ path, revision, owner: 'Other', repo: 'webs-obsah-other', status: 'published' });
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  assert.deepEqual(await response.json(), { status: 'success', data });
+  assert.deepEqual(calls, [['/cms/article', { ...params, path, revision }]]);
+});

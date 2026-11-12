@@ -35,8 +35,13 @@ import { requireApiSuccess } from "@/lib/api-client";
 import { EmptyCreate } from "@/components/empty-create";
 import { FileOptions } from "@/components/file/file-options";
 import { CollectionTable } from "./collection-table";
+import { ArticleList } from "./article-list";
+import type { ArticleCollectionEntry } from "./article-list-model";
 import { FolderCreate } from "@/components/folder-create";
 import { resolveContentOperations } from "@/lib/operations";
+import { publicProjectPath } from "@/lib/project-url";
+import { projectName } from "@/lib/project-name";
+import { editorialCollection } from "@/lib/editorial-article";
 import { useRepoHeader } from "@/components/repo/repo-header-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -96,6 +101,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
   collectionPath,
   name,
   showAddEntry,
+  showSearch,
   showFolderCreate,
   onFolderCreate,
   onSearchChange,
@@ -105,6 +111,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
   collectionPath: string;
   name: string;
   showAddEntry: boolean;
+  showSearch: boolean;
   showFolderCreate: boolean;
   onFolderCreate: (entry: any) => void;
   onSearchChange: (value: string) => void;
@@ -114,14 +121,15 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
   const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
+    if (!showSearch) return;
     const timeout = setTimeout(() => onSearchChange(searchInput), 200);
     return () => clearTimeout(timeout);
-  }, [searchInput, onSearchChange]);
+  }, [searchInput, onSearchChange, showSearch]);
 
   return (
     <div className="flex items-center gap-x-2">
       {actionNode}
-      <div className="relative hidden sm:block w-52 md:w-64">
+      {showSearch && <div className="relative hidden sm:block w-52 md:w-64">
         <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
         <Input
           className="pl-9"
@@ -129,7 +137,7 @@ const CollectionHeaderActions = memo(function CollectionHeaderActions({
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder={ui("Hledat v seznamu…")}
         />
-      </div>
+      </div>}
       {showFolderCreate && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -190,6 +198,8 @@ export function Collection({ name, path }: { name: string; path?: string }) {
   if (!schema) throw new Error(`Schema not found for "${name}".`);
   if (schema.type !== "collection")
     throw new Error(`"${name}" is not a collection.`);
+  const isArticleList = editorialCollection(config.repo, config.branch, name) &&
+    schema.fields?.some((field: { name: string; type: string }) => field.name === "body" && field.type === "rich-text") && schema.view?.layout !== "tree";
   const operations = useMemo(() => resolveContentOperations({ schema }), [schema]);
   const canCreate = operations.create;
   const canRename = operations.rename;
@@ -256,8 +266,13 @@ export function Collection({ name, path }: { name: string; path?: string }) {
   const requestedFieldPaths = useMemo(() => {
     const paths = new Set<string>(["name", "path", primaryField]);
     viewFields.forEach((item: any) => paths.add(item.path));
+    if (isArticleList) {
+      paths.add("title");
+      paths.add("status");
+      paths.add("published_at");
+    }
     return Array.from(paths);
-  }, [primaryField, viewFields]);
+  }, [isArticleList, primaryField, viewFields]);
 
   const handleTableSearchChange = useCallback((value: string) => {
     setTableSearch(value);
@@ -928,7 +943,9 @@ export function Collection({ name, path }: { name: string; path?: string }) {
   const headerNode = useMemo(
     () => (
       <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0 truncate">{breadcrumbNode}</div>
+        <div className="min-w-0 truncate">{isArticleList && collectionPath === schema.path
+          ? <span className="text-sm font-medium text-muted-foreground">{projectName(config.repo, config.object)}</span>
+          : breadcrumbNode}</div>
         <CollectionHeaderActions
           addEntryHref={addEntryHref}
           actionNode={
@@ -951,8 +968,9 @@ export function Collection({ name, path }: { name: string; path?: string }) {
           }
           collectionPath={collectionPath}
           name={name}
-          showAddEntry={canCreate}
-          showFolderCreate={schema.subfolders !== false && canCreate}
+          showAddEntry={canCreate && !isArticleList}
+          showSearch={!isArticleList}
+          showFolderCreate={!isArticleList && schema.subfolders !== false && canCreate}
           onFolderCreate={handleFolderCreate}
           onSearchChange={handleTableSearchChange}
         />
@@ -966,9 +984,11 @@ export function Collection({ name, path }: { name: string; path?: string }) {
       config.branch,
       config.owner,
       config.repo,
+      config.object,
       handleFolderCreate,
       handleTableSearchChange,
       canCreate,
+      isArticleList,
       name,
       schema.format,
       schema.label,
@@ -984,6 +1004,30 @@ export function Collection({ name, path }: { name: string; path?: string }) {
 
   const isLoading =
     !swrCollectionData && !swrCollectionError && data.length === 0;
+
+  if (isArticleList) {
+    return (
+      <ArticleList
+        key={name + ":" + collectionPath}
+        name={name}
+        entries={data as ArticleCollectionEntry[]}
+        addHref={publicProjectPath(addEntryHref)}
+        editHref={(entryPath) => publicProjectPath(
+          `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${encodeURIComponent(name)}/edit/${encodeURIComponent(entryPath)}`,
+        )}
+        onFolder={handleNavigate}
+        onDelete={handleDelete}
+        onRename={handleRename}
+        canCreate={canCreate && collectionPath === schema.path}
+        canDelete={canDelete}
+        canRename={canRename}
+        loading={isLoading}
+        refreshing={isValidating || isRefreshing}
+        error={error}
+        onRefresh={() => void handleRefresh()}
+      />
+    );
+  }
 
   const contentNode = isLoading ? (
     loadingSkeleton

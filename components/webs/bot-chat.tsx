@@ -53,7 +53,7 @@ function saveHistory(key: string, items: Item[]) {
   } catch {}
 }
 
-export function BotChat() {
+export function BotChat({ inline = false }: { inline?: boolean }) {
   const { t } = useLanguage();
   const { config } = useConfig();
   const enabledRepo = Boolean(config?.repo?.startsWith(CONTENT_REPO_PREFIX));
@@ -189,7 +189,8 @@ export function BotChat() {
       <Button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-40 h-11 rounded-full px-4 shadow-lg"
+        variant={inline ? "outline" : "default"}
+        className={inline ? "m-3 h-11 self-end sm:m-6" : "fixed bottom-4 right-4 z-40 h-11 rounded-full px-4 shadow-lg"}
         aria-label={unread ? t(`Chat s botem, ${unread} nových zpráv`, `Chat with the bot, ${unread} new messages`) : t("Chat s botem", "Chat with the bot")}
       >
         <MessageCircle className="size-4" />

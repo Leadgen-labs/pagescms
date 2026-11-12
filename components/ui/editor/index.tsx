@@ -22,6 +22,9 @@ import {
   Check,
   ChevronDownIcon,
   Code,
+  Image as ImageIcon,
+  List,
+  ListOrdered,
   Minus,
   Plus,
   RemoveFormatting,
@@ -35,7 +38,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import SlashCommands from "./slash-command/commands";
+import { requestImageAndInsert } from "./slash-command/suggestion";
 import type {
   ImagePickerContext,
   ImagePickerFileResult,
@@ -106,6 +111,7 @@ export type EditorProps = {
   onPendingUploadsChange?: (count: number) => void;
   className?: string;
   editorClassName?: string;
+  articleToolbar?: boolean;
 } & Omit<HTMLAttributes<HTMLDivElement>, "onChange" | "className">;
 export type {
   ImagePickerContext,
@@ -259,6 +265,7 @@ export function Editor({
   onPendingUploadsChange,
   className,
   editorClassName,
+  articleToolbar = false,
   ...props
 }: EditorProps) {
   const ui = useUi();
@@ -279,6 +286,7 @@ export function Editor({
     "border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm [&_p.is-empty::before]:text-muted-foreground [&_p.is-empty::before]:content-[attr(data-placeholder)] [&_p.is-empty::before]:pointer-events-none [&_p.is-empty::before]:float-left [&_p.is-empty::before]:h-0 [&_td_p.is-empty::before]:content-none [&_th_p.is-empty::before]:content-none [&_img[data-uploading=true]]:opacity-70 [&_img[data-uploading=true]]:animate-pulse [&_img[data-upload-error]]:ring-2 [&_img[data-upload-error]]:ring-destructive [&_img[data-upload-error]]:ring-offset-2 [&_img[data-upload-error]]:ring-offset-background",
     editorClassName,
   );
+  const editorLabel = articleToolbar ? ui("Article body") : undefined;
 
   const editor = useEditor({
     extensions: [
@@ -334,6 +342,7 @@ export function Editor({
     editorProps: {
       attributes: {
         class: tiptapSurfaceClass,
+        ...(editorLabel ? { role: "textbox", "aria-multiline": "true", "aria-label": editorLabel } : {}),
       },
       handleDOMEvents: {
         copy: (_view, event) => {
@@ -466,10 +475,11 @@ export function Editor({
       editorProps: {
         attributes: {
           class: tiptapSurfaceClass,
+          ...(editorLabel ? { role: "textbox", "aria-multiline": "true", "aria-label": editorLabel } : {}),
         },
       },
     });
-  }, [editor, tiptapSurfaceClass]);
+  }, [editor, editorLabel, tiptapSurfaceClass]);
 
   useEffect(() => {
     if ((!showLinkInput && !showTableActions && !showAltInput) || !editor) return;
@@ -924,6 +934,47 @@ export function Editor({
 
   return (
     <div {...props} className={cn("", className)}>
+      {articleToolbar && !disabled && (
+        <div className="flex min-w-0 flex-wrap items-center gap-1 rounded-t-md border border-b-0 bg-muted/40 px-2 py-1.5"
+          role="group" aria-label={ui("Text formatting")}>
+          <select
+            value={activeState.blockType}
+            onChange={(event) => setBlockType(event.target.value as BlockType)}
+            aria-label={ui("Block style")}
+            className="h-9 max-w-full rounded-md border bg-background px-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {blockOptions.map((option) => <option key={option.value} value={option.value}>{ui(option.label)}</option>)}
+          </select>
+          {[
+            ...inlineActions.slice(0, 2),
+            { label: "Bulleted list", icon: List, run: () => editor.chain().focus().toggleBulletList().run(), pressed: activeState.blockType === "bulletList" },
+            { label: "Numbered list", icon: ListOrdered, run: () => editor.chain().focus().toggleOrderedList().run(), pressed: activeState.blockType === "orderedList" },
+            { label: "Link", icon: LinkIcon, run: openLinkInput, pressed: activeState.link || showLinkInput },
+            ...(enableImages && onRequestImage ? [{
+              label: "Image",
+              icon: ImageIcon,
+              run: () => {
+                const { from } = editor.state.selection;
+                void requestImageAndInsert({
+                  editor,
+                  range: { from, to: from },
+                  onRequestImage,
+                  imageSlashFallback: "none",
+                  onInsertLocalImageFile: ({ file, alt, title }) => insertLocalImageFile(file, "slash", { alt, title }),
+                });
+              },
+            }] : []),
+          ].map(({ label, icon: Icon, run, ...action }) => (
+            <Button key={label} variant="ghost" type="button" size="icon"
+              onMouseDown={(event) => event.preventDefault()} onClick={run}
+              aria-label={ui(label)} title={ui(label)}
+              aria-pressed={"pressed" in action ? action.pressed : "isActive" in action && action.isActive ? action.isActive() : undefined}
+              className="aria-pressed:bg-primary/10 aria-pressed:text-primary">
+              <Icon aria-hidden="true" />
+            </Button>
+          ))}
+        </div>
+      )}
       <BubbleMenu
         pluginKey="editor-bubble"
         ref={bubbleMenuRef}
@@ -938,12 +989,14 @@ export function Editor({
         shouldShow={({ editor: bubbleEditor, from, to, view, element }) => {
           const hasEditorFocus = view.hasFocus() || element.contains(document.activeElement);
           if (!hasEditorFocus) return false;
-          return showLinkInput || showTableActions || showAltInput || (!bubbleEditor.state.selection.empty && from !== to);
+          return showLinkInput || showTableActions || showAltInput || (articleToolbar
+            ? isInTable || isOnImage
+            : !bubbleEditor.state.selection.empty && from !== to);
         }}
       >
         <div className="flex flex-col gap-1">
-          <div className="border-border bg-popover flex flex-nowrap items-center gap-0.5 overflow-x-auto rounded-md border p-1 shadow-sm whitespace-nowrap">
-            {!isInTable ? (
+          {(!articleToolbar || isOnImage || isInTable) && <div className="border-border bg-popover flex flex-nowrap items-center gap-0.5 overflow-x-auto rounded-md border p-1 shadow-sm whitespace-nowrap">
+            {!articleToolbar && !isInTable ? (
               <div className="group/native-select relative w-fit">
                 <select
                   id="block-style"
@@ -965,7 +1018,7 @@ export function Editor({
                 />
               </div>
             ) : null}
-            {inlineActions.map((action) =>
+            {!articleToolbar && inlineActions.map((action) =>
               renderIconButton({
                 label: action.label,
                 icon: action.icon,
@@ -975,7 +1028,7 @@ export function Editor({
                 pressed: action.toggle ? action.isActive() : false,
               }),
             )}
-            {renderIconButton({
+            {!articleToolbar && renderIconButton({
               label: "Link",
               icon: LinkIcon,
               onClick: openLinkInput,
@@ -1006,7 +1059,7 @@ export function Editor({
                   pressed: showTableActions,
                 })
               : null}
-          </div>
+          </div>}
           {showLinkInput ? (
             <div
               data-state="open"

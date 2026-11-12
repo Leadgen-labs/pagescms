@@ -48,7 +48,7 @@ type RequestImageAndInsertArgs = ImagePickerContext & {
   imageSlashFallback: SlashImageFallback;
 };
 
-const requestImageAndInsert = async ({
+export const requestImageAndInsert = async ({
   editor,
   range,
   onRequestImage,
