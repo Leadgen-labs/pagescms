@@ -102,7 +102,8 @@
   color: var(--sidebar-foreground);
 }
 
-.editorial-sidebar [data-sidebar="menu-button"] .text-muted-foreground {
+.editorial-sidebar [data-sidebar="menu-button"] .text-muted-foreground,
+.editorial-sidebar [data-slot="sidebar-footer"] a .text-muted-foreground {
   color: #b6c8bf;
 }
 
