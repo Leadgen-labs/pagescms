@@ -115,7 +115,14 @@ export function ArticleList({
 
   return (
     <section className="mx-auto max-w-6xl space-y-4" aria-labelledby="articles-heading">
-      <h1 id="articles-heading" className="text-2xl font-semibold tracking-tight">{t("Články", "Articles")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 id="articles-heading" className="text-2xl font-semibold tracking-tight">{t("Články", "Articles")}</h1>
+        {canCreate && (
+          <Button asChild className="h-10 sm:hidden">
+            <Link href={addHref}><Plus aria-hidden />{newArticle}</Link>
+          </Button>
+        )}
+      </div>
 
       <div className="@container/list space-y-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -169,7 +176,7 @@ export function ArticleList({
             </Button>
           )}
           {canCreate && (
-            <Button asChild className="ml-auto h-10">
+            <Button asChild className="ml-auto hidden h-10 sm:inline-flex">
               <Link href={addHref}><Plus aria-hidden />{newArticle}</Link>
             </Button>
           )}
