@@ -283,7 +283,7 @@ function RepoHeader() {
     </div>
   );
 }
-export function RepoSidebar() {
+export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
   const ui = useUi();
   const { t } = useLanguage();
   const pathname = internalProjectPath(usePathname());
@@ -647,7 +647,7 @@ export function RepoSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {config?.repo.startsWith("webs-obsah-") && <SidebarGroup><CreateContent /></SidebarGroup>}
+        {config?.repo.startsWith("webs-obsah-") && !editorial && <SidebarGroup><CreateContent /></SidebarGroup>}
         {config?.repo.startsWith("webs-obsah-") && (
           <SidebarGroup>
             <SidebarGroupContent>

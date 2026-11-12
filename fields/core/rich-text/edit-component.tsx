@@ -1,4 +1,5 @@
 "use client";
+import { useUi } from "@/components/use-ui";
 
 import { UiText } from "@/components/ui-text";
 import {
@@ -73,6 +74,7 @@ type EditProps = {
     hook: () => void | Promise<void>,
   ) => () => void;
   onChangeRegistered?: () => void;
+  articleToolbar?: boolean;
   onChange: (value: string) => void;
 };
 
@@ -317,6 +319,7 @@ const rewriteMarkdownImagesAsync = async (
 
 const EditComponent = forwardRef(
   (props: EditProps, ref: React.Ref<HTMLDivElement>) => {
+    const ui = useUi();
     const { config } = useConfig();
     const { isPrivate } = useRepo();
 
@@ -638,10 +641,11 @@ const EditComponent = forwardRef(
       }
       const key = `rich-text:${name}`;
       return registerBeforeSubmitHook(key, async () => {
+        if (props.articleToolbar && pendingUploads > 0) throw new Error(ui("Wait for images to finish uploading."));
         if (modeRef.current !== "editor") return;
         await syncEditorToSource();
       });
-    }, [name, registerBeforeSubmitHook, syncEditorToSource]);
+    }, [name, pendingUploads, props.articleToolbar, registerBeforeSubmitHook, syncEditorToSource, ui]);
 
     const handleSwitchToEditor = useCallback(async () => {
       if (pendingUploads > 0) return;
@@ -904,6 +908,10 @@ const EditComponent = forwardRef(
               }}
               format={format}
               className="cn-editor"
+              articleToolbar={props.articleToolbar}
+              editorClassName={props.articleToolbar
+                ? "min-h-[22rem] rounded-t-none px-3 py-4 wrap-anywhere sm:px-5 [&_img]:max-w-full [&_table]:table-fixed [&_td]:wrap-anywhere [&_th]:wrap-anywhere"
+                : undefined}
               enableImages={Boolean(mediaConfig)}
               enableImagePasteDrop={Boolean(mediaConfig)}
               onUploadImage={mediaConfig ? handleUploadImage : undefined}
@@ -922,7 +930,7 @@ const EditComponent = forwardRef(
           />
         )}
 
-        {mediaConfig && (
+        {mediaConfig && !isReadonly && (
           <MediaDialog
             ref={mediaDialogRef}
             media={mediaConfig.name}

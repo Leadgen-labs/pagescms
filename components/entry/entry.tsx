@@ -11,6 +11,10 @@ import { useConfig } from "@/contexts/config-context";
 import { parseAndValidateConfig } from "@/lib/config";
 import { resolveContentOperations } from "@/lib/operations";
 import { requireApiSuccess } from "@/lib/api-client";
+import { editorialCollection, pragueDateTime } from "@/lib/editorial-article";
+import { publicProjectPath } from "@/lib/project-url";
+import { projectName } from "@/lib/project-name";
+import { useLanguage } from "@/contexts/language-context";
 import { getSchemaActions } from "@/lib/actions";
 import {
   generateFilename,
@@ -26,14 +30,18 @@ import {
   joinPathSegments,
   normalizePath
 } from "@/lib/utils/file";
-import type { ApiSuccess, EntryData, EntryHistoryItem } from "@/types/api";
+import type { ApiSuccess, EntryData, EntryHistoryItem, FileSaveData } from "@/types/api";
+import type { Field } from "@/types/field";
 import { EntryForm } from "./entry-form";
+import { ArticlePreview, ArticleStatus, PublishArticleDialog, type ArticleAction } from "./article-workflow";
+import { useArticleReceipt } from "./use-article-receipt";
 import { EntryHistoryDropdown } from "./entry-history";
 import { EmptyCreate } from "@/components/empty-create";
 import { FileOptions } from "@/components/file/file-options";
 import { RepoActionButtons } from "@/components/repo/repo-action-buttons";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import {
   InputGroup,
   InputGroupAddon,
@@ -66,7 +74,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "@/components/localized-toast";
-import { EllipsisVertical, History, Lock, LockOpen, Save } from "lucide-react";
+import { ArrowLeft, EllipsisVertical, Eye, History, Lock, LockOpen, Save } from "lucide-react";
 import useSWR, { useSWRConfig } from "swr";
 
 type LintView = {
@@ -98,6 +106,7 @@ export function Entry({
   onSave?: (data: Record<string, unknown>) => void;
 }) {
   const ui = useUi();
+  const { t } = useLanguage();
   const [path, setPath] = useState<string | undefined>(initialPath);
   const [entry, setEntry] = useState<EntryData | null>();
   const [sha, setSha] = useState<string | undefined>();
@@ -114,6 +123,14 @@ export function Entry({
   const [hasRegisteredChanges, setHasRegisteredChanges] = useState(false);
   const [error, setError] = useState<string | undefined | null>(null);
   const changeVersionRef = useRef(0);
+  const draftButton = useRef<HTMLButtonElement>(null);
+  const previewButton = useRef<HTMLButtonElement>(null);
+  const publishButton = useRef<HTMLButtonElement>(null);
+  const withdrawButton = useRef<HTMLButtonElement>(null);
+  const [articleError, setArticleError] = useState<string | null>(null);
+  const [articlePreview, setArticlePreview] = useState<Record<string, unknown> | null>(null);
+  const [articleDialog, setArticleDialog] = useState<"publish" | "withdraw" | null>(null);
+  const [leaveArticlePath, setLeaveArticlePath] = useState<string | null>(null);
   const { mutate } = useSWRConfig();
 
   const router = useRouter();
@@ -126,6 +143,24 @@ export function Entry({
     return getSchemaByName(config?.object, name)
   }, [config, name]);
   const schemaType = schema?.type;
+  const isArticle = schemaType === "collection" && schema?.fields?.some((field: Field) => field.name === "body" && field.type === "rich-text")
+    && editorialCollection(config.repo, config.branch, name, path)
+    && (!parent || normalizePath(parent) === schema.path);
+  const projectPath = `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}`;
+  const collectionPath = `${projectPath}/collection/${encodeURIComponent(name)}`;
+  const siteName = isArticle ? projectName(config.repo, config.object) : "";
+  const savedArticleStatus = entry?.contentObject?.status;
+  const scheduledDate = typeof entry?.contentObject?.published_at === "string" ? entry.contentObject.published_at : "";
+  const isPublishedArticle = savedArticleStatus === "published";
+  const futurePublication = scheduledDate > pragueDateTime();
+  const isScheduledArticle = isPublishedArticle && futurePublication;
+  const articleDirty = isFormDirty || hasRegisteredChanges;
+  const revision = isArticle && entry?.path === path ? entry?.revision : undefined;
+  const articleApiUrl = isArticle ? `/api${projectPath}/webs-article` : null;
+  const publication = useArticleReceipt(articleApiUrl, path, revision);
+  const confirmedUrl = publication.receipt?.publicUrl || publication.receipt?.previewUrl;
+  const articleAddress = confirmedUrl && URL.canParse(confirmedUrl) ? new URL(confirmedUrl).pathname
+    : path ? getFileName(path).replace(/\.md$/i, "") : undefined;
   const operations = useMemo(
     () =>
       resolveContentOperations({
@@ -204,9 +239,9 @@ export function Entry({
     }
 
     const generated = generateFilename(schema.filename, schema, entryContentObject as Record<string, unknown>);
-    setFilenameValue(generated || "untitled");
+    setFilenameValue(isArticle ? "" : generated || "untitled");
     setIsFilenameUnlocked(true);
-  }, [entryContentObject, path, schema, schemaType, showFilenameField]);
+  }, [entryContentObject, isArticle, path, schema, schemaType, showFilenameField]);
 
   const entryApiUrl = useMemo(() => (
     path
@@ -232,8 +267,8 @@ export function Entry({
     entryApiUrl,
     fetchEntryByUrl,
     {
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
+      revalidateOnFocus: !isArticle,
+      revalidateOnReconnect: !isArticle,
       dedupingInterval: 2000,
     },
   );
@@ -313,17 +348,33 @@ export function Entry({
     && filenameValue.trim().length > 0
     && filenameValue.trim() !== currentFilename;
 
-  const onSubmit = async (contentObject: Record<string, unknown>) => {
+  const onSubmit = async (contentObject: Record<string, unknown>, action?: ArticleAction) => {
+    if (isArticle && !action) return;
     setIsSaving(true);
+    setArticleError(null);
     const submitStartChangeVersion = changeVersionRef.current;
 
-    const savePromise = new Promise<ApiSuccess<EntryData>>(async (resolve, reject) => {
-      try {
+    const savePromise = (async (): Promise<ApiSuccess<FileSaveData>> => {
+        if (isArticle && (typeof contentObject.title !== "string" || !contentObject.title.trim())) {
+          throw new Error(t("Doplňte nadpis článku.", "Enter a title for the article."));
+        }
+        if (action?.kind === "publish" && action.date && action.date <= pragueDateTime()) {
+          throw new Error(t("Čas vydání musí být v budoucnosti.", "The publication time must be in the future."));
+        }
+        const articleValues: Record<string, unknown> = !action ? contentObject : {
+          ...contentObject,
+          status: action.kind === "publish" ? "published" : "draft",
+          // Keep the original publication date when updating an already public article.
+          published_at: action.kind === "withdraw" ? "" : action.kind === "draft" ? scheduledDate
+            : action.date ?? (isScheduledArticle ? pragueDateTime() : isPublishedArticle ? scheduledDate : ""),
+        };
         let savePath = path;
         const trimmedFilename = filenameValue.trim();
-        const normalizedFilename = normalizePath(trimmedFilename).split("/").pop() || "";
+        const normalizedFilename = isArticle && !path && trimmedFilename
+          ? trimmedFilename.replace(/\.md$/i, "") + ".md"
+          : normalizePath(trimmedFilename).split("/").pop() || "";
 
-        if (showFilenameField && !normalizedFilename) {
+        if (!isArticle && showFilenameField && !normalizedFilename) {
           throw new Error("Vyplňte název souboru.");
         }
 
@@ -332,9 +383,12 @@ export function Entry({
           if (!canCreate) throw new Error("Creating entries in this content item isn't allowed.");
           const basePath = parent ?? schema.path;
           if (basePath == null) throw new Error("Cannot create entry without a target path.");
-          const generatedFilename = showFilenameField
+          const generatedFilename = showFilenameField && (!isArticle || normalizedFilename)
             ? normalizedFilename
-            : generateFilename(schema.filename, schema, contentObject);
+            : generateFilename(schema.filename, schema, articleValues);
+          if (isArticle && !/^[a-z0-9]+(?:-[a-z0-9]+)*\.md$/.test(generatedFilename)) {
+            throw new Error(t("Do adresy článku zadejte malá písmena bez diakritiky, čísla a pomlčky.", "Use lowercase letters, numbers and hyphens in the article address."));
+          }
           savePath = joinPathSegments([basePath, generatedFilename]);
         } else if (filenameChanged && !canRename && schemaType === "collection") {
           throw new Error("Renaming this entry isn't allowed.");
@@ -375,12 +429,13 @@ export function Entry({
             type: path === ".pages.yml" ? "settings" : "content",
             name,
             content: schema?.list === true
-              ? contentObject.listWrapper
-              : contentObject,
-            sha: sha
+              ? articleValues.listWrapper
+              : articleValues,
+            sha,
+            ...(isArticle && !path ? { onConflict: "error" } : {}),
           }),
         });
-        const data = await requireApiSuccess<any>(
+        const data = await requireApiSuccess<ApiSuccess<FileSaveData>>(
           response,
           "Failed to save file",
         );
@@ -388,23 +443,35 @@ export function Entry({
         if (data.data.sha !== sha) setSha(data.data.sha);
         if (submitStartChangeVersion === changeVersionRef.current) {
           setHasRegisteredChanges(false);
+          if (isArticle && path && data.data.sha && data.data.path) {
+            const savedEntry: EntryData = {
+              sha: data.data.sha,
+              path: data.data.path,
+              name: data.data.name,
+              revision: data.data.revision,
+              contentObject: articleValues,
+            };
+            setEntry(savedEntry);
+            void mutateEntry(savedEntry, { revalidate: false });
+          }
         }
 
-        if (!path && schemaType === "collection") router.push(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collection/${encodeURIComponent(name)}/edit/${encodeURIComponent(data.data.path)}`);
+        if (!path && schemaType === "collection" && data.data.path) {
+          const next = `${collectionPath}/edit/${encodeURIComponent(data.data.path)}`;
+          if (isArticle) router.replace(publicProjectPath(next));
+          else router.push(next);
+        }
         if (schemaType === "collection") {
           const collectionKeyPrefix = `/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collections/${encodeURIComponent(name)}?`;
           void mutate((key) => typeof key === "string" && key.startsWith(collectionKeyPrefix));
         }
 
-        resolve(data);
-      } catch (error) {
-        reject(error);
-      }
-    });
+        return data;
+    })();
 
-    toast.promise(savePromise, {
+    if (!isArticle) toast.promise(savePromise, {
       loading: "Saving your file",
-      success: (response: ApiSuccess<EntryData>) => {
+      success: (response: ApiSuccess<FileSaveData>) => {
         if (onSave) onSave(response.data);
         return response.message;
       },
@@ -412,12 +479,15 @@ export function Entry({
     });
 
     try {
-      await savePromise;
+      const result = await savePromise;
+      if (isArticle) onSave?.(result.data);
       if (submitStartChangeVersion === changeVersionRef.current) {
         setHasRegisteredChanges(false);
       }
     } catch (error: unknown) {
-      if (error instanceof Error) {
+      if (isArticle) {
+        setArticleError(error instanceof Error ? error.message : t("Článek se nepodařilo uložit.", "Could not save the article."));
+      } else if (error instanceof Error) {
         console.error(error.message);
       } else {
         console.error(error);
@@ -428,6 +498,39 @@ export function Entry({
   };
 
   const isBusy = isLoading || isSaving;
+  const requestArticleAction = useCallback((intent: "preview" | "draft" | "publish" | "withdraw", date?: string) => {
+    const form = document.getElementById("entry-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    const submitter = document.createElement("button");
+    submitter.type = "submit";
+    submitter.hidden = true;
+    submitter.dataset.articleAction = intent;
+    if (date) submitter.dataset.articleDate = date;
+    form.append(submitter);
+    form.requestSubmit(submitter);
+    submitter.remove();
+  }, []);
+
+  useEffect(() => {
+    if (!isArticle || !articleDirty) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => event.preventDefault();
+    const checkNavigation = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+      const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+      if (!(link instanceof HTMLAnchorElement) || link.target === "_blank" || link.hasAttribute("download")) return;
+      const url = new URL(link.href);
+      if (url.origin !== window.location.origin || url.pathname === window.location.pathname && url.search === window.location.search) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setLeaveArticlePath(url.pathname + url.search + url.hash);
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", checkNavigation, true);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+      document.removeEventListener("click", checkNavigation, true);
+    };
+  }, [articleDirty, isArticle]);
 
   useEffect(() => {
     const handleSaveShortcut = (event: KeyboardEvent) => {
@@ -436,7 +539,13 @@ export function Entry({
       if (event.altKey) return;
 
       event.preventDefault();
-      if (isBusy) return;
+      if (isBusy || articleDialog || articlePreview || leaveArticlePath) return;
+      if (isArticle) {
+        if (!articleDirty && path) return;
+        if (isPublishedArticle) setArticleDialog("publish");
+        else draftButton.current?.click();
+        return;
+      }
 
       const form = document.getElementById("entry-form");
       if (form instanceof HTMLFormElement) {
@@ -446,7 +555,7 @@ export function Entry({
 
     window.addEventListener("keydown", handleSaveShortcut);
     return () => window.removeEventListener("keydown", handleSaveShortcut);
-  }, [isBusy]);
+  }, [articleDialog, articleDirty, articlePreview, isArticle, isBusy, isPublishedArticle, leaveArticlePath, path]);
 
   const handleDelete = useCallback((path: string) => {
     // TODO: disable save button or freeze form while deleting?
@@ -736,7 +845,62 @@ export function Entry({
     </div>
   ), [breadcrumbNode, canDelete, canRename, filenameChanged, filenameFieldMode, filenameValue, handleDelete, handleRename, hasRegisteredChanges, headerActionsNode, headerMeta, historyData, isBusy, isFilenameUnlocked, isFormDirty, isLoading, name, path, schemaType, sha, showFilenameField, showHeaderActions, ui]);
 
-  useRepoHeader({ header: headerNode });
+  const articleHeader = useMemo(() => (
+    <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div className="flex min-w-0 flex-1 basis-full items-center gap-2 sm:basis-auto">
+        <Button asChild variant="ghost" size="icon-sm" className="shrink-0" aria-label={t("Zpět na články", "Back to articles")}>
+          <Link href={publicProjectPath(collectionPath)}><ArrowLeft aria-hidden="true" /></Link>
+        </Button>
+        <div className="min-w-0 leading-tight">
+          <div className="truncate text-xs text-muted-foreground">{siteName} · {t("Články", "Articles")}</div>
+          <h1 className="truncate text-sm font-semibold sm:text-base">
+            {path ? String(entry?.contentObject?.title || getFileName(path)) : t("Nový článek", "New article")}
+          </h1>
+        </div>
+      </div>
+      {!error && !isCreationBlocked && (
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5 max-[359px]:gap-1">
+          <Button ref={previewButton} type="button" onClick={() => requestArticleAction("preview")}
+            variant="outline" size="sm" className="h-9 px-2.5 max-[359px]:px-2" disabled={isBusy} aria-label={t("Náhled článku", "Article preview")}>
+            <Eye aria-hidden="true" /><span className="hidden min-[420px]:inline">{t("Náhled", "Preview")}</span>
+          </Button>
+          {!isPublishedArticle && (
+            <Button ref={draftButton} type="button" onClick={() => requestArticleAction("draft")}
+              variant="outline" size="sm" className="h-9 px-2.5" disabled={isBusy || Boolean(path && !articleDirty)}
+              aria-label={t("Uložit koncept", "Save draft")}>
+              <span className="hidden min-[360px]:inline">{t("Uložit koncept", "Save draft")}</span>
+              <span className="min-[360px]:hidden">{t("Uložit", "Save")}</span>
+            </Button>
+          )}
+          <Button ref={publishButton} type="button" size="sm" className="h-9 px-2.5"
+            aria-label={isScheduledArticle ? t("Upravit plán", "Edit schedule")
+              : isPublishedArticle ? t("Zveřejnit změny", "Publish changes") : t("Zveřejnit", "Publish")}
+            disabled={isBusy || Boolean(path && isPublishedArticle && !isScheduledArticle && !articleDirty)}
+            onClick={() => setArticleDialog("publish")}>
+            {isScheduledArticle ? t("Upravit plán", "Edit schedule") : (
+              <>
+                <span className="hidden min-[360px]:inline">{isPublishedArticle ? t("Zveřejnit změny", "Publish changes") : t("Zveřejnit", "Publish")}</span>
+                <span className="min-[360px]:hidden">{t("Zveřejnit", "Publish")}</span>
+              </>
+            )}
+          </Button>
+          {path && historyData && historyData.length > 0 && !isLoading && (
+            <EntryHistoryDropdown history={historyData} path={path} triggerVariant="outline" triggerSize="icon-sm" />
+          )}
+          {path && sha && (
+            <FileOptions path={path} sha={sha} type="collection" name={name} canDelete={canDelete} canRename={canRename}
+              onDelete={handleDelete} onRename={handleRename}>
+              <Button type="button" variant="ghost" size="icon-sm" disabled={isBusy || articleDirty}
+                aria-label={t("Další akce článku", "More article actions")}><EllipsisVertical aria-hidden="true" /></Button>
+            </FileOptions>
+          )}
+        </div>
+      )}
+    </div>
+  ), [articleDirty, canDelete, canRename, collectionPath, entry, error, handleDelete, handleRename, historyData,
+    isBusy, isCreationBlocked, isLoading, isPublishedArticle, isScheduledArticle, name, path, requestArticleAction, sha, siteName, t]);
+
+  useRepoHeader({ header: isArticle ? articleHeader : headerNode });
 
   const loadingSkeleton = useMemo(() => (
     <div className="w-full max-w-screen-md mx-auto grid items-start gap-6">
@@ -769,6 +933,18 @@ export function Entry({
     </div>
   ), [path]);
 
+
+  if (error && isArticle) {
+    return (
+      <div className="mx-auto max-w-2xl rounded-xl border bg-card p-5" role="alert">
+        <h2 className="font-semibold">{t("Článek se nepodařilo načíst", "Could not load the article")}</h2>
+        <p className="mt-1 text-sm text-muted-foreground wrap-anywhere"><ErrorText text={String(error)} /></p>
+        <Button className="mt-4" variant="outline" onClick={() => void mutateEntry().catch(() => {})}>
+          {t("Zkusit znovu", "Try again")}
+        </Button>
+      </div>
+    );
+  }
 
   if (error) {
     // TODO: should we use a custom error class with code?
@@ -838,10 +1014,9 @@ export function Entry({
     );
   }
 
-  return (
-    isLoading
-      ? loadingSkeleton
-      : <EntryForm
+  if (isLoading) return loadingSkeleton;
+
+  const editorForm = <EntryForm
         fields={entryFields}
         contentObject={entryContentObject}
         onSubmit={onSubmit}
@@ -849,11 +1024,15 @@ export function Entry({
           showFilenameField
             ? <InputGroup data-disabled={path ? !isFilenameUnlocked : false}>
                 <InputGroupInput
+                  id="entry-filename"
                   value={filenameValue}
-                  onChange={(event) => setFilenameValue(event.target.value)}
-                  placeholder={ui("Filename")}
+                  onChange={(event) => {
+                    setFilenameValue(event.target.value);
+                    if (isArticle) setHasRegisteredChanges(true);
+                  }}
+                  placeholder={isArticle ? t("Podle nadpisu", "Based on the title") : ui("Filename")}
                   disabled={path ? !isFilenameUnlocked : false}
-                  aria-label={ui("Filename")}
+                  aria-label={isArticle ? t("Adresa článku", "Article address") : ui("Filename")}
                 />
                 {path && filenameFieldMode === "enabled" && canRename && (
                   <InputGroupAddon align="inline-end">
@@ -885,6 +1064,61 @@ export function Entry({
           changeVersionRef.current += 1;
           setHasRegisteredChanges(true);
         }}
+        article={isArticle ? {
+          busy: isSaving,
+          address: articleAddress,
+          onPreview: (values) => { setArticleError(null); setArticlePreview(values); },
+          onPublishAttempt: () => setArticleDialog(null),
+          onPreparationError: (error) => setArticleError(error instanceof Error ? error.message : t("Článek se nepodařilo připravit.", "Could not prepare the article.")),
+          withdrawAction: isPublishedArticle && (
+            <Button ref={withdrawButton} type="button" variant="ghost" className="h-auto min-h-10 w-full justify-start whitespace-normal text-destructive"
+              disabled={isBusy} onClick={() => setArticleDialog("withdraw")}>
+              {isScheduledArticle ? t("Zrušit naplánování", "Cancel schedule") : t("Stáhnout z webu", "Unpublish")}
+            </Button>
+          ),
+        } : undefined}
+      />;
+
+  if (!isArticle) return editorForm;
+
+  return (
+    <div className="@container/article mx-auto min-w-0 max-w-[1160px] space-y-4">
+      <ArticleStatus receipt={publication.receipt} revision={revision} configuredStatus={savedArticleStatus}
+        changed={articleDirty} busy={isSaving} failed={publication.failed} checking={publication.checking} onRetry={publication.retry}
       />
+      {articleError && (
+        <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm sm:p-4">
+          <p className="font-semibold text-destructive">{t("Akci se nepodařilo dokončit", "Could not complete the action")}</p>
+          <p className="mt-1 wrap-anywhere"><ErrorText text={articleError} /></p>
+          <p className="mt-1 text-muted-foreground">{t("Text zůstává v editoru.", "Your text is still in the editor.")}</p>
+        </div>
+      )}
+      {editorForm}
+      <ArticlePreview values={articlePreview} bodyField={entryFields.find((field: Field) => field.name === "body")}
+        imageField={entryFields.find((field: Field) => field.name === "image")}
+        onClose={() => setArticlePreview(null)} returnFocus={() => previewButton.current?.focus()} />
+      {articleDialog && (
+        <PublishArticleDialog open onOpenChange={(open) => { if (!open) setArticleDialog(null); }}
+          canSchedule={!isPublishedArticle || isScheduledArticle} published={isPublishedArticle && !isScheduledArticle}
+          existingDate={futurePublication ? scheduledDate : ""} withdraw={articleDialog === "withdraw"} scheduled={isScheduledArticle}
+          onConfirm={(date) => requestArticleAction(articleDialog, date)}
+          returnFocus={() => (articleDialog === "withdraw" ? withdrawButton : publishButton).current?.focus()}
+        />
+      )}
+      <AlertDialog open={Boolean(leaveArticlePath)} onOpenChange={(open) => { if (!open) setLeaveArticlePath(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Opustit článek?", "Leave the article?")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("V editoru máte neuložené změny. Odchodem se zahodí.", "You have unsaved changes. Leaving will discard them.")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Zůstat v editoru", "Stay in the editor")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (leaveArticlePath) router.push(leaveArticlePath); }}>
+              {t("Opustit článek", "Leave article")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };

@@ -19,7 +19,7 @@ export async function callWebsBot<T = any>(path: string, payload: Record<string,
   // server URL directly, including mutations, which must never be replayed.
   const fallback = process.env.WEBS_BOT_FALLBACK_URL?.replace(/\/+$/, "")
     || (bot === "https://mcp.mobilut.com" ? "https://webs-bot.crimson-bonus-69e4.workers.dev" : "");
-  const urls = path === "/cms/overview"
+  const urls = path === "/cms/overview" || path === "/cms/article"
     ? [...new Set([bot, fallback].filter(Boolean))]
     : [path === "/cms/submissions" ? fallback || bot : bot];
   for (const [index, url] of urls.entries()) {

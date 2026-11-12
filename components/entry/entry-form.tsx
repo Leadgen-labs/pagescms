@@ -2,6 +2,8 @@
 
 import { ui, useUi } from "@/components/use-ui";
 import { UiText } from "@/components/ui-text";
+import { useLanguage } from "@/contexts/language-context";
+import type { ArticleAction } from "./article-workflow";
 import {
   memo,
   useState,
@@ -40,6 +42,7 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,6 +90,13 @@ import {
   ChevronsDownUp,
   ChevronsUpDown,
   ChevronRight,
+  CircleHelp,
+  FileText,
+  ImageIcon,
+  Link2,
+  Search,
+  Settings2,
+  Tags,
 } from "lucide-react";
 import { toast } from "@/components/localized-toast";
 import { interpolate } from "@/lib/schema";
@@ -871,6 +881,8 @@ const SingleField = ({
   toggleOpen = () => {},
   index = 0,
   keyPrefix,
+  articleWriting = false,
+  compactHelp = false,
 }: {
   field: FieldWithReadonlyMeta;
   fieldName: string;
@@ -882,7 +894,10 @@ const SingleField = ({
   toggleOpen?: () => void;
   index?: number;
   keyPrefix?: string;
+  articleWriting?: boolean;
+  compactHelp?: boolean;
 }) => {
+  const { t } = useLanguage();
   const {
     control,
     formState: { errors },
@@ -961,7 +976,7 @@ const SingleField = ({
         render={({ field: rhfManagedFieldProps }) => (
           <FormItem>
             {shouldShowFieldMeta && (
-              <div className="flex items-center justify-between min-h-6 gap-x-2">
+              <div className={cn("flex items-center justify-between min-h-6 gap-x-2", articleWriting && "flex-wrap gap-y-1")}>
                 <div className="flex items-center gap-x-2 min-w-0">
                   {field.label !== false && (
                     <FormLabel><UiText text={field.label || field.name}/></FormLabel>
@@ -983,7 +998,23 @@ const SingleField = ({
                       <UiText text={"Readonly"} /> </Badge>
                   )}
                 </div>
-                {showLabelSlot && <div id={labelSlotId} className="shrink-0" />}
+                <div className="flex shrink-0 items-center gap-1">
+                  {showLabelSlot && <div id={labelSlotId} className="shrink-0" />}
+                  {compactHelp && field.description && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon-sm" className="text-muted-foreground"
+                          aria-label={t(`Nápověda k poli ${ui(field.label || field.name)}`, `Help for ${ui(field.label || field.name)}`)}>
+                          <CircleHelp aria-hidden="true" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="end" collisionPadding={12}
+                        className="max-h-[min(360px,70dvh)] max-w-[calc(100dvw-24px)] overflow-auto text-sm leading-relaxed">
+                        {field.description}
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
               </div>
             )}
             <FormControl>
@@ -999,15 +1030,14 @@ const SingleField = ({
                       labelSlotId={showLabelSlot ? labelSlotId : undefined}
                       registerBeforeSubmitHook={registerBeforeSubmitHook}
                       onChangeRegistered={onChangeRegistered}
+                      articleToolbar={articleWriting}
                     />
                   );
                 }
                 return <FieldComponent {...sharedProps} />;
               })()}
             </FormControl>
-            {field.description && (
-              <FormDescription>{field.description}</FormDescription>
-            )}
+            {!compactHelp && field.description && <FormDescription>{field.description}</FormDescription>}
             <FormMessage />
           </FormItem>
         )}
@@ -1025,15 +1055,27 @@ const EntryForm = ({
   filePath,
   onDirtyChange,
   onChangeRegistered,
+  article,
 }: {
   fields: Field[];
   contentObject?: Record<string, unknown>;
-  onSubmit: (values: Record<string, unknown>) => void;
+  onSubmit: (values: Record<string, unknown>, action?: ArticleAction) => void | Promise<void>;
   filePath?: React.ReactNode;
   onDirtyChange?: (isDirty: boolean) => void;
   onChangeRegistered?: () => void;
+  article?: {
+    busy: boolean;
+    address?: string;
+    onPreview: (values: Record<string, unknown>) => void;
+    onPublishAttempt: () => void;
+    onPreparationError: (error: unknown) => void;
+    withdrawAction?: React.ReactNode;
+  };
 }) => {
   const ui = useUi();
+  const { t } = useLanguage();
+  const editorial = Boolean(article);
+  const submitting = useRef(false);
   const zodSchema = useMemo(() => {
     return generateZodSchema(fields);
   }, [fields]);
@@ -1115,11 +1157,13 @@ const EntryForm = ({
             renderFields={renderFields}
             registerBeforeSubmitHook={registerBeforeSubmitHook}
             onChangeRegistered={onChangeRegistered}
+            articleWriting={editorial && !parentName && ["title", "description", "body"].includes(effectiveField.name)}
+            compactHelp={editorial && !parentName}
           />
         );
       });
     },
-    [onChangeRegistered],
+    [editorial, onChangeRegistered],
   );
 
   const runBeforeValidationHooks = useCallback(async () => {
@@ -1129,41 +1173,121 @@ const EntryForm = ({
     }
   }, []);
 
-  const handleSubmit = useCallback(
-    async (values: Record<string, unknown>) => {
-      const latestValues = form.getValues() as Record<string, unknown>;
-      await onSubmit(latestValues);
-    },
-    [form, onSubmit],
-  );
-
   const handleError = useCallback(() => {
     toast.error(ui("Please fix the errors before saving."), { duration: 5000 });
-  }, [ui]);
+    if (editorial) {
+      requestAnimationFrame(() => {
+        const invalid = document.querySelector<HTMLElement>("#entry-form [aria-invalid=true]");
+        const group = invalid?.closest("details");
+        if (group) group.open = true;
+        invalid?.scrollIntoView({ block: "center" });
+        invalid?.focus({ preventScroll: true });
+      });
+    }
+  }, [editorial, ui]);
 
-  const handleFormSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (submitting.current || article?.busy) return;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const intent = submitter instanceof HTMLButtonElement ? submitter.dataset.articleAction : undefined;
+    if (article && !intent) return;
+    if (intent === "publish" || intent === "withdraw") article?.onPublishAttempt();
+    submitting.current = true;
+    try {
       await runBeforeValidationHooks();
-      await form.handleSubmit(handleSubmit, handleError)(event);
-    },
-    [form, handleSubmit, handleError, runBeforeValidationHooks],
+      if (article && intent === "preview") {
+        article.onPreview(form.getValues());
+        return;
+      }
+      const action: ArticleAction | undefined = intent === "publish"
+        ? { kind: "publish", date: submitter?.dataset.articleDate || undefined }
+        : intent === "draft" || intent === "withdraw" ? { kind: intent } : undefined;
+      await form.handleSubmit(() => onSubmit(form.getValues(), action), handleError)(event);
+    } catch (error) {
+      if (article) article.onPreparationError(error);
+      else toast.error(error instanceof Error ? error.message : ui("Failed to save file."));
+    } finally {
+      submitting.current = false;
+    }
+  };
+
+  const render = (items: Field[]) => renderFields(items, undefined, registerBeforeSubmitHook, runBeforeValidationHooks);
+  const namedFields = (names: string[]) => names.flatMap((name) => fields.filter((field) => field.name === name));
+  const filename = filePath && (
+    <div className="min-w-0 space-y-2">
+      <Label htmlFor="entry-filename">{article ? t("Adresa článku", "Article address") : <UiText text={"Filename"} />}</Label>
+      {filePath}
+    </div>
   );
+  const sections = [
+    { names: ["image", "image_alt"], icon: ImageIcon, label: t("Úvodní fotka", "Cover image") },
+    { names: ["seo_title", "seo_description", "keyword"], icon: Search, label: t("SEO a sdílení", "SEO and sharing") },
+    { names: ["tags"], icon: Tags, label: t("Štítky", "Tags") },
+    { names: ["sources"], icon: Link2, label: t("Zdroje", "Sources") },
+  ];
+  const writingNames = ["title", "description", "body"];
+  const groupedNames = new Set([...writingNames, "status", "published_at", ...sections.flatMap((section) => section.names)]);
 
   return (
     <Form {...form}>
       <form
         id="entry-form"
         onSubmit={handleFormSubmit}
-        className="w-full max-w-screen-md mx-auto grid items-start gap-6"
+        noValidate={editorial}
+        className={cn("mx-auto grid w-full items-start", article ? "min-w-0 gap-4 @min-[740px]/article:grid-cols-[minmax(0,1fr)_minmax(250px,31%)] @min-[930px]/article:gap-6" : "max-w-screen-md gap-6")}
+        inert={article?.busy || undefined}
       >
-        {filePath && (
-          <div className="space-y-2 overflow-hidden">
-            <FormLabel><UiText text={"Filename"} /></FormLabel>
-            {filePath}
-          </div>
+        {article ? (
+          <>
+            <section className="min-w-0 space-y-5 rounded-xl border bg-card p-3.5 text-card-foreground shadow-xs sm:p-6" aria-labelledby="article-writing-title">
+              <h2 id="article-writing-title" className="flex items-center gap-2 text-sm font-semibold">
+                <FileText aria-hidden="true" className="size-4 text-primary" />{t("Obsah článku", "Article content")}
+              </h2>
+              <div className="[&_input]:h-auto [&_input]:py-2 [&_input]:text-xl [&_input]:font-semibold [&_input]:tracking-tight sm:[&_input]:text-2xl">
+                {render(namedFields(["title"]))}
+              </div>
+              {render(namedFields(["description", "body"]))}
+            </section>
+            <aside className="min-w-0 divide-y overflow-clip rounded-xl border bg-card text-card-foreground shadow-xs" aria-labelledby="article-details-title">
+              <div className="min-w-0 space-y-4 p-3.5 sm:p-4">
+                <h2 id="article-details-title" className="flex items-center gap-2 text-sm font-semibold">
+                  <Settings2 aria-hidden="true" className="size-4 text-primary" />{t("Detaily článku", "Article details")}
+                </h2>
+                {filename}
+                {!filename && article.address && (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">{t("Adresa článku", "Article address")}</p>
+                    <code className="block text-xs wrap-anywhere text-muted-foreground">{article.address}</code>
+                  </div>
+                )}
+                {render(fields.filter((field) => !groupedNames.has(field.name)))}
+              </div>
+              {sections.map(({ names, icon: Icon, label }) => {
+                const items = namedFields(names).filter((field) => !field.hidden);
+                return items.length > 0 && (
+                  <details key={names[0]} className="group/article-detail min-w-0">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3.5 py-2.5 text-sm font-medium hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring sm:px-4">
+                      <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+                      <span className="flex-1">{label}</span>
+                      <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground group-open/article-detail:rotate-90" />
+                    </summary>
+                    <div className="min-w-0 space-y-4 px-3.5 pb-4 pt-1 sm:px-4">
+                      {names[0] === "tags" && items[0].description && <p className="text-sm text-muted-foreground">{items[0].description}</p>}
+                      {render(names[0] === "tags" ? items.map((field) => ({ ...field, description: undefined })) : items)}
+                    </div>
+                  </details>
+                );
+              })}
+              {article.withdrawAction && <div className="p-2">{article.withdrawAction}</div>}
+            </aside>
+          </>
+        ) : (
+          <>
+            {filename}
+            {render(fields)}
+          </>
         )}
-        {renderFields(fields, undefined, registerBeforeSubmitHook, runBeforeValidationHooks)}
       </form>
     </Form>
   );
