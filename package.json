@@ -11,7 +11,7 @@
     "setup:github-app": "node scripts/setup-github-app.mjs",
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "npm run db:migrate",
+    "postbuild": "node scripts/migrate-after-build.mjs",
     "start": "next start",
     "lint": "eslint .",
     "test": "node --test scripts/test-language.mjs scripts/test-ui-coverage.mjs scripts/test-webs-overview.mjs scripts/test-project-urls.mjs scripts/test-editorial-collection.mjs scripts/test-dashboard.mjs scripts/test-webs-submissions.mjs",
