@@ -141,7 +141,7 @@ export function FileOptions({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle><UiText text={"Are you sure you want to delete this file?"} /></AlertDialogTitle>
-              <AlertDialogDescription><UiText text={"This will premanently delete \""}/>{path}<UiText text={"\"."}/></AlertDialogDescription>
+              <AlertDialogDescription><UiText text={'This will permanently delete "{0}".'} values={[path]} /></AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>

@@ -1,7 +1,7 @@
 "use client";
 import { useLanguage } from "@/contexts/language-context";
-import { translateUiText } from "@/lib/ui-translations";
-export function UiText({ text }: { text: string }) {
+import { formatUi } from "@/lib/ui-translations";
+export function UiText({ text, values }: { text: string; values?: unknown[] }) {
   const { language } = useLanguage();
-  return <>{translateUiText(text, language)}</>;
+  return <>{formatUi(text, language, values)}</>;
 }
