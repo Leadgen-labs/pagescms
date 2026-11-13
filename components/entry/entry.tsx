@@ -862,22 +862,22 @@ export function Entry({
       </div>
       {!error && !isCreationBlocked && (
         <div className="flex min-w-0 flex-wrap items-center gap-1.5 max-[359px]:gap-1">
-          <Button asChild variant="ghost" size="icon-sm" className="xl:hidden" aria-label={t("Detaily článku", "Article details")}>
+          <Button asChild variant="ghost" size="icon" className="xl:hidden" aria-label={t("Detaily článku", "Article details")}>
             <a href="#article-details"><Settings2 aria-hidden="true" /></a>
           </Button>
           <Button ref={previewButton} type="button" onClick={() => requestArticleAction("preview")}
-            variant="outline" size="sm" className="h-9 px-2.5 max-[359px]:px-2" disabled={isBusy} aria-label={t("Náhled článku", "Article preview")}>
+            variant="outline" className="px-2.5 max-[359px]:px-2" disabled={isBusy} aria-label={t("Náhled článku", "Article preview")}>
             <Eye aria-hidden="true" /><span className="hidden min-[420px]:inline">{t("Náhled", "Preview")}</span>
           </Button>
           {!isPublishedArticle && (
             <Button ref={draftButton} type="button" onClick={() => requestArticleAction("draft")}
-              variant="outline" size="sm" className="h-9 px-2.5" disabled={isBusy || Boolean(path && !articleDirty)}
+              variant="outline" className="px-2.5" disabled={isBusy || Boolean(path && !articleDirty)}
               aria-label={t("Uložit koncept", "Save draft")}>
               <span className="hidden min-[360px]:inline">{t("Uložit koncept", "Save draft")}</span>
               <span className="min-[360px]:hidden">{t("Uložit", "Save")}</span>
             </Button>
           )}
-          <Button ref={publishButton} type="button" size="sm" className="h-9 px-2.5"
+          <Button ref={publishButton} type="button" className="px-2.5"
             aria-label={isScheduledArticle ? t("Upravit plán", "Edit schedule")
               : isPublishedArticle ? t("Zveřejnit změny", "Publish changes") : t("Zveřejnit", "Publish")}
             disabled={isBusy || Boolean(path && isPublishedArticle && !isScheduledArticle && !articleDirty)}
@@ -890,12 +890,12 @@ export function Entry({
             )}
           </Button>
           {path && historyData && historyData.length > 0 && !isLoading && (
-            <EntryHistoryDropdown history={historyData} path={path} triggerVariant="outline" triggerSize="icon-sm" />
+            <EntryHistoryDropdown history={historyData} path={path} triggerVariant="outline" />
           )}
           {path && sha && (
             <FileOptions path={path} sha={sha} type="collection" name={name} canDelete={canDelete} canRename={canRename}
               onDelete={handleDelete} onRename={handleRename}>
-              <Button type="button" variant="ghost" size="icon-sm" disabled={isBusy || articleDirty}
+              <Button type="button" variant="ghost" size="icon" disabled={isBusy || articleDirty}
                 aria-label={t("Další akce článku", "More article actions")}><EllipsisVertical aria-hidden="true" /></Button>
             </FileOptions>
           )}
