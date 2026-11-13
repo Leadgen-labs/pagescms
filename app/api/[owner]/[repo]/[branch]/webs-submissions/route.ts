@@ -1,4 +1,5 @@
 import {callWebsBot} from '@/lib/webs/bot';
+import {hasAppOrigin} from '@/lib/base-url';
 import {getToken} from '@/lib/token';
 import {createHttpError,toErrorResponse} from '@/lib/api-error';
 import {requireApiUserSession} from '@/lib/session-server';
@@ -7,8 +8,7 @@ import {canManageSubmissions} from '@/lib/webs/submissions-access';
 export const dynamic='force-dynamic';
 export async function POST(request:Request,context:{params:Promise<{owner:string;repo:string;branch:string}>}){
  try{
-  const origin=request.headers.get('origin');
-  if(!origin||origin!==new URL(request.url).origin)throw createHttpError('Neplatný původ požadavku.',403);
+  if(!hasAppOrigin(request))throw createHttpError('Neplatný původ požadavku.',403);
   const bot=(process.env.WEBS_BOT_URL??'').replace(/\/+$/,'');
   const secret=process.env.WEBS_BOT_SECRET;
   if(!bot||!secret)throw createHttpError('Evidence formulářů není připojena.',503);

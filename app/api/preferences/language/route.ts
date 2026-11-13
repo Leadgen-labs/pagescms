@@ -1,5 +1,6 @@
 import { requireApiUserSession } from "@/lib/session-server";
 import { createHttpError, toErrorResponse } from "@/lib/api-error";
+import { hasAppOrigin } from "@/lib/base-url";
 import { isLanguage } from "@/lib/language";
 import { getPreferredLanguage, setPreferredLanguage } from "@/lib/language-server";
 
@@ -12,7 +13,7 @@ export async function GET() {
 }
 export async function PATCH(request: Request) {
   try {
-    if (request.headers.get("origin") !== new URL(request.url).origin) throw createHttpError("Invalid origin", 403);
+    if (!hasAppOrigin(request)) throw createHttpError("Invalid origin", 403);
     const session = await requireApiUserSession();
     if ("response" in session) return session.response;
     const data = await request.json().catch(() => null);

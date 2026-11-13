@@ -6,12 +6,12 @@ import ts from 'typescript';
 const require=createRequire(import.meta.url);
 const cache=new Map();let session={user:{id:'user-1',email:'Me@Example.com'}};const saved=[];
 const mockPreferences={getPreferredLanguage:async()=> 'en',setPreferredLanguage:async(email,language)=>saved.push({email,language})};
-function load(file, mocks={}){
+function load(file, mocks={}, runtime=process){
  const key=file+JSON.stringify(Object.keys(mocks)); if(cache.has(key))return cache.get(key);
  const exp={};const source=readFileSync(new URL('../'+file,import.meta.url),'utf8');
  const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;
  const resolve=name=>name in mocks?mocks[name]:name==='server-only'?{}:name.startsWith('@/')?load(name.slice(2)+(name.includes('/components/')?'.tsx':'.ts'),mocks):require(name);
- new Function('require','exports','process',compiled)(resolve,exp,process);cache.set(key,exp);return exp;
+ new Function('require','exports','process',compiled)(resolve,exp,runtime);cache.set(key,exp);return exp;
 }
 const {emailSubject,isLanguage}=load('lib/language.ts');
 const {render}=require('@react-email/render');
@@ -30,8 +30,10 @@ test('email subjects and locale validation',()=>{
  assert.match(emailSubject('invite','cs','Demo'),/Pozvánka/);assert.match(emailSubject('added','en','Demo'),/You were added/);
  assert.equal(isLanguage('de'),false);assert.equal(isLanguage('en'),true);
 });
-const route=load('app/api/preferences/language/route.ts',{'@/lib/session-server':{requireApiUserSession:async()=>session},'@/lib/language-server':mockPreferences});
-const request=(body,origin='https://cms.example')=>new Request('https://cms.example/api/preferences/language',{method:'PATCH',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
+const localCmsOrigin='https://cms.example';
+const baseUrl=load('lib/base-url.ts', {}, {env:{BASE_URL:localCmsOrigin,NODE_ENV:'production'}});
+const route=load('app/api/preferences/language/route.ts',{'@/lib/base-url':baseUrl,'@/lib/session-server':{requireApiUserSession:async()=>session},'@/lib/language-server':mockPreferences});
+const request=(body,origin=localCmsOrigin)=>new Request('http://internal:3000/api/preferences/language',{method:'PATCH',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
 test('language PATCH uses session identity and ignores a submitted email',async()=>{
  saved.length=0;const res=await route.PATCH(request({language:'en',email:'victim@example.com'}));
  assert.equal(res.status,200);assert.deepEqual(saved,[{email:'Me@Example.com',language:'en'}]);

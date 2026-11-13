@@ -13,3 +13,8 @@ export const getBaseUrl = () => {
 
   throw new Error("Missing BASE_URL. Set BASE_URL in production.");
 };
+
+export function hasAppOrigin(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  return origin !== null && origin === new URL(getBaseUrl()).origin;
+}

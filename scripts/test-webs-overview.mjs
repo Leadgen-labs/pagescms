@@ -51,6 +51,13 @@ test('unrelated bot URLs receive no implicit fallback', async () => {
   try {await assert.rejects(callWebsBot('/cms/overview',{}));assert.equal(calls,1);} finally {env.WEBS_BOT_URL='https://mcp.mobilut.com'}
 });
 
+const publicCmsOrigin = 'https://cms.example';
+const internalCmsOrigin = 'http://localhost:3000';
+const baseUrlModule = { exports: {} };
+new Function('exports', 'process', ts.transpileModule(readFileSync(new URL('../lib/base-url.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText)(baseUrlModule.exports, { env: { BASE_URL: publicCmsOrigin, NODE_ENV: 'production' } });
+
 function overviewAccessHarness({source='user',collaborator=false,github={private:false,permissions:{push:false}},denied=false,signedIn=true}={}){
  const calls=[],user={id:'account-1',email:'info@leadmarket.cz'},access={token:'private-test-token',source};
  const compile=(file,deps)=>{const exports={};new Function('require','exports',ts.transpileModule(readFileSync(new URL('../'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(name=>{if(name in deps)return deps[name];throw Error('Unexpected dependency '+name)},exports);return exports;};
@@ -60,14 +67,31 @@ function overviewAccessHarness({source='user',collaborator=false,github={private
   '@/lib/utils/octokit':{createOctokitInstance:token=>{assert.equal(token,access.token);return {rest:{repos:{get:async scope=>{calls.push(['github',scope]);if(github instanceof Error)throw github;return {data:github}}}}}}},
  });
  const route=compile('app/api/[owner]/[repo]/[branch]/webs-overview/route.ts',{
+  '@/lib/base-url':baseUrlModule.exports,
   '@/lib/token':{getToken:async(actor,owner,repo)=>{calls.push(['token',actor.id,owner,repo]);if(denied)throw Object.assign(Error('No repository access'),{status:403});return access}},
   '@/lib/api-error':{createHttpError:(message,status)=>Object.assign(Error(message),{status}),toErrorResponse:error=>Response.json({error:error.message},{status:error.status??500})},
   '@/lib/session-server':{requireApiUserSession:async()=>signedIn?{user}:{response:new Response(null,{status:401})}},
   '@/lib/admin':{hasAdminAccess:()=>false},'@/lib/webs/overview-access':overview,
   '@/lib/webs/bot':{callWebsBot:async(path,payload)=>{calls.push(['bot',path,payload]);return {status:200,data:{site:{slug:'demo'}}}}},
  });
- return {calls,user,access,canRead:overview.canReadSiteOverview,post:(body={},origin='https://cms.example')=>route.POST(new Request('https://cms.example/api/Leadgen-labs/webs-obsah-demo/main/webs-overview',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)}),{params:Promise.resolve({owner:'Leadgen-labs',repo:'webs-obsah-demo',branch:'main'})})};
+ return {calls,user,access,canRead:overview.canReadSiteOverview,post:(body={},origin=publicCmsOrigin,requestOrigin=publicCmsOrigin)=>route.POST(new Request(requestOrigin+'/api/Leadgen-labs/webs-obsah-demo/main/webs-overview',{method:'POST',headers:{...(origin===null?{}:{origin}),'content-type':'application/json'},body:JSON.stringify(body)}),{params:Promise.resolve({owner:'Leadgen-labs',repo:'webs-obsah-demo',branch:'main'})})};
 }
+
+test('a signed-in editor can load the overview behind a reverse proxy', async () => {
+  const ctx = overviewAccessHarness({ collaborator: true });
+  const response = await ctx.post({}, publicCmsOrigin, internalCmsOrigin);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { site: { slug: 'demo' } });
+  assert.equal(ctx.calls.find(call => call[0] === 'bot')[2].repositoryAccess, true);
+});
+
+test('the overview behind a proxy rejects missing or different browser origins', async () => {
+  const ctx = overviewAccessHarness();
+  for (const origin of [null, internalCmsOrigin, 'http://cms.example', 'https://other.example']) {
+    assert.equal((await ctx.post({}, origin, internalCmsOrigin)).status, 403);
+  }
+  assert.deepEqual(ctx.calls, []);
+});
 
 test('invited CMS collaborators can read the overview with installation or user tokens',async()=>{
  for(const options of [{source:'installation'},{source:'user',collaborator:true}]){
@@ -115,6 +139,7 @@ test('article receipt forwards only the authorized repo and exact requested revi
   let signedIn = true;
   let authorized = true;
   const route = compile('app/api/[owner]/[repo]/[branch]/webs-article/route.ts', {
+    '@/lib/base-url': baseUrlModule.exports,
     '@/lib/api-error': errorModule.exports,
     '@/lib/editorial-article': compile('lib/editorial-article.ts'),
     '@/lib/session-server': { requireApiUserSession: async () => signedIn ? { user: actor } : { response: new Response(null, { status: 401 }) } },
@@ -132,7 +157,7 @@ test('article receipt forwards only the authorized repo and exact requested revi
     } },
   });
   const post = (body = { path, revision }, origin = 'https://cms.example', branch = 'main') =>
-    route.POST(new Request('https://cms.example/api/webs-article', {
+    route.POST(new Request(internalCmsOrigin + '/api/webs-article', {
       method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(body),
     }), { params: Promise.resolve({ ...params, branch }) });
 
