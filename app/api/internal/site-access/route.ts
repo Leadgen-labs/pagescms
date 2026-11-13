@@ -41,7 +41,6 @@ export async function POST(request: Request) {
   ));
   const grants = await db.selectDistinct({ owner: collaboratorTable.owner, repo: collaboratorTable.repo })
     .from(collaboratorTable).where(and(
-      eq(collaboratorTable.type, "user"),
       inArray(sql`lower(${collaboratorTable.owner})`, parsed.data.owners.map((owner) => owner.toLowerCase())),
       sql`lower(${collaboratorTable.repo}) like 'webs-obsah-%'`,
       or(
