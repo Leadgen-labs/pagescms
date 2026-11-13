@@ -21,6 +21,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Textarea } from "@/components/ui/textarea";
 import { editComponents } from "@/fields/registry";
 import {
   initializeState,
@@ -91,7 +92,6 @@ import {
   ChevronsUpDown,
   ChevronRight,
   CircleHelp,
-  FileText,
   ImageIcon,
   Link2,
   Search,
@@ -1023,6 +1023,12 @@ const SingleField = ({
                   ...rhfManagedFieldProps,
                   field,
                 };
+                if (articleWriting && field.name === "title" && field.type === "string") {
+                  return <Textarea {...rhfManagedFieldProps} rows={1} readOnly={field.readonly ?? undefined}
+                    className="min-h-0 resize-none border-transparent px-0 py-1 text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.12] font-semibold tracking-[-0.035em] shadow-none wrap-anywhere md:text-[clamp(1.75rem,4vw,2.75rem)] dark:bg-transparent"
+                    onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) event.preventDefault(); }}
+                    onChange={(event) => rhfManagedFieldProps.onChange(event.target.value.replace(/[\r\n]+/g, " "))} />;
+                }
                 if (field.type === "rich-text") {
                   return (
                     <FieldComponent
@@ -1235,21 +1241,24 @@ const EntryForm = ({
         id="entry-form"
         onSubmit={handleFormSubmit}
         noValidate={editorial}
-        className={cn("mx-auto grid w-full items-start", article ? "min-w-0 gap-4 @min-[740px]/article:grid-cols-[minmax(0,1fr)_minmax(250px,31%)] @min-[930px]/article:gap-6" : "max-w-screen-md gap-6")}
+        className={cn("mx-auto grid w-full items-start", article ? "min-w-0 gap-4 @min-[740px]/article:grid-cols-[minmax(0,1fr)_minmax(232px,27%)] @min-[980px]/article:gap-6" : "max-w-screen-md gap-6")}
         inert={article?.busy || undefined}
       >
         {article ? (
           <>
-            <section className="min-w-0 space-y-5 rounded-xl border bg-card p-3.5 text-card-foreground shadow-xs sm:p-6" aria-labelledby="article-writing-title">
-              <h2 id="article-writing-title" className="flex items-center gap-2 text-sm font-semibold">
-                <FileText aria-hidden="true" className="size-4 text-primary" />{t("Obsah článku", "Article content")}
-              </h2>
-              <div className="[&_input]:h-auto [&_input]:py-2 [&_input]:text-xl [&_input]:font-semibold [&_input]:tracking-tight sm:[&_input]:text-2xl">
-                {render(namedFields(["title"]))}
+            <section className="editorial-manuscript min-w-0 rounded-xl border bg-card px-4 pb-7 pt-5 text-card-foreground shadow-xs sm:px-8 sm:pb-12 sm:pt-8" aria-labelledby="article-writing-title">
+              <h2 id="article-writing-title" className="sr-only">{t("Obsah článku", "Article content")}</h2>
+              <div className="mx-auto max-w-[42rem] space-y-6">
+                <div className="editorial-title">
+                  {render(namedFields(["title"]))}
+                </div>
+                <div className="editorial-lead [&_textarea]:min-h-20 [&_textarea]:border-transparent [&_textarea]:bg-transparent [&_textarea]:px-0 [&_textarea]:text-lg [&_textarea]:leading-relaxed [&_textarea]:text-muted-foreground [&_textarea]:shadow-none">
+                  {render(namedFields(["description"]))}
+                </div>
+                <div className="border-t pt-5">{render(namedFields(["body"]))}</div>
               </div>
-              {render(namedFields(["description", "body"]))}
             </section>
-            <aside className="min-w-0 divide-y overflow-clip rounded-xl border bg-card text-card-foreground shadow-xs" aria-labelledby="article-details-title">
+            <aside id="article-details" tabIndex={-1} className="min-w-0 scroll-mt-32 divide-y overflow-clip rounded-xl border bg-card text-card-foreground focus-visible:outline-2 focus-visible:outline-ring @min-[980px]/article:sticky @min-[980px]/article:top-20 @min-[980px]/article:max-h-[calc(100dvh-6rem)] @min-[980px]/article:overflow-y-auto" aria-labelledby="article-details-title">
               <div className="min-w-0 space-y-4 p-3.5 sm:p-4">
                 <h2 id="article-details-title" className="flex items-center gap-2 text-sm font-semibold">
                   <Settings2 aria-hidden="true" className="size-4 text-primary" />{t("Detaily článku", "Article details")}
@@ -1258,7 +1267,7 @@ const EntryForm = ({
                 {!filename && article.address && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium">{t("Adresa článku", "Article address")}</p>
-                    <code className="block text-xs wrap-anywhere text-muted-foreground">{article.address}</code>
+                    <code className="block text-xs wrap-anywhere text-primary">{article.address}</code>
                   </div>
                 )}
                 {render(fields.filter((field) => !groupedNames.has(field.name)))}

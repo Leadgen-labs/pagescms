@@ -835,7 +835,8 @@ const EditComponent = forwardRef(
     );
 
     const triggerClass = cn(
-      "relative inline-flex h-[calc(100%-1px)] items-center justify-center whitespace-nowrap border border-transparent px-2 text-xs text-foreground/60 transition-all",
+      "relative inline-flex h-[calc(100%-1px)] items-center justify-center whitespace-nowrap border border-transparent px-2 text-xs transition-all",
+      props.articleToolbar ? "text-muted-foreground" : "text-foreground/60",
       "hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring",
       "disabled:pointer-events-none disabled:opacity-50",
       "dark:text-muted-foreground dark:hover:text-foreground",
@@ -910,7 +911,7 @@ const EditComponent = forwardRef(
               className="cn-editor"
               articleToolbar={props.articleToolbar}
               editorClassName={props.articleToolbar
-                ? "min-h-[22rem] rounded-t-none px-3 py-4 wrap-anywhere sm:px-5 [&_img]:max-w-full [&_table]:table-fixed [&_td]:wrap-anywhere [&_th]:wrap-anywhere"
+                ? "editorial-prose min-h-[22rem] rounded-none border-transparent px-0 py-5 text-[1.125rem] leading-[1.68] shadow-none wrap-anywhere md:text-[1.1875rem] dark:bg-transparent [&_img]:max-w-full [&_table]:table-fixed [&_td]:wrap-anywhere [&_th]:wrap-anywhere"
                 : undefined}
               enableImages={Boolean(mediaConfig)}
               enableImagePasteDrop={Boolean(mediaConfig)}

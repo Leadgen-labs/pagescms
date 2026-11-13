@@ -147,6 +147,8 @@ export const uiTranslations: Record<string, string> = {
   "Quote": "Citace",
   "Code block": "Blok kódu",
   "Bold": "Tučné",
+  "Undo": "Zpět",
+  "Redo": "Znovu",
   "Italic": "Kurzíva",
   "Underline": "Podtržené",
   "Strikethrough": "Přeškrtnuté",

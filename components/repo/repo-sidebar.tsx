@@ -545,12 +545,14 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
     }
 
     const href = getNodeHref(node);
-    const isActive = pathname === href || pathname.startsWith(`${href}/`);
+    const link = publicProjectPath(href);
+    const current = publicProjectPath(pathname);
+    const isActive = current === link || current.startsWith(`${link}/`);
     if (nested) {
       return (
         <SidebarMenuSubItem key={key}>
           <SidebarMenuSubButton asChild isActive={isActive}>
-            <Link href={publicProjectPath(href)} onClick={handleNavigation}>
+            <Link href={link} onClick={handleNavigation}>
               {getNodeIcon(node)}
               <span>{node.label || node.name}</span>
             </Link>
@@ -562,7 +564,7 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
     return (
       <SidebarMenuItem key={key}>
         <SidebarMenuButton asChild isActive={isActive}>
-          <Link href={publicProjectPath(href)} onClick={handleNavigation}>
+          <Link href={link} onClick={handleNavigation}>
             {getNodeIcon(node)}
             <span>{node.label || node.name}</span>
           </Link>
@@ -614,9 +616,16 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
     );
   };
 
+  const editorialNavigation = editorial ? [
+    ...contentNavigation.filter((node) => node.type === "collection" && node.name.startsWith("blog-")),
+    ...contentNavigation.filter((node) => node.type === "group" && node.name === "stranky"),
+  ] : [];
   const groups = [
-    renderNavigationGroup(t("Obsah", "Content"), contentNavigation),
+    editorial && renderFlatGroup(t("Web", "Website"), adminItems.filter((item) => item.key === "prehled")),
+    renderNavigationGroup(t("Obsah", "Content"), editorial ? editorialNavigation : contentNavigation),
     renderNavigationGroup(t("Soubory", "Files"), mediaNavigation),
+    editorial && renderFlatGroup(t("Poptávky", "Enquiries"), adminItems.filter((item) => item.key === "submissions")),
+    editorial && renderNavigationGroup(t("Nastavení obsahu", "Content settings"), contentNavigation.filter((node) => !editorialNavigation.includes(node))),
     rootActions.length > 0 && config
       ? (
         <SidebarGroup key="Actions">
@@ -634,11 +643,11 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
         </SidebarGroup>
       )
       : null,
-    renderFlatGroup(t("Správa", "Admin"), adminItems),
+    renderFlatGroup(t("Správa", "Admin"), editorial ? adminItems.filter((item) => item.key !== "prehled" && item.key !== "submissions") : adminItems),
   ].filter(Boolean);
 
   return (
-    <Sidebar collapsible="offcanvas">
+    <Sidebar collapsible="offcanvas" className={editorial ? "editorial-sidebar" : undefined}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -648,7 +657,7 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
       </SidebarHeader>
       <SidebarContent>
         {config?.repo.startsWith("webs-obsah-") && !editorial && <SidebarGroup><CreateContent /></SidebarGroup>}
-        {config?.repo.startsWith("webs-obsah-") && (
+        {config?.repo.startsWith("webs-obsah-") && !editorial && (
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -675,6 +684,12 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
         {groups.map((group, index) => (
           <Fragment key={index}>{group}</Fragment>
         ))}
+        {editorial && config && renderFlatGroup(t("Nástroje", "Tools"), [{
+          key: "transfer",
+          label: ui("Export a import"),
+          href: `/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/transfer`,
+          icon: <ArrowDownUp className="size-4" />,
+        }])}
       </SidebarContent>
       <SidebarFooter className="border-t">
         <div className="py-1"><LanguageSwitcher/></div>

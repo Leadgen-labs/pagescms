@@ -27,6 +27,7 @@ import {
   ListOrdered,
   Minus,
   Plus,
+  Redo2,
   RemoveFormatting,
   Rows3,
   Table as TableIcon,
@@ -34,6 +35,7 @@ import {
   Link as LinkIcon,
   Strikethrough,
   Underline as UnderlineIcon,
+  Undo2,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -167,6 +169,8 @@ type ActiveState = {
   strike: boolean;
   code: boolean;
   link: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
 };
 
 const defaultActiveState: ActiveState = {
@@ -177,6 +181,8 @@ const defaultActiveState: ActiveState = {
   strike: false,
   code: false,
   link: false,
+  canUndo: false,
+  canRedo: false,
 };
 
 type UploadableImageAttrs = {
@@ -443,6 +449,8 @@ export function Editor({
         strike: currentEditor.isActive("strike"),
         code: currentEditor.isActive("code"),
         link: currentEditor.isActive("link"),
+        canUndo: articleToolbar && currentEditor.can().undo(),
+        canRedo: articleToolbar && currentEditor.can().redo(),
       };
     },
   }) as ActiveState | null) ?? defaultActiveState;
@@ -935,8 +943,18 @@ export function Editor({
   return (
     <div {...props} className={cn("", className)}>
       {articleToolbar && !disabled && (
-        <div className="flex min-w-0 flex-wrap items-center gap-1 rounded-t-md border border-b-0 bg-muted/40 px-2 py-1.5"
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border bg-[var(--editorial-work,var(--muted))] px-2 py-1.5 xl:sticky xl:top-[4.25rem] xl:z-10"
           role="group" aria-label={ui("Text formatting")}>
+          <div className="flex items-center gap-0.5 border-r pr-1.5">
+            <Button type="button" variant="ghost" size="icon" className="size-9" disabled={!activeState.canUndo}
+              onMouseDown={(event) => event.preventDefault()} onClick={() => editor.chain().focus().undo().run()} aria-label={ui("Undo")} title={ui("Undo")}>
+              <Undo2 aria-hidden="true" />
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="size-9" disabled={!activeState.canRedo}
+              onMouseDown={(event) => event.preventDefault()} onClick={() => editor.chain().focus().redo().run()} aria-label={ui("Redo")} title={ui("Redo")}>
+              <Redo2 aria-hidden="true" />
+            </Button>
+          </div>
           <select
             value={activeState.blockType}
             onChange={(event) => setBlockType(event.target.value as BlockType)}
@@ -946,7 +964,7 @@ export function Editor({
             {blockOptions.map((option) => <option key={option.value} value={option.value}>{ui(option.label)}</option>)}
           </select>
           {[
-            ...inlineActions.slice(0, 2),
+            ...inlineActions.slice(0, 3),
             { label: "Bulleted list", icon: List, run: () => editor.chain().focus().toggleBulletList().run(), pressed: activeState.blockType === "bulletList" },
             { label: "Numbered list", icon: ListOrdered, run: () => editor.chain().focus().toggleOrderedList().run(), pressed: activeState.blockType === "orderedList" },
             { label: "Link", icon: LinkIcon, run: openLinkInput, pressed: activeState.link || showLinkInput },
@@ -969,7 +987,7 @@ export function Editor({
               onMouseDown={(event) => event.preventDefault()} onClick={run}
               aria-label={ui(label)} title={ui(label)}
               aria-pressed={"pressed" in action ? action.pressed : "isActive" in action && action.isActive ? action.isActive() : undefined}
-              className="aria-pressed:bg-primary/10 aria-pressed:text-primary">
+              className="size-9 aria-pressed:bg-primary/10 aria-pressed:text-primary">
               <Icon aria-hidden="true" />
             </Button>
           ))}
