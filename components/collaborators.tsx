@@ -315,7 +315,7 @@ export function Collaborators({
     return (
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="font-semibold text-lg"><UiText text={"Přístupy k webu"}/>{displayName}</h1>
+          <h1 className="font-semibold text-lg"><UiText text="Website access for {0}" values={[displayName]} /></h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -510,7 +510,8 @@ export function Collaborators({
               <AlertDialogHeader>
                 <AlertDialogTitle>{t("Odebrat přístup?", "Are you sure?")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  <UiText text={"Odeberete přístup k webu"}/>{displayName} <UiText text={"uživateli \""}/>{collaboratorToRemove?.email}<UiText text={"\"."}/></AlertDialogDescription>
+                  <UiText text={'This will remove access to {0} for user "{1}".'} values={[displayName, collaboratorToRemove?.email]} />
+                </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel><UiText text={"Zrušit"}/></AlertDialogCancel>

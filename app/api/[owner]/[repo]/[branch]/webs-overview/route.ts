@@ -1,4 +1,5 @@
 import { getToken } from "@/lib/token";
+import { hasAppOrigin } from "@/lib/base-url";
 import { createHttpError, toErrorResponse } from "@/lib/api-error";
 import { requireApiUserSession } from "@/lib/session-server";
 import { hasAdminAccess } from "@/lib/admin";
@@ -13,8 +14,7 @@ import { canReadSiteOverview } from "@/lib/webs/overview-access";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request, context: { params: Promise<{ owner: string; repo: string; branch: string }> }) {
   try {
-    const origin = request.headers.get("origin");
-    if (!origin || origin !== new URL(request.url).origin) throw createHttpError("Neplatný původ požadavku.", 403);
+    if (!hasAppOrigin(request)) throw createHttpError("Neplatný původ požadavku.", 403);
     const session = await requireApiUserSession();
     if ("response" in session) return session.response;
     const params = await context.params;

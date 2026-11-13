@@ -322,7 +322,8 @@ export default async function Page({
               </Table>
               <div className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
                 <div>
-                  <UiText text={"Showing"}/>{users.length} <UiText text={"of"}/>{filteredUserCount?.count ?? 0} <UiText text={"users"}/></div>
+                  <UiText text="Showing {0} of {1} users" values={[users.length, filteredUserCount?.count ?? 0]} />
+                </div>
                 <Pagination className="mx-0 w-auto justify-end">
                   <PaginationContent>
                     <PaginationItem>
@@ -335,7 +336,7 @@ export default async function Page({
                     </PaginationItem>
                     <PaginationItem>
                       <span className="px-2 text-xs">
-                        <UiText text={"Page"}/>{safeCurrentPage} <UiText text={"of"}/>{totalUserPages}
+                        <UiText text="Page {0} of {1}" values={[safeCurrentPage, totalUserPages]} />
                       </span>
                     </PaginationItem>
                     <PaginationItem>

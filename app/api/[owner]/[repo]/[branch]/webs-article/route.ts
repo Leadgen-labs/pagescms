@@ -1,4 +1,5 @@
 import { createHttpError, toErrorResponse } from "@/lib/api-error";
+import { hasAppOrigin } from "@/lib/base-url";
 import { articleRevisionPattern, editorialArticlePath, type ArticleReceipt } from "@/lib/editorial-article";
 import { requireApiUserSession } from "@/lib/session-server";
 import { getToken } from "@/lib/token";
@@ -10,7 +11,7 @@ export async function POST(
   context: { params: Promise<{ owner: string; repo: string; branch: string }> },
 ) {
   try {
-    if (request.headers.get("origin") !== new URL(request.url).origin) {
+    if (!hasAppOrigin(request)) {
       throw createHttpError("Invalid request origin.", 403);
     }
     const session = await requireApiUserSession();

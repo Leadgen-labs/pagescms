@@ -16,15 +16,16 @@ function compile(file,deps){
 function harness({reply=()=>Response.json({items:[]}),denied=false,signedIn=true,manager=true}={}){
  const calls=[];
  const errors={createHttpError:(message,status)=>Object.assign(Error(message),{status}),toErrorResponse:e=>Response.json({status:'error',message:e.message},{status:e.status??500})};
- const env={WEBS_BOT_URL:'https://mcp.mobilut.com',WEBS_BOT_SECRET:'test-secret'};
+ const env={BASE_URL:'https://cms.mobilut.com',WEBS_BOT_URL:'https://mcp.mobilut.com',WEBS_BOT_SECRET:'test-secret'};
  const helper=compile('lib/webs/bot.ts',{'server-only':{},'node:crypto':{createHmac},'@/lib/api-error':errors,env,fetch:async(url,options)=>{calls.push({url,options});return reply();}});
  const route=compile('app/api/[owner]/[repo]/[branch]/webs-submissions/route.ts',{
+  '@/lib/base-url':compile('lib/base-url.ts',{env}),
   '@/lib/webs/bot':helper,'@/lib/api-error':errors,env,
   '@/lib/session-server':{requireApiUserSession:async()=>signedIn?{user:{id:'1',email:'test@example.com'}}:{response:new Response(null,{status:401})}},
   '@/lib/token':{getToken:async()=>{if(denied)throw errors.createHttpError('No access',403);return {token:'test'};}},
   '@/lib/webs/submissions-access':{canManageSubmissions:async()=>manager},
  });
- const request=(op='list',origin='https://cms.mobilut.com')=>route.POST(new Request('https://cms.mobilut.com/api/leadgen-labs/webs-obsah-leadgenia/main/webs-submissions',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({op,args:{limit:25},email:'forged@example.com',cmsRole:'manager'})}),{params:Promise.resolve({owner:'leadgen-labs',repo:'webs-obsah-leadgenia',branch:'main'})});
+ const request=(op='list',origin='https://cms.mobilut.com')=>route.POST(new Request('http://localhost:3000/api/leadgen-labs/webs-obsah-leadgenia/main/webs-submissions',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({op,args:{limit:25},email:'forged@example.com',cmsRole:'manager'})}),{params:Promise.resolve({owner:'leadgen-labs',repo:'webs-obsah-leadgenia',branch:'main'})});
  return {calls,env,request};
 }
 

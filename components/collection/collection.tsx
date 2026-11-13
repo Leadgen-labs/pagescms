@@ -622,11 +622,14 @@ export function Collection({ name, path }: { name: string; path?: string }) {
                   <AlertDialogHeader>
                     <AlertDialogTitle><UiText text={"Rename this file first?"} /></AlertDialogTitle>
                     <AlertDialogDescription>
-                      <UiText text={"Before adding children to this file, you must rename it from \""}/>{row.original.path}<UiText text={"\" to \""}/>{row.original.path.replace(
-                        `.${schema.extension}`,
-                        `/${schema.view?.node?.filename}`,
-                      )}
-                      <UiText text={"\"."}/></AlertDialogDescription>
+                      <UiText
+                        text={'Before adding children to this file, you must rename it from "{0}" to "{1}".'}
+                        values={[row.original.path, row.original.path.replace(
+                          `.${schema.extension}`,
+                          `/${schema.view?.node?.filename}`,
+                        )]}
+                      />
+                    </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel><UiText text={"Cancel"} /></AlertDialogCancel>
