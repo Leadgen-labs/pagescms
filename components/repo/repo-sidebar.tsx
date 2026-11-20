@@ -691,14 +691,14 @@ export function RepoSidebar({ editorial = false }: { editorial?: boolean }) {
           icon: <ArrowDownUp className="size-4" />,
         }])}
       </SidebarContent>
-      <SidebarFooter className="border-t">
-        <div className="py-1"><LanguageSwitcher/></div>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <User showLabel />
-            <AdminButton />
-          </div>
+      <SidebarFooter className="border-t p-3">
+        <div className="flex items-center justify-end gap-2">
+          <User showLabel />
           <About />
+        </div>
+        <div className="flex items-start justify-between gap-2">
+          <LanguageSwitcher />
+          <AdminButton />
         </div>
       </SidebarFooter>
     </Sidebar>

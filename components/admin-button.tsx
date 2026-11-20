@@ -13,7 +13,7 @@ export function AdminButton() {
   if (!user?.isAdmin) return null;
 
   return (
-    <Button asChild variant="outline" size="sm" className="shrink-0 px-2 text-xs sm:px-3 sm:text-sm">
+    <Button asChild variant="outline" className="h-[42px] rounded-lg">
       <Link href="/admin/weby">
         <LayoutDashboard className="size-4" />
         {ui("Superadmin")}

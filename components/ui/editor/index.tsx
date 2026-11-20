@@ -404,7 +404,9 @@ export function Editor({
     },
     editable: !disabled,
     immediatelyRender: false,
-    onUpdate: ({ editor: nextEditor }) => {
+    onUpdate: ({ editor: nextEditor, transaction }) => {
+      // Mounting editor UI can append an empty trailing paragraph.
+      if (!transaction.docChanged) return;
       const nextValue =
         format === "markdown"
           ? normalizeMarkdownTables(nextEditor.getMarkdown())
